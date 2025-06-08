@@ -1,0 +1,104 @@
+.report-form {
+  max-width: 400px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background: #f7f9fc;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+
+  label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #333;
+  }
+
+  input {
+    width: 100%;
+    padding: 0.55rem 0.75rem;
+    margin-bottom: 1.2rem;
+    border: 1.8px solid #ccc;
+    border-radius: 6px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+
+    &:focus {
+      outline: none;
+      border-color: #4a90e2;
+      box-shadow: 0 0 6px rgba(74, 144, 226, 0.5);
+    }
+
+    &::placeholder {
+      color: #999;
+    }
+  }
+
+  .password-input {
+    position: relative;
+
+    // input {
+    //   padding-right: 5rem;
+    // }
+
+    .toggle-password {
+          position: absolute;
+    top: 33%;
+    right: 1px;
+    transform: translateY(-50%);
+    
+    color: rgb(0, 0, 0);
+      padding: 0.3rem 0.7rem;
+      border-radius: 5px;
+      cursor: pointer;
+      user-select: none;
+      font-size: 0.9rem;
+      font-weight: 600;
+
+
+      
+    }
+  }
+
+  .strength-bar {
+    height: 8px;
+    border-radius: 5px;
+    margin-bottom: 1.5rem;
+    background-color: #ddd;
+    overflow: hidden;
+    box-shadow: inset 0 0 5px rgba(0,0,0,0.1);
+
+    &.weak {
+      background: linear-gradient(90deg, #f44336 0%, #f44336 33%, #ddd 33%);
+    }
+
+    &.medium {
+      background: linear-gradient(90deg, #ff9800 0%, #ff9800 66%, #ddd 66%);
+    }
+
+    &.strong {
+      background: linear-gradient(90deg, #4caf50 0%, #4caf50 100%);
+    }
+  }
+
+  .btn-save {
+    width: 100%;
+    padding: 0.7rem;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: white;
+    background-color: #4a90e2;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+
+    &:hover {
+      background-color: #357abd;
+    }
+
+    &:active {
+      background-color: #2a5d8f;
+    }
+  }
+}

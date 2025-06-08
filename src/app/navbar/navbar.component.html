@@ -1,0 +1,20 @@
+<nav class="navbar">
+  <div class="navbar-back" (click)="goBack()" title="Go Back">⬅</div>
+
+  <div class="navbar-brand">
+    <a (click)="goToReports()" class="logo">My Reports</a>
+  </div>
+
+  <div class="navbar-search">
+    <input
+      type="text"
+      placeholder="Search reports..."
+      [(ngModel)]="searchQuery"
+      (input)="onSearchChange()"
+    />
+  </div>
+
+  <div class="navbar-actions">
+    <button (click)="goToCreate()" class="btn-add">+ Add New Report</button>
+  </div>
+</nav>

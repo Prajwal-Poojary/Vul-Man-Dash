@@ -1,0 +1,289 @@
+<div class="dashboard-wrapper">
+  <div class="form-container" *ngIf="showInputForm">
+    <div class="form-header">
+      <h1 class="form-title">
+        <span class="title-icon">📊</span>
+        Dashboard Configuration
+      </h1>
+      <p class="form-subtitle">Enter threat and vulnerability metrics</p>
+    </div>
+
+    <form (ngSubmit)="onSubmit()" #dashboardForm="ngForm" class="dashboard-form">
+      <!-- Exposure Score Section -->
+      <div class="form-section">
+        <h2 class="section-title">
+          <span class="section-icon">🔍</span>
+          Exposure Metrics
+        </h2>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="exposureLevel" class="form-label">Exposure Level</label>
+            <select id="exposureLevel" name="exposureLevel" [(ngModel)]="formData.exposureLevel" class="form-select" required>
+              <option value="" disabled selected>Select level</option>
+              <option value="Low">Low</option>
+              <option value="Medium">Medium</option>
+              <option value="High">High</option>
+              <option value="Critical">Critical</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="exposureCurrent" class="form-label">Current Score</label>
+            <input type="number" id="exposureCurrent" name="exposureCurrent" [(ngModel)]="formData.exposureCurrent" 
+                   class="form-input" min="0" required>
+          </div>
+
+          <div class="form-group">
+            <label for="exposurePrevious" class="form-label">Previous Score</label>
+            <input type="number" id="exposurePrevious" name="exposurePrevious" [(ngModel)]="formData.exposurePrevious" 
+                   class="form-input" min="0" required>
+          </div>
+
+          <div class="form-group">
+            <label for="exposureHighRisk" class="form-label">High Risk Count</label>
+            <input type="number" id="exposureHighRisk" name="exposureHighRisk" [(ngModel)]="formData.exposureHighRisk" 
+                   class="form-input" min="0" required>
+          </div>
+
+          <div class="form-group">
+            <label for="totalAssets" class="form-label">Total Assets</label>
+            <input type="number" id="totalAssets" name="totalAssets" [(ngModel)]="formData.totalAssets" 
+                   class="form-input" min="0" required>
+          </div>
+        </div>
+      </div>
+
+      <!-- Configuration Score Section -->
+      <div class="form-section">
+        <h2 class="section-title">
+          <span class="section-icon">⚙️</span>
+          Configuration Metrics
+        </h2>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="configScore" class="form-label">Configuration Score</label>
+            <input type="number" id="configScore" name="configScore" [(ngModel)]="formData.configScore" 
+                   class="form-input" min="0" max="1000" required>
+            <span class="input-hint">(out of 1000)</span>
+          </div>
+
+          <div class="form-group">
+            <label for="configCompliance" class="form-label">Compliance %</label>
+            <input type="number" id="configCompliance" name="configCompliance" [(ngModel)]="formData.configCompliance" 
+                   class="form-input" min="0" max="100" required>
+          </div>
+
+          <div class="form-group">
+            <label for="openAlerts" class="form-label">Open Alerts</label>
+            <input type="number" id="openAlerts" name="openAlerts" [(ngModel)]="formData.openAlerts" 
+                   class="form-input" min="0" required>
+          </div>
+        </div>
+      </div>
+
+      <!-- Severity Distribution Section -->
+      <div class="form-section">
+        <h2 class="section-title">
+          <span class="section-icon">📊</span>
+          Severity Distribution
+        </h2>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="sevCritical" class="form-label">Critical</label>
+            <input type="number" id="sevCritical" name="sevCritical" [(ngModel)]="formData.sevCritical" 
+                   class="form-input" min="0" required>
+          </div>
+
+          <div class="form-group">
+            <label for="sevHigh" class="form-label">High</label>
+            <input type="number" id="sevHigh" name="sevHigh" [(ngModel)]="formData.sevHigh" 
+                   class="form-input" min="0" required>
+          </div>
+
+          <div class="form-group">
+            <label for="sevMedium" class="form-label">Medium</label>
+            <input type="number" id="sevMedium" name="sevMedium" [(ngModel)]="formData.sevMedium" 
+                   class="form-input" min="0" required>
+          </div>
+
+          <div class="form-group">
+            <label for="sevLow" class="form-label">Low</label>
+            <input type="number" id="sevLow" name="sevLow" [(ngModel)]="formData.sevLow" 
+                   class="form-input" min="0" required>
+          </div>
+
+          <div class="form-group">
+            <label for="sevInformative" class="form-label">Informative</label>
+            <input type="number" id="sevInformative" name="sevInformative" [(ngModel)]="formData.sevInformative" 
+                   class="form-input" min="0" required>
+          </div>
+        </div>
+      </div>
+
+      <!-- Trend Data Section -->
+      <div class="form-section">
+        <h2 class="section-title">
+          <span class="section-icon">📈</span>
+          Vulnerability Trend
+        </h2>
+        <div class="form-group">
+          <label for="trendData" class="form-label">Monthly Counts</label>
+          <input type="text" id="trendData" name="trendData" [(ngModel)]="formData.trendData" 
+                 class="form-input" placeholder="e.g. 200,180,160,140" required>
+          <span class="input-hint">Comma-separated values</span>
+        </div>
+      </div>
+
+      <!-- Remediation Section -->
+      <div class="form-section">
+        <h2 class="section-title">
+          <span class="section-icon">✅</span>
+          Remediation Progress
+        </h2>
+        <div class="form-group">
+          <label for="remediationAreas" class="form-label">Areas</label>
+          <input type="text" id="remediationAreas" name="remediationAreas" [(ngModel)]="formData.remediationAreas" 
+                 class="form-input" placeholder="e.g. Host,Network,Application" required>
+          <span class="input-hint">Comma-separated areas</span>
+        </div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="remediationCompleted" class="form-label">Completed</label>
+            <input type="text" id="remediationCompleted" name="remediationCompleted" [(ngModel)]="formData.remediationCompleted" 
+                   class="form-input" placeholder="e.g. 120,80,60" required>
+          </div>
+
+          <div class="form-group">
+            <label for="remediationPending" class="form-label">Pending</label>
+            <input type="text" id="remediationPending" name="remediationPending" [(ngModel)]="formData.remediationPending" 
+                   class="form-input" placeholder="e.g. 30,40,20" required>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="submit-button">
+          <span class="button-icon">🚀</span>
+          Generate Dashboard
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <div class="dashboard-view" *ngIf="!showInputForm">
+    <div class="dashboard-header">
+      <div>
+        <h1 class="dashboard-title">
+          <span class="title-icon">🛡️</span>
+          Threat & Vulnerability Dashboard
+        </h1>
+        <p class="dashboard-subtitle">Last updated: {{ currentDate | date:'medium' }}</p>
+      </div>
+      <button (click)="showInputForm = true" class="edit-button">
+        <span class="button-icon">✏️</span>
+        Edit Data
+      </button>
+    </div>
+
+    <div class="dashboard-content">
+      <!-- Exposure Metrics -->
+      <div class="dashboard-section">
+        <h2 class="section-title">
+          <span class="section-icon">🔍</span>
+          Exposure Metrics
+        </h2>
+        <div class="metrics-grid">
+          <div class="metric-card" [ngClass]="'severity-' + formData.exposureLevel.toLowerCase()">
+            <div class="metric-value">{{ formData.exposureLevel }}</div>
+            <div class="metric-label">Exposure Level</div>
+            <div class="metric-details">
+              <div class="detail-item">
+                <span class="detail-label">Current Score:</span>
+                <span class="detail-value">{{ formData.exposureCurrent }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Previous Score:</span>
+                <span class="detail-value">{{ formData.exposurePrevious }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">High Risk:</span>
+                <span class="detail-value">{{ formData.exposureHighRisk }}</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="metric-card">
+            <div class="metric-value">{{ formData.totalAssets }}</div>
+            <div class="metric-label">Total Assets</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Configuration Metrics -->
+      <div class="dashboard-section">
+        <h2 class="section-title">
+          <span class="section-icon">⚙️</span>
+          Configuration Metrics
+        </h2>
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-value">{{ formData.configScore }}<span class="metric-unit">/1000</span></div>
+            <div class="metric-label">Configuration Score</div>
+          </div>
+          
+          <div class="metric-card">
+            <div class="metric-value">{{ formData.configCompliance }}<span class="metric-unit">%</span></div>
+            <div class="metric-label">Compliance</div>
+          </div>
+          
+          <div class="metric-card">
+            <div class="metric-value">{{ formData.openAlerts }}</div>
+            <div class="metric-label">Open Alerts</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts Section -->
+      <div class="dashboard-section">
+        <h2 class="section-title">
+          <span class="section-icon">📊</span>
+          Security Visualizations
+        </h2>
+        
+        <div class="charts-grid">
+          <!-- Severity Chart -->
+          <div class="chart-container">
+            <h3 class="chart-title">Vulnerability Severity</h3>
+            <div class="chart-wrapper">
+              <canvas id="severityChart"></canvas>
+            </div>
+          </div>
+          
+          <!-- Trend Chart -->
+          <div class="chart-container">
+            <h3 class="chart-title">Monthly Trend</h3>
+            <div class="chart-wrapper">
+              <canvas id="trendChart"></canvas>
+            </div>
+          </div>
+          
+          <!-- Remediation Chart -->
+          <div class="chart-container">
+            <h3 class="chart-title">Remediation Progress</h3>
+            <div class="chart-wrapper">
+              <canvas id="remediationChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button (click)="navigateToReport()" class="submit-button">
+          <span class="button-icon">📝</span>
+          Enter Report
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

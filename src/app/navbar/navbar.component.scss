@@ -1,0 +1,130 @@
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 2rem;
+  background: linear-gradient(to right, #1f2937, #111827);
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  border-bottom: 2px solid #2563eb;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+
+  .navbar-brand {
+    .logo {
+      font-size: 1.2rem;
+      font-weight: bold;
+      text-decoration: none;
+      color: #ffffff;
+      cursor: pointer;
+      transition: color 0.3s ease;
+
+      &:hover {
+        color: #60a5fa;
+      }
+    }
+  }
+
+  .headline {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin: 0 auto;
+  }
+
+  .navbar-actions {
+    .btn-add {
+      background-color: #3b82f6;
+      color: white;
+      font-weight: 500;
+      padding: 0.6rem 1.2rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+
+      &:hover {
+        background-color: #2563eb;
+        transform: scale(1.05);
+      }
+
+      &:active {
+        transform: scale(0.98);
+      }
+    }
+  }
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+    padding: 1rem;
+
+    .headline {
+      order: -1;
+      margin: 0;
+      text-align: center;
+    }
+
+    .navbar-actions {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+    }
+  }
+}
+.navbar-search {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+
+  input {
+    width: 60%;
+    max-width: 300px;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    border: none;
+    font-size: 1rem;
+    background-color: #374151;
+    color: #ffffff;
+    outline: none;
+    transition: box-shadow 0.3s ease;
+
+    &::placeholder {
+      color: #9ca3af;
+    }
+
+    &:focus {
+      box-shadow: 0 0 0 2px #2563eb;
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .navbar-search {
+    width: 100%;
+    justify-content: center;
+
+    input {
+      width: 90%;
+    }
+  }
+}
+.navbar-back {
+  font-size: 2rem;
+  color: #ffffff;
+  cursor: pointer;
+  margin-right: 1rem;
+  transition: color 0.3s ease;
+
+  &:hover {
+    color: #60a5fa;
+  }
+
+  @media (max-width: 768px) {
+    text-align: center;
+    margin: 0 auto;
+  }
+}

@@ -1,0 +1,27 @@
+<div class="container">
+  <table *ngIf="filteredReports().length > 0" class="report-table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Title</th>
+        <th>Created Time</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let report of filteredReports(); let i = index">
+        <td>{{ i + 1 }}</td>
+        <td>{{ report.title }}</td>
+        <td>{{ report.createdTime | date:'short' }}</td>
+        <td>
+          <button (click)="deleteReport(i)">Delete</button>
+          <button (click)="editReport(i)" class="btn-edit">Edit</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div *ngIf="filteredReports().length === 0" class="empty-msg">
+    No reports found.
+  </div>
+</div>
