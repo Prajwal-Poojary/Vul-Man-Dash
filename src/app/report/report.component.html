@@ -197,9 +197,11 @@
       </div>
     </div>
     <div class="report-section">
-      <div class="chart-container">
-        <h3 class="chart-title">Remediation Progress</h3>
-        <canvas id="reportRemediationChart"></canvas>
+      <div *ngIf="dashboardData" class="report-charts">
+        <div class="chart-container">
+          <h3 class="chart-title">Remediation Progress</h3>
+          <canvas id="reportRemediationChart"></canvas>
+        </div>
       </div>
     </div>
 

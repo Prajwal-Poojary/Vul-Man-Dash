@@ -6,6 +6,7 @@ import { HttpClient } from '@angular/common/http';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { Document, Packer, Paragraph, TextRun, HeadingLevel, Table, TableRow, TableCell, WidthType } from 'docx';
+import { saveAs } from 'file-saver';
 import { Chart, registerables } from 'chart.js';
 
 @Component({
