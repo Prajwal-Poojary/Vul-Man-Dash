@@ -184,32 +184,6 @@
 
     <div class="report-section">
       <h2>3. Executive Summary</h2>
-      <!-- <p>{{ form.summary }}</p>
-
-      <div *ngIf="dashboardData?.dashboardData" class="metrics-summary">
-        <h3>Key Security Metrics</h3>
-        <div class="metrics-grid">
-          <div class="metric-card">
-            <h4>Exposure Level</h4>
-            <p class="severity-{{ (dashboardData.dashboardData.exposureLevel || 'Medium').toLowerCase() }}">
-              {{ dashboardData.dashboardData.exposureLevel || 'Medium' }}
-            </p>
-          </div>
-          <div class="metric-card">
-            <h4>Configuration Score</h4>
-            <p>{{ dashboardData.dashboardData.configScore || 0 }}/1000</p>
-          </div>
-          <div class="metric-card">
-            <h4>Compliance</h4>
-            <p>{{ dashboardData.dashboardData.configCompliance || 0 }}%</p>
-          </div>
-          <div class="metric-card">
-            <h4>Open Alerts</h4>
-            <p>{{ dashboardData.dashboardData.openAlerts || 0 }}</p>
-          </div>
-        </div>
-      </div> -->
-
       <div *ngIf="dashboardData" class="report-charts">
         <div class="chart-container">
           <h3 class="chart-title">Vulnerability Severity Distribution</h3>
@@ -221,13 +195,11 @@
           <canvas id="reportTrendChart"></canvas>
         </div>
       </div>
-      <div class="report-section">
-
-
-        <div class="chart-container">
-          <h3 class="chart-title">Remediation Progress</h3>
-          <canvas id="reportRemediationChart"></canvas>
-        </div>
+    </div>
+    <div class="report-section">
+      <div class="chart-container">
+        <h3 class="chart-title">Remediation Progress</h3>
+        <canvas id="reportRemediationChart"></canvas>
       </div>
     </div>
 
