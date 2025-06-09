@@ -5,7 +5,7 @@ import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
-import { Document, Packer, Paragraph, TextRun, HeadingLevel, Table, TableRow, TableCell, WidthType } from 'docx';
+import { Document, Packer, Paragraph, TextRun, HeadingLevel, Table, TableRow, TableCell, WidthType, ImageRun } from 'docx';
 import { saveAs } from 'file-saver';
 import { Chart, registerables } from 'chart.js';
 
@@ -723,47 +723,83 @@ export class ReportComponent {
     }
   }
 
-
-
   async downloadAsDOCX() {
     try {
-      const password = prompt('Enter password for DOCX protection (min 6 characters)');
-      if (!password || password.length < 6) {
-        alert('Password must be at least 6 characters');
-        return;
+      const reportSections = Array.from(document.querySelectorAll('.final-report .report-section'));
+      const header = document.querySelector('.final-report .report-header');
+      const allRenderTargets = [header, ...reportSections];
+
+      // Create a new document with all sections
+      const sections = [];
+      for (const element of allRenderTargets) {
+        if (!element) continue;
+
+        // Convert canvas elements to images
+        const canvases = Array.from(element.querySelectorAll('canvas'));
+        const canvasImages: HTMLImageElement[] = [];
+
+        canvases.forEach((canvas) => {
+          const img = new Image();
+          img.src = canvas.toDataURL('image/png');
+          img.style.width = canvas.style.width;
+          img.style.height = canvas.style.height;
+          canvas.parentElement?.insertBefore(img, canvas);
+          canvas.style.display = 'none';
+          canvasImages.push(img);
+        });
+
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        // Convert HTML to image
+        const canvas = await html2canvas(element as HTMLElement, {
+          scale: 2,
+          useCORS: true
+        });
+
+        // Restore original canvas
+        canvases.forEach((canvas, i) => {
+          canvas.style.display = 'block';
+          canvasImages[i].remove();
+        });
+
+        // Add the image to the document
+        const imgData = canvas.toDataURL('image/png');
+        const imageBuffer = await fetch(imgData).then(res => res.arrayBuffer());
+        
+        sections.push({
+          properties: {},
+          children: [
+            new Paragraph({
+              children: [
+                new ImageRun({
+                  data: imageBuffer,
+                  transformation: {
+                    width: 500,
+                    height: 300
+                  },
+                  type: 'png'
+                })
+              ]
+            })
+          ]
+        });
       }
 
-      const confirmPassword = prompt('Confirm password');
-      if (password !== confirmPassword) {
-        alert('Passwords do not match');
-        return;
-      }
-
-      const doc = this.createDocxDocument();
-      const blob = await Packer.toBlob(doc);
-      const formData = new FormData();
-      formData.append('file', blob, 'report.docx');
-      formData.append('password', password);
-
-      this.http.post(`${this.apiUrl}/protect-docx`, formData, {
-        responseType: 'blob'
-      }).subscribe({
-        next: (protectedBlob: Blob) => {
-          const url = window.URL.createObjectURL(protectedBlob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = 'protected_report.zip';
-          a.click();
-          window.URL.revokeObjectURL(url);
-          this.dropdownOpen = false;
-
-          alert('Document saved as password-protected ZIP file. Extract the DOCX using the password.');
-        },
-        error: (err) => {
-          console.error('DOCX protection failed:', err);
-          alert(err.error?.error || 'Failed to protect document');
-        }
+      // Create document with all sections
+      const doc = new Document({
+        sections: sections
       });
+
+      // Generate and download the document
+      const blob = await Packer.toBlob(doc);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'Final_Report.docx';
+      a.click();
+      window.URL.revokeObjectURL(url);
+      this.dropdownOpen = false;
+
     } catch (error) {
       console.error('DOCX download failed:', error);
       alert('Failed to generate document. Please try again.');
