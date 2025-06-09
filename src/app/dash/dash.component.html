@@ -1,4 +1,6 @@
 <div class="dashboard-wrapper">
+ 
+
   <div class="form-container" *ngIf="showInputForm">
     <div class="form-header">
       <h1 class="form-title">
@@ -9,113 +11,81 @@
     </div>
 
     <form (ngSubmit)="onSubmit()" #dashboardForm="ngForm" class="dashboard-form">
-      <!-- Exposure Score Section -->
+      <!-- CVSS Metrics Section -->
       <div class="form-section">
         <h2 class="section-title">
-          <span class="section-icon">🔍</span>
-          Exposure Metrics
+          <span class="section-icon">🎯</span>
+          CVSS Metrics
         </h2>
         <div class="form-grid">
           <div class="form-group">
-            <label for="exposureLevel" class="form-label">Exposure Level</label>
-            <select id="exposureLevel" name="exposureLevel" [(ngModel)]="formData.exposureLevel" class="form-select" required>
-              <option value="" disabled selected>Select level</option>
-              <option value="Low">Low</option>
-              <option value="Medium">Medium</option>
-              <option value="High">High</option>
-              <option value="Critical">Critical</option>
+            <label for="attackVector" class="form-label">Attack Vector</label>
+            <select id="attackVector" name="attackVector" [(ngModel)]="formData.attackVector" class="form-select" required>
+              <option value="Network">Network</option>
+              <option value="Adjacent">Adjacent</option>
+              <option value="Local">Local</option>
+              <option value="Physical">Physical</option>
             </select>
           </div>
 
           <div class="form-group">
-            <label for="exposureCurrent" class="form-label">Current Score</label>
-            <input type="number" id="exposureCurrent" name="exposureCurrent" [(ngModel)]="formData.exposureCurrent" 
-                   class="form-input" min="0" required>
+            <label for="attackComplexity" class="form-label">Attack Complexity</label>
+            <select id="attackComplexity" name="attackComplexity" [(ngModel)]="formData.attackComplexity" class="form-select" required>
+              <option value="Low">Low</option>
+              <option value="High">High</option>
+            </select>
           </div>
 
           <div class="form-group">
-            <label for="exposurePrevious" class="form-label">Previous Score</label>
-            <input type="number" id="exposurePrevious" name="exposurePrevious" [(ngModel)]="formData.exposurePrevious" 
-                   class="form-input" min="0" required>
+            <label for="privilegesRequired" class="form-label">Privileges Required</label>
+            <select id="privilegesRequired" name="privilegesRequired" [(ngModel)]="formData.privilegesRequired" class="form-select" required>
+              <option value="None">Informative</option>
+              <option value="Low">Low</option>
+              <option value="High">High</option>
+            </select>
           </div>
 
           <div class="form-group">
-            <label for="exposureHighRisk" class="form-label">High Risk Count</label>
-            <input type="number" id="exposureHighRisk" name="exposureHighRisk" [(ngModel)]="formData.exposureHighRisk" 
-                   class="form-input" min="0" required>
+            <label for="userInteraction" class="form-label">User Interaction</label>
+            <select id="userInteraction" name="userInteraction" [(ngModel)]="formData.userInteraction" class="form-select" required>
+              <option value="None">Informative</option>
+              <option value="Required">Required</option>
+            </select>
           </div>
 
           <div class="form-group">
-            <label for="totalAssets" class="form-label">Total Assets</label>
-            <input type="number" id="totalAssets" name="totalAssets" [(ngModel)]="formData.totalAssets" 
-                   class="form-input" min="0" required>
-          </div>
-        </div>
-      </div>
-
-      <!-- Configuration Score Section -->
-      <div class="form-section">
-        <h2 class="section-title">
-          <span class="section-icon">⚙️</span>
-          Configuration Metrics
-        </h2>
-        <div class="form-grid">
-          <div class="form-group">
-            <label for="configScore" class="form-label">Configuration Score</label>
-            <input type="number" id="configScore" name="configScore" [(ngModel)]="formData.configScore" 
-                   class="form-input" min="0" max="1000" required>
-            <span class="input-hint">(out of 1000)</span>
+            <label for="scope" class="form-label">Scope</label>
+            <select id="scope" name="scope" [(ngModel)]="formData.scope" class="form-select" required>
+              <option value="Unchanged">Unchanged</option>
+              <option value="Changed">Changed</option>
+            </select>
           </div>
 
           <div class="form-group">
-            <label for="configCompliance" class="form-label">Compliance %</label>
-            <input type="number" id="configCompliance" name="configCompliance" [(ngModel)]="formData.configCompliance" 
-                   class="form-input" min="0" max="100" required>
+            <label for="confidentiality" class="form-label">Confidentiality Impact</label>
+            <select id="confidentiality" name="confidentiality" [(ngModel)]="formData.confidentiality" class="form-select" required>
+              <option value="None">Informative</option>
+              <option value="Low">Low</option>
+              <option value="High">High</option>
+            </select>
           </div>
 
           <div class="form-group">
-            <label for="openAlerts" class="form-label">Open Alerts</label>
-            <input type="number" id="openAlerts" name="openAlerts" [(ngModel)]="formData.openAlerts" 
-                   class="form-input" min="0" required>
-          </div>
-        </div>
-      </div>
-
-      <!-- Severity Distribution Section -->
-      <div class="form-section">
-        <h2 class="section-title">
-          <span class="section-icon">📊</span>
-          Severity Distribution
-        </h2>
-        <div class="form-grid">
-          <div class="form-group">
-            <label for="sevCritical" class="form-label">Critical</label>
-            <input type="number" id="sevCritical" name="sevCritical" [(ngModel)]="formData.sevCritical" 
-                   class="form-input" min="0" required>
+            <label for="integrity" class="form-label">Integrity Impact</label>
+            <select id="integrity" name="integrity" [(ngModel)]="formData.integrity" class="form-select" required>
+              <option value="None">Informative</option>
+              <option value="Low">Low</option>
+              <option value="High">High</option>
+            </select>
           </div>
 
           <div class="form-group">
-            <label for="sevHigh" class="form-label">High</label>
-            <input type="number" id="sevHigh" name="sevHigh" [(ngModel)]="formData.sevHigh" 
-                   class="form-input" min="0" required>
-          </div>
-
-          <div class="form-group">
-            <label for="sevMedium" class="form-label">Medium</label>
-            <input type="number" id="sevMedium" name="sevMedium" [(ngModel)]="formData.sevMedium" 
-                   class="form-input" min="0" required>
-          </div>
-
-          <div class="form-group">
-            <label for="sevLow" class="form-label">Low</label>
-            <input type="number" id="sevLow" name="sevLow" [(ngModel)]="formData.sevLow" 
-                   class="form-input" min="0" required>
-          </div>
-
-          <div class="form-group">
-            <label for="sevInformative" class="form-label">Informative</label>
-            <input type="number" id="sevInformative" name="sevInformative" [(ngModel)]="formData.sevInformative" 
-                   class="form-input" min="0" required>
+            <label for="availability" class="form-label">Availability Impact</label>
+            <select id="availability" name="availability" [(ngModel)]="formData.availability" class="form-select" required>
+              <option value="None">Informative</option>
+              <option value="Low">Low</option>
+              <option value="High">High</option>
+            </select>
           </div>
         </div>
       </div>
@@ -127,10 +97,16 @@
           Vulnerability Trend
         </h2>
         <div class="form-group">
+          <label for="trendMonths" class="form-label">Months</label>
+          <input type="text" id="trendMonths" name="trendMonths" [(ngModel)]="formData.trendMonths" 
+                 class="form-input" placeholder="e.g. 2024-01,2024-02,2024-03" required>
+          <span class="input-hint">Comma-separated months (YYYY-MM)</span>
+        </div>
+        <div class="form-group">
           <label for="trendData" class="form-label">Monthly Counts</label>
           <input type="text" id="trendData" name="trendData" [(ngModel)]="formData.trendData" 
-                 class="form-input" placeholder="e.g. 200,180,160,140" required>
-          <span class="input-hint">Comma-separated values</span>
+                 class="form-input" placeholder="e.g. 200,180,160" required>
+          <span class="input-hint">Comma-separated values (one per month)</span>
         </div>
       </div>
 
@@ -138,27 +114,31 @@
       <div class="form-section">
         <h2 class="section-title">
           <span class="section-icon">✅</span>
-          Remediation Progress
+          Vulnerability Findings
         </h2>
         <div class="form-group">
           <label for="remediationAreas" class="form-label">Areas</label>
           <input type="text" id="remediationAreas" name="remediationAreas" [(ngModel)]="formData.remediationAreas" 
-                 class="form-input" placeholder="e.g. Host,Network,Application" required>
+                 class="form-input" placeholder="e.g. Host,Network,Application" required
+                 (input)="updateAreaVulnerabilities()">
           <span class="input-hint">Comma-separated areas</span>
         </div>
 
-        <div class="form-grid">
-          <div class="form-group">
-            <label for="remediationCompleted" class="form-label">Completed</label>
-            <input type="text" id="remediationCompleted" name="remediationCompleted" [(ngModel)]="formData.remediationCompleted" 
-                   class="form-input" placeholder="e.g. 120,80,60" required>
+        <div class="form-grid" *ngIf="areaVulnerabilities.length > 0">
+          <div class="area-input-group" *ngFor="let area of areaVulnerabilities; let i = index">
+            <h3 class="area-title">{{ area.name }}</h3>
+            <div class="form-group">
+              <label [for]="'vuln-count-' + i" class="form-label">Vulnerabilities Found</label>
+              <input type="number" [id]="'vuln-count-' + i" [name]="'vuln-count-' + i" 
+                     [(ngModel)]="area.count" class="form-input" min="0" required
+                     (input)="updateTotalVulnerabilities()">
+            </div>
           </div>
+        </div>
 
-          <div class="form-group">
-            <label for="remediationPending" class="form-label">Pending</label>
-            <input type="text" id="remediationPending" name="remediationPending" [(ngModel)]="formData.remediationPending" 
-                   class="form-input" placeholder="e.g. 30,40,20" required>
-          </div>
+        <div class="total-vulnerabilities">
+          <label class="form-label">Total Vulnerabilities</label>
+          <div class="total-count">{{ totalVulnerabilities }}</div>
         </div>
       </div>
 
@@ -187,59 +167,98 @@
     </div>
 
     <div class="dashboard-content">
-      <!-- Exposure Metrics -->
-      <div class="dashboard-section">
+      <!-- CVSS Score Display -->
+      <div class="dashboard-section" *ngIf="cvssBaseScore !== null">
         <h2 class="section-title">
-          <span class="section-icon">🔍</span>
-          Exposure Metrics
+          <span class="section-icon">🎯</span>
+          CVSS Score
         </h2>
-        <div class="metrics-grid">
-          <div class="metric-card" [ngClass]="'severity-' + formData.exposureLevel.toLowerCase()">
-            <div class="metric-value">{{ formData.exposureLevel }}</div>
-            <div class="metric-label">Exposure Level</div>
-            <div class="metric-details">
-              <div class="detail-item">
-                <span class="detail-label">Current Score:</span>
-                <span class="detail-value">{{ formData.exposureCurrent }}</span>
-              </div>
-              <div class="detail-item">
-                <span class="detail-label">Previous Score:</span>
-                <span class="detail-value">{{ formData.exposurePrevious }}</span>
-              </div>
-              <div class="detail-item">
-                <span class="detail-label">High Risk:</span>
-                <span class="detail-value">{{ formData.exposureHighRisk }}</span>
-              </div>
+        <div class="score-display">
+          <div class="score-box" [style.background-color]="getRiskColor(cvssRiskLevel)">
+            <div class="score-content">
+              <div class="score-value">{{ cvssBaseScore }}</div>
+              <div class="score-divider"></div>
+              <div class="risk-level">{{ cvssRiskLevel }}</div>
             </div>
-          </div>
-          
-          <div class="metric-card">
-            <div class="metric-value">{{ formData.totalAssets }}</div>
-            <div class="metric-label">Total Assets</div>
           </div>
         </div>
       </div>
 
-      <!-- Configuration Metrics -->
+      <!-- Enhanced Risk Matrix -->
       <div class="dashboard-section">
         <h2 class="section-title">
-          <span class="section-icon">⚙️</span>
-          Configuration Metrics
+          <span class="section-icon">📊</span>
+          Risk Matrix
         </h2>
-        <div class="metrics-grid">
-          <div class="metric-card">
-            <div class="metric-value">{{ formData.configScore }}<span class="metric-unit">/1000</span></div>
-            <div class="metric-label">Configuration Score</div>
+        <div class="risk-matrix">
+          <table>
+            <thead>
+              <tr>
+                <th>Impact</th>
+                <th>Critical</th>
+                <th>High</th>
+                <th>Medium</th>
+                <th>Low</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr [class.active]="cvssRiskLevel === 'Critical'">
+                <td class="impact-cell">Critical</td>
+                <td class="score-cell critical" [class.active]="cvssBaseScore && cvssBaseScore >= 9.0">9.0-10.0</td>
+                <td class="score-cell high" [class.active]="cvssBaseScore && cvssBaseScore >= 7.0 && cvssBaseScore < 9.0">7.0-8.9</td>
+                <td class="score-cell medium" [class.active]="cvssBaseScore && cvssBaseScore >= 4.0 && cvssBaseScore < 7.0">4.0-6.9</td>
+                <td class="score-cell low" [class.active]="cvssBaseScore && cvssBaseScore > 0 && cvssBaseScore < 4.0">0.1-3.9</td>
+              </tr>
+              <tr [class.active]="cvssRiskLevel === 'High'">
+                <td class="impact-cell">High</td>
+                <td class="score-cell high" [class.active]="cvssBaseScore && cvssBaseScore >= 7.0 && cvssBaseScore < 9.0">7.0-8.9</td>
+                <td class="score-cell high" [class.active]="cvssBaseScore && cvssBaseScore >= 5.0 && cvssBaseScore < 7.0">5.0-6.9</td>
+                <td class="score-cell medium" [class.active]="cvssBaseScore && cvssBaseScore >= 3.0 && cvssBaseScore < 5.0">3.0-4.9</td>
+                <td class="score-cell low" [class.active]="cvssBaseScore && cvssBaseScore > 0 && cvssBaseScore < 3.0">0.1-2.9</td>
+              </tr>
+              <tr [class.active]="cvssRiskLevel === 'Medium'">
+                <td class="impact-cell">Medium</td>
+                <td class="score-cell medium" [class.active]="cvssBaseScore && cvssBaseScore >= 4.0 && cvssBaseScore < 7.0">4.0-6.9</td>
+                <td class="score-cell medium" [class.active]="cvssBaseScore && cvssBaseScore >= 3.0 && cvssBaseScore < 5.0">3.0-4.9</td>
+                <td class="score-cell medium" [class.active]="cvssBaseScore && cvssBaseScore >= 2.0 && cvssBaseScore < 3.0">2.0-2.9</td>
+                <td class="score-cell low" [class.active]="cvssBaseScore && cvssBaseScore > 0 && cvssBaseScore < 2.0">0.1-1.9</td>
+              </tr>
+              <tr [class.active]="cvssRiskLevel === 'Low'">
+                <td class="impact-cell">Low</td>
+                <td class="score-cell low" [class.active]="cvssBaseScore && cvssBaseScore > 0 && cvssBaseScore < 4.0">0.1-3.9</td>
+                <td class="score-cell low" [class.active]="cvssBaseScore && cvssBaseScore > 0 && cvssBaseScore < 3.0">0.1-2.9</td>
+                <td class="score-cell low" [class.active]="cvssBaseScore && cvssBaseScore > 0 && cvssBaseScore < 2.0">0.1-1.9</td>
+                <td class="score-cell informative" [class.active]="cvssBaseScore === 0">0.0</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Risk Count Section -->
+        <div class="risk-counts">
+          <div class="risk-count-item critical">
+            <div class="count">{{ severityDistribution.critical }}</div>
+            <div class="label">Critical</div>
           </div>
-          
-          <div class="metric-card">
-            <div class="metric-value">{{ formData.configCompliance }}<span class="metric-unit">%</span></div>
-            <div class="metric-label">Compliance</div>
+          <div class="risk-count-item high">
+            <div class="count">{{ severityDistribution.high }}</div>
+            <div class="label">High</div>
           </div>
-          
-          <div class="metric-card">
-            <div class="metric-value">{{ formData.openAlerts }}</div>
-            <div class="metric-label">Open Alerts</div>
+          <div class="risk-count-item medium">
+            <div class="count">{{ severityDistribution.medium }}</div>
+            <div class="label">Medium</div>
+          </div>
+          <div class="risk-count-item low">
+            <div class="count">{{ severityDistribution.low }}</div>
+            <div class="label">Low</div>
+          </div>
+          <div class="risk-count-item informative">
+            <div class="count">{{ severityDistribution.informative }}</div>
+            <div class="label">Informative</div>
+          </div>
+          <div class="risk-count-item total">
+            <div class="count">{{ totalRiskCount }}</div>
+            <div class="label">Total</div>
           </div>
         </div>
       </div>
@@ -270,19 +289,22 @@
           
           <!-- Remediation Chart -->
           <div class="chart-container">
-            <h3 class="chart-title">Remediation Progress</h3>
+            <h3 class="chart-title">Vulnerability Findings by Area</h3>
             <div class="chart-wrapper">
               <canvas id="remediationChart"></canvas>
             </div>
+            <div class="chart-total">
+              <span class="total-label">Total Vulnerabilities:</span>
+              <span class="total-value">{{ totalVulnerabilities }}</span>
+            </div>
+            <div class="chart-actions">
+              <button (click)="navigateToReport()" class="submit-button">
+                <span class="button-icon">📝</span>
+                Enter Report
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-
-      <div class="form-actions">
-        <button (click)="navigateToReport()" class="submit-button">
-          <span class="button-icon">📝</span>
-          Enter Report
-        </button>
       </div>
     </div>
   </div>

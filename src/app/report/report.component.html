@@ -1,24 +1,24 @@
-<div class="report-container" *ngIf="!reportVisible">
+<div class="report-container">
+  <!-- Input Form Section -->
   <h2>Security Assessment Report Input</h2>
 
-  <div class="form-section">
-    <label>Logo Upload: <input type="file" (change)="handleLogoUpload($event)" /></label>
-    <label>Logo Title: <input type="text" [(ngModel)]="form.logoName" /></label>
-    <label>Client Name: <input type="text" [(ngModel)]="form.client" /></label>
-    <label>Report Date: <input type="date" [(ngModel)]="form.reportDate" /></label>
-    <label>Audit Type: <input type="text" [(ngModel)]="form.auditType" /></label>
-    <label>Report Type: <input type="text" [(ngModel)]="form.reportType" /></label>
-    <label>Scope: <input type="text" [(ngModel)]="form.scope" /></label>
-    <label>Period: <input type="text" [(ngModel)]="form.period" /></label>
-    <label>Summary:</label>
-    <textarea rows="4" [(ngModel)]="form.summary"></textarea>
-  </div>
+  <label>Logo Upload: <input type="file" (change)="handleLogoUpload($event)" /></label><br />
+  <label>Logo Title: <input type="text" [(ngModel)]="form.logoName" /></label><br />
+  <label>Client Name: <input type="text" [(ngModel)]="form.client" /></label><br />
+  <label>Report Date: <input type="date" [(ngModel)]="form.reportDate" /></label><br />
+  <label>Audit Type: <input type="text" [(ngModel)]="form.auditType" /></label><br />
+  <label>Report Type: <input type="text" [(ngModel)]="form.reportType" /></label><br />
+  <label>Scope: <input type="text" [(ngModel)]="form.scope" /></label><br />
+  <label>Period: <input type="text" [(ngModel)]="form.period" /></label><br />
+  <label>Summary:</label><br />
+  <textarea rows="4" [(ngModel)]="form.summary"></textarea><br /><br />
 
+  <!-- Findings Section -->
   <h3>Findings</h3>
   <div *ngFor="let finding of findings; index as i" class="finding-card">
     <h4>Finding #{{ i + 1 }}</h4>
-    <label>Vulnerability: <input type="text" [(ngModel)]="finding.vuln" /></label>
-    <label>Scope: <input type="text" [(ngModel)]="finding.scope" /></label>
+    <label>Vulnerability: <input type="text" [(ngModel)]="finding.vuln" /></label><br />
+    <label>Scope: <input type="text" [(ngModel)]="finding.scope" /></label><br />
     <label>Severity:
       <select [(ngModel)]="finding.severity">
         <option value="Critical">Critical</option>
@@ -26,7 +26,7 @@
         <option value="Medium" selected>Medium</option>
         <option value="Low">Low</option>
       </select>
-    </label>
+    </label><br />
     <label>Status:
       <select [(ngModel)]="finding.status">
         <option value="Fixed">Fixed</option>
@@ -34,13 +34,18 @@
       </select>
     </label>
   </div>
-  <button (click)="addFinding()" class="add-finding-btn">Add Another Finding</button>
+  <button (click)="addFinding()">Add Another Finding</button><br /><br />
 
-  <div class="manifest-section">
-    <h3>Scan Manifest</h3>
+  <!-- Scan Manifest Section -->
+  <div class="report-wrapper">
     <div class="form-group">
-      <label>Select Scan Manifest Type:</label>
-      <select [(ngModel)]="selectedManifestType" (change)="onManifestSelect()" class="custom-select">
+      <label for="manifestType">Select Scan Manifest Type:</label>
+      <select
+        id="manifestType"
+        [(ngModel)]="selectedManifestType"
+        (change)="onManifestSelect()"
+        class="custom-select"
+      >
         <option value="">-- Select Manifest Type --</option>
         <option *ngFor="let type of manifestTypes" [value]="type">{{ type }}</option>
       </select>
@@ -51,58 +56,51 @@
         <label>Application Name:</label>
         <input type="text" [(ngModel)]="form.manifest.appName" name="appName" />
       </div>
+
       <div class="form-field">
         <label>Tester Name:</label>
         <input type="text" [(ngModel)]="form.manifest.testerName" name="testerName" />
       </div>
+
       <div class="form-field">
-        <label>Document Version:</label>
+        <label>Current Document Version:</label>
         <input type="text" [(ngModel)]="form.manifest.docVersion" name="docVersion" />
       </div>
+
       <div class="form-field">
         <label>Initial Assessment Date:</label>
         <input type="date" [(ngModel)]="form.manifest.initDate" name="initDate" />
       </div>
+
       <div class="form-field">
         <label>Re-Assessment Date:</label>
-        <select [(ngModel)]="reAssessmentOption" (change)="onReAssessmentChange()" name="reAssessmentOption">
-  <option value="date">Select Date</option>
-  <option value="na">N/A</option>
-</select>
-<input *ngIf="reAssessmentOption === 'date'" type="date" [(ngModel)]="form.manifest.reDate" name="reDate" />        
+        <input type="date" [(ngModel)]="form.manifest.reDate" name="reDate" />
       </div>
+
       <div class="form-field">
         <label>Tools Used:</label>
         <input type="text" [(ngModel)]="form.manifest.toolsUsed" name="toolsUsed" />
       </div>
+
       <div class="form-field">
-        <label>Scope:</label>
+        <label>Scope (Manifest):</label>
         <input type="text" [(ngModel)]="form.manifest.scope" name="manifestScope" />
       </div>
+
       <div class="form-field">
         <label>Description:</label>
         <textarea rows="4" [(ngModel)]="form.manifest.description" name="manifestDescription"></textarea>
       </div>
+
       <div class="form-actions">
-        <button type="submit" class="generate-btn">Generate Report</button>
+        <button type="submit">Generate Report</button>
       </div>
     </form>
   </div>
-</div>
 
-<div class="report-view" *ngIf="reportVisible">
-  <div class="final-report">
-    <!-- <div class="report-header">
-      <img *ngIf="logoDataURL" [src]="logoDataURL" alt="Logo" class="report-logo" />
-      <h1 class="report-title">{{ form.logoName }}</h1>
-      <div class="report-meta">
-        <p><strong>Date:</strong> {{ form.reportDate | date:'longDate' }}</p>
-        <p><strong>Prepared for:</strong> {{ form.client }}</p>
-      </div>
-    </div> -->
-
-    <div class="report-section">
-      <div class="report-header">
+  <!-- Final Report Section -->
+  <div *ngIf="reportVisible" class="final-report">
+    <div class="report-header">
       <img *ngIf="logoDataURL" [src]="logoDataURL" alt="Logo" class="report-logo" />
       <h1 class="report-title">{{ form.logoName }}</h1>
       <div class="report-meta">
@@ -111,37 +109,30 @@
       </div>
     </div>
 
-      <div style="padding-top: 90px;">
-        <h2>1. Report Details</h2>
-      <table class="report-details" style="border: 1px solid #000000;">
-        <tr style="border: 1px solid #000000;">
-          <th style="border: 1px solid #000000;">Report Type</th>
-          <td style="border: 1px solid #000000;">{{ form.reportType }}</td>
+    <!-- Section 1: Report Details -->
+    <div class="report-section">
+      <h2>1. Report Details</h2>
+      <table class="report-details">
+        <tr>
+          <th>Report Start Date</th>
+          <td>{{ form.manifest.initDate | date:'mediumDate' }}</td>
         </tr>
-        <tr style="border: 1px solid #000000;">
-          <th style="border: 1px solid #000000;">Audit Type</th>
-          <td>{{ form.auditType }}</td>
+        <tr>
+          <th>Report End Date</th>
+          <td>{{ form.manifest.reDate | date:'mediumDate' }}</td>
         </tr>
-        <tr style="border: 1px solid #000000;">
-          <th style="border: 1px solid #000000;">Assessment Period</th>
-          <td>{{ form.period }}</td>
-        </tr>
-        <tr style="border: 1px solid #000000;">
-          <th style="border: 1px solid #000000;">Scope</th>
+        <tr>
+          <th>Scope</th>
           <td>{{ form.scope }}</td>
         </tr>
-        <tr *ngIf="dashboardData" style="border: 1px solid #000000;">
-          <th style="border: 1px solid #000000;">Total Assets Assessed</th>
-          <td>{{ dashboardData.dashboardData.totalAssets }}</td>
-        </tr>
-        <tr *ngIf="dashboardData" style="border: 1px solid #000000;">
-          <th style="border: 1px solid #000000;">High Risk Findings</th>
-          <td>{{ dashboardData.dashboardData.exposureHighRisk }}</td>
+        <tr>
+          <th>Audit Type</th>
+          <td>{{ form.auditType }}</td>
         </tr>
       </table>
-      </div>
     </div>
 
+    <!-- Section 2: Scan Manifest -->
     <div *ngIf="selectedManifestType" class="report-section">
       <h2>2. Scan Manifest</h2>
       <table class="manifest-table">
@@ -167,7 +158,7 @@
         </tr>
         <tr>
           <th>Re-assessment Date</th>
-      <td>{{ form.manifest.reDate ? (form.manifest.reDate | date:'mediumDate') : 'N/A' }}</td>
+          <td>{{ form.manifest.reDate | date:'mediumDate' }}</td>
         </tr>
         <tr>
           <th>Tools Used</th>
@@ -184,53 +175,13 @@
       </table>
     </div>
 
+    <!-- Section 3: Executive Summary -->
     <div class="report-section">
       <h2>3. Executive Summary</h2>
       <p>{{ form.summary }}</p>
-
-      <div *ngIf="dashboardData" class="metrics-summary">
-        <h3>Key Security Metrics</h3>
-        <div class="metrics-grid">
-          <div class="metric-card">
-            <h4>Exposure Level</h4>
-            <p class="severity-{{ dashboardData.dashboardData.exposureLevel.toLowerCase() }}">
-              {{ dashboardData.dashboardData.exposureLevel }}
-            </p>
-          </div>
-          <div class="metric-card">
-            <h4>Configuration Score</h4>
-
-            <p>{{ dashboardData.dashboardData.configScore }}/1000</p>
-          </div>
-          <div class="metric-card">
-            <h4>Compliance</h4>
-            <p>{{ dashboardData.dashboardData.configCompliance }}%</p>
-          </div>
-          <div class="metric-card">
-            <h4>Open Alerts</h4>
-            <p>{{ dashboardData.dashboardData.openAlerts }}</p>
-          </div>
-        </div>
-      </div>
-
-      <div *ngIf="dashboardData" class="report-charts">
-        <div class="chart-container">
-          <h3 class="chart-title">Vulnerability Severity Distribution</h3>
-          <canvas id="reportSeverityChart"></canvas>
-        </div>
-
-        <div class="chart-container">
-          <h3 class="chart-title">Monthly Vulnerability Trend</h3>
-          <canvas id="reportTrendChart"></canvas>
-        </div>
-
-        <div class="chart-container">
-          <h3 class="chart-title">Remediation Progress</h3>
-          <canvas id="reportRemediationChart"></canvas>
-        </div>
-      </div>
     </div>
 
+    <!-- Section 4: Findings -->
     <div class="report-section">
       <h2>4. Findings</h2>
       <table class="findings-table">
@@ -255,6 +206,7 @@
       </table>
     </div>
 
+    <!-- Section 5: Risk Matrix -->
     <div class="report-section">
       <h2>5. Risk Matrix</h2>
       <table class="risk-matrix">
@@ -262,61 +214,41 @@
           <tr>
             <th>Risk Level</th>
             <th>Description</th>
-            <th>Remediation Timeline</th>
           </tr>
         </thead>
         <tbody>
           <tr>
             <td class="severity-critical">Critical</td>
-            <td>Immediate threat to business operations or data security</td>
-            <td>Immediate remediation required (within 24 hours)</td>
+            <td>Highest level of risk requiring immediate attention.</td>
           </tr>
           <tr>
             <td class="severity-high">High</td>
-            <td>Significant risk that could lead to system compromise</td>
-            <td>Remediate within 7 days</td>
+            <td>Significant risk, remediation needed soon.</td>
           </tr>
           <tr>
             <td class="severity-medium">Medium</td>
-            <td>Vulnerability that could be exploited under certain conditions</td>
-            <td>Remediate within 30 days</td>
+            <td>Moderate risk, should be addressed.</td>
           </tr>
           <tr>
             <td class="severity-low">Low</td>
-            <td>Minimal impact with limited exploit potential</td>
-            <td>Remediate in next maintenance window</td>
+            <td>Low risk, monitor or fix when possible.</td>
           </tr>
           <tr>
             <td class="severity-informative">Informative</td>
-            <td>Best practice recommendations</td>
-            <td>Consider for future improvements</td>
+            <td>For informational purposes, no action required.</td>
           </tr>
         </tbody>
       </table>
-      <h2>6. Conclusion</h2>
-      <p>{{ getConclusionText() }}</p>
     </div>
 
-    <div class="report-actions">
-      <button (click)="editReport()" class="edit-btn">
-        <i class="fas fa-edit"></i> Edit Report
-      </button>
-      <div class="download-dropdown" [class.open]="dropdownOpen">
-        <button (click)="toggleDropdown($event)" class="download-btn">
-          <i class="fas fa-download"></i> Download Report
-        </button>
-        <ul class="dropdown-menu">
-          <li (click)="downloadAsPDF()">
-            <i class="fas fa-file-pdf"></i> PDF
-          </li>
-          <li (click)="downloadAsDOCX()">
-            <i class="fas fa-file-word"></i> DOCX
-          </li>
-        </ul>
-      </div>
-      <button (click)="backToDashboard()" class="back-btn">
-        <i class="fas fa-arrow-left"></i> Back to Dashboard
-      </button>
+    <!-- Section 6: Conclusion -->
+    <div class="report-section">
+      <h2>6. Conclusion</h2>
+      <p>This report confirms that all identified issues were addressed appropriately. The system is considered secure and stable based on the follow-up assessment.</p>
+    </div>
+
+    <div class="report-footer">
+      <p>Confidential - For internal use only</p>
     </div>
   </div>
 </div>

@@ -2,16 +2,15 @@
   "name": "command",
   "version": "0.0.0",
   "scripts": {
-  "ng": "ng",
-  "start": "concurrently \"node backend/start-server.js\" \"ng serve\"",
-  "start:frontend": "ng serve",
-  "start:backend": "node backend/start-server.js",
-  "build": "ng build",
-  "postinstall": "cd backend && pip install -r requirements.txt",
-  "watch": "ng build --watch --configuration development",
-  "test": "ng test"
-}
-,
+    "ng": "ng",
+    "start": "concurrently \"node backend/start-server.js\" \"ng serve\"",
+    "start:frontend": "ng serve",
+    "start:backend": "node backend/start-server.js",
+    "build": "ng build",
+    "postinstall": "cd backend && pip install -r requirements.txt",
+    "watch": "ng build --watch --configuration development",
+    "test": "ng test"
+  },
   "private": true,
   "dependencies": {
     "@angular/cdk": "^19.2.17",
@@ -38,8 +37,8 @@
     "zone.js": "~0.15.0"
   },
   "devDependencies": {
-    "@angular-builders/custom-webpack": "^19.0.1",
-    "@angular-devkit/build-angular": "^19.2.13",
+    "@angular-builders/custom-webpack": "^8.4.1",
+    "@angular-devkit/build-angular": "^20.0.1",
     "@angular/cli": "^19.2.13",
     "@angular/compiler-cli": "^19.2.0",
     "@types/file-saver": "^2.0.7",
