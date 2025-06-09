@@ -21,7 +21,7 @@ export class ReportComponent {
   reportVisible = false;
   dropdownOpen = false;
   dashboardData: any;
-  private readonly apiUrl = 'http://localhost:5000/api/report';
+  private readonly apiUrl = 'http://localhost:5002/api/report';
 
   // Chart instances for report
   private reportSeverityChart?: Chart;
@@ -702,7 +702,7 @@ export class ReportComponent {
     formData.append('confirm_password', password);
 
     try {
-      const response = await fetch('http://localhost:5000/api/report/protect-pdf', {
+      const response = await fetch('http://localhost:5002/api/report/protect-pdf', {
         method: 'POST',
         body: formData
       });
