@@ -77,7 +77,7 @@
           <option value="date">Select Date</option>
           <option value="na">N/A</option>
         </select>
-        <input *ngIf="reAssessmentOption === 'date'" type="date" [(ngModel)]="form.manifest.reDate" name="reDate" />        
+        <input *ngIf="reAssessmentOption === 'date'" type="date" [(ngModel)]="form.manifest.reDate" name="reDate" />
       </div>
       <div class="form-field">
         <label>Tools Used:</label>
@@ -183,8 +183,8 @@
     </div>
 
     <div class="report-section">
-      <!-- <h2>3. Executive Summary</h2>
-      <p>{{ form.summary }}</p>
+      <h2>3. Executive Summary</h2>
+      <!-- <p>{{ form.summary }}</p>
 
       <div *ngIf="dashboardData?.dashboardData" class="metrics-summary">
         <h3>Key Security Metrics</h3>
@@ -220,6 +220,9 @@
           <h3 class="chart-title">Monthly Vulnerability Trend</h3>
           <canvas id="reportTrendChart"></canvas>
         </div>
+      </div>
+      <div class="report-section">
+
 
         <div class="chart-container">
           <h3 class="chart-title">Remediation Progress</h3>
@@ -294,49 +297,49 @@
 
     <!-- 6. Detailed Vulnerabilities Section (styled like the provided image) -->
     <!-- <div class="report-section"> -->
-      <h2>6. Vulnerability Details</h2>
-      <ng-container *ngFor="let finding of findings; let i = index">
-        <div class="detailed-vuln-section report-section"
-          style="position: relative; border: 1px solid #bdbdbd; margin: 30px 0; padding: 24px; border-radius: 8px; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
-          <!-- CONFIDENTIAL in top-right corner -->
-          <span
-            style="position: absolute; top: 18px; right: 32px; color: #1976d2; font-weight: bold; font-size: 1em; text-align: right;">CONFIDENTIAL</span>
-          <!-- Heading only for first finding, centered -->
-          <div *ngIf="i === 0"
-            style="display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 12px;">
-            <h3 style="margin: 0; font-size: 1.3em; color: #1a237e; font-weight: bold; text-align: center;">{{
-              selectedManifestType }} vulnerabilities reports</h3>
-          </div>
-          <hr *ngIf="i === 0" style="margin: 12px 0 18px 0; border: none; border-top: 1px solid #e0e0e0;" />
-          <div style="font-size: 1.2em; font-weight: bold; margin-bottom: 8px;">{{ i + 1 }}.</div>
-          <div style="font-size: 1.1em; font-weight: bold; margin-bottom: 10px;">
-            Threat: <span
-              [ngStyle]="{ color: finding.severity === 'Critical' ? '#d32f2f' : finding.severity === 'High' ? '#f57c00' : finding.severity === 'Medium' ? '#ffa000' : finding.severity === 'Low' ? '#689f38' : '#1976d2', fontWeight: 'bold' }">({{
-              finding.severity }})</span>
-          </div>
-          <div *ngIf="finding.threatDetails"
-            style="margin-bottom: 12px; color: #333; font-size: 1em; max-width: 100%; word-break: break-word; overflow-wrap: break-word; white-space: pre-line; padding: 8px 0;">
-            <div style="max-width: 100%; word-break: break-word; overflow-wrap: break-word; white-space: pre-line;">{{
-              finding.threatDetails }}</div>
-          </div>
-          <div style="margin-bottom: 12px;">
-            <span style="font-weight: bold;">Vulnerability:</span> {{ finding.vuln }}
-          </div>
-          <div style="margin-bottom: 12px;">
-            <span style="font-weight: bold;">Vulnerable url:</span>
-            <a *ngIf="finding.vulnUrl" [href]="finding.vulnUrl" target="_blank"
-              style="color: #1976d2; text-decoration: underline;">{{ finding.vulnUrl }}</a>
-            <span *ngIf="!finding.vulnUrl">N/A</span>
-          </div>
-          <div style="margin-bottom: 8px; font-weight: bold;">Retesting POC:</div>
-          <div *ngIf="finding.pocDataURL"
-            style="display: flex; justify-content: center; align-items: center; width: 100%;">
-            <img [src]="finding.pocDataURL" alt="POC Image"
-              style="max-width: 100%; max-height: 260px; border: 1px solid #888; border-radius: 4px; display: block; margin: 0 auto;" />
-          </div>
-          <div *ngIf="!finding.pocDataURL" style="color: #888;">N/A</div>
+    <h2>6. Vulnerability Details</h2>
+    <ng-container *ngFor="let finding of findings; let i = index">
+      <div class="detailed-vuln-section report-section"
+        style="position: relative; border: 1px solid #bdbdbd; margin: 30px 0; padding: 24px; border-radius: 8px; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+        <!-- CONFIDENTIAL in top-right corner -->
+        <span
+          style="position: absolute; top: 18px; right: 32px; color: #1976d2; font-weight: bold; font-size: 1em; text-align: right;">CONFIDENTIAL</span>
+        <!-- Heading only for first finding, centered -->
+        <div *ngIf="i === 0"
+          style="display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 12px;">
+          <h3 style="margin: 0; font-size: 1.3em; color: #1a237e; font-weight: bold; text-align: center;">{{
+            selectedManifestType }} vulnerabilities reports</h3>
         </div>
-      </ng-container>
+        <hr *ngIf="i === 0" style="margin: 12px 0 18px 0; border: none; border-top: 1px solid #e0e0e0;" />
+        <div style="font-size: 1.2em; font-weight: bold; margin-bottom: 8px;">{{ i + 1 }}.</div>
+        <div style="font-size: 1.1em; font-weight: bold; margin-bottom: 10px;">
+          Threat: <span
+            [ngStyle]="{ color: finding.severity === 'Critical' ? '#d32f2f' : finding.severity === 'High' ? '#f57c00' : finding.severity === 'Medium' ? '#ffa000' : finding.severity === 'Low' ? '#689f38' : '#1976d2', fontWeight: 'bold' }">({{
+            finding.severity }})</span>
+        </div>
+        <div *ngIf="finding.threatDetails"
+          style="margin-bottom: 12px; color: #333; font-size: 1em; max-width: 100%; word-break: break-word; overflow-wrap: break-word; white-space: pre-line; padding: 8px 0;">
+          <div style="max-width: 100%; word-break: break-word; overflow-wrap: break-word; white-space: pre-line;">{{
+            finding.threatDetails }}</div>
+        </div>
+        <div style="margin-bottom: 12px;">
+          <span style="font-weight: bold;">Vulnerability:</span> {{ finding.vuln }}
+        </div>
+        <div style="margin-bottom: 12px;">
+          <span style="font-weight: bold;">Vulnerable url:</span>
+          <a *ngIf="finding.vulnUrl" [href]="finding.vulnUrl" target="_blank"
+            style="color: #1976d2; text-decoration: underline;">{{ finding.vulnUrl }}</a>
+          <span *ngIf="!finding.vulnUrl">N/A</span>
+        </div>
+        <div style="margin-bottom: 8px; font-weight: bold;">Retesting POC:</div>
+        <div *ngIf="finding.pocDataURL"
+          style="display: flex; justify-content: center; align-items: center; width: 100%;">
+          <img [src]="finding.pocDataURL" alt="POC Image"
+            style="max-width: 100%; max-height: 260px; border: 1px solid #888; border-radius: 4px; display: block; margin: 0 auto;" />
+        </div>
+        <div *ngIf="!finding.pocDataURL" style="color: #888;">N/A</div>
+      </div>
+    </ng-container>
     <!-- </div> -->
     <!-- End 6th section -->
 
