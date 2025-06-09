@@ -100,53 +100,43 @@
 
 <div class="report-view" *ngIf="reportVisible">
   <div class="final-report">
-    <!-- <div class="report-header">
-      <img *ngIf="logoDataURL" [src]="logoDataURL" alt="Logo" class="report-logo" />
-      <h1 class="report-title">{{ form.logoName }}</h1>
-      <div class="report-meta">
-        <p><strong>Date:</strong> {{ form.reportDate | date:'longDate' }}</p>
-        <p><strong>Prepared for:</strong> {{ form.client }}</p>
-      </div>
-    </div> -->
-
     <div class="report-section">
-      <div class="report-header">
-      <img *ngIf="logoDataURL" [src]="logoDataURL" alt="Logo" class="report-logo" />
-      <h1 class="report-title">{{ form.logoName }}</h1>
-      <div class="report-meta">
-        <p><strong>Date:</strong> {{ form.reportDate | date:'longDate' }}</p>
-        <p><strong>Prepared for:</strong> {{ form.client }}</p>
+      <div class="" style="justify-items: center;">
+        <img *ngIf="logoDataURL" [src]="logoDataURL" alt="Logo" class="report-logo" />
+        <h1 class="report-title">{{ form.logoName }}</h1>
+        <div class="report-meta">
+          <p><strong>Date:</strong> {{ form.reportDate | date:'longDate' }}</p>
+          <p><strong>Prepared for:</strong> {{ form.client }}</p>
+        </div>
       </div>
-    </div>
-
       <div style="padding-top: 90px;">
         <h2>1. Report Details</h2>
-      <table class="report-details" style="border: 1px solid #000000;">
-        <tr style="border: 1px solid #000000;">
-          <th style="border: 1px solid #000000;">Report Type</th>
-          <td style="border: 1px solid #000000;">{{ form.reportType }}</td>
-        </tr>
-        <tr style="border: 1px solid #000000;">
-          <th style="border: 1px solid #000000;">Audit Type</th>
-          <td>{{ form.auditType }}</td>
-        </tr>
-        <tr style="border: 1px solid #000000;">
-          <th style="border: 1px solid #000000;">Assessment Period</th>
-          <td>{{ form.period }}</td>
-        </tr>
-        <tr style="border: 1px solid #000000;">
-          <th style="border: 1px solid #000000;">Scope</th>
-          <td>{{ form.scope }}</td>
-        </tr>
-        <tr *ngIf="dashboardData" style="border: 1px solid #000000;">
-          <th style="border: 1px solid #000000;">Total Assets Assessed</th>
-          <td>{{ dashboardData.dashboardData.totalAssets }}</td>
-        </tr>
-        <tr *ngIf="dashboardData" style="border: 1px solid #000000;">
-          <th style="border: 1px solid #000000;">High Risk Findings</th>
-          <td>{{ dashboardData.dashboardData.exposureHighRisk }}</td>
-        </tr>
-      </table>
+        <table class="report-details">
+          <tr class="row" class="row">
+            <th class="border" class="row">Report Type</th>
+            <td class="row">{{ form.reportType }}</td>
+          </tr>
+          <tr class="row" class="row">
+            <th class="border" class="row">Audit Type</th>
+            <td>{{ form.auditType }}</td>
+          </tr>
+          <tr class="row" class="row">
+            <th class="border" class="row">Assessment Period</th>
+            <td>{{ form.period }}</td>
+          </tr>
+          <tr class="row" class="row">
+            <th class="border" class="row">Scope</th>
+            <td>{{ form.scope }}</td>
+          </tr>
+          <tr class="row" *ngIf="dashboardData" class="row">
+            <th class="border" class="row">Total Assets Assessed</th>
+            <td>{{ dashboardData.dashboardData.totalAssets }}</td>
+          </tr>
+          <tr class="row" *ngIf="dashboardData" class="row">
+            <th class="border" class="row">High Risk Findings</th>
+            <td>{{ dashboardData.dashboardData.exposureHighRisk }}</td>
+          </tr>
+        </table>
       </div>
     </div>
 
@@ -175,7 +165,7 @@
         </tr>
         <tr>
           <th>Re-assessment Date</th>
-      <td>{{ form.manifest.reDate ? (form.manifest.reDate | date:'mediumDate') : 'N/A' }}</td>
+          <td>{{ form.manifest.reDate ? (form.manifest.reDate | date:'mediumDate') : 'N/A' }}</td>
         </tr>
         <tr>
           <th>Tools Used</th>
@@ -192,7 +182,7 @@
       </table>
     </div>
 
-    <div class="report-section">
+    <!-- <div class="report-section">
       <h2>3. Executive Summary</h2>
       <p>{{ form.summary }}</p>
 
@@ -236,7 +226,7 @@
           <canvas id="reportRemediationChart"></canvas>
         </div>
       </div>
-    </div>
+    </div> -->
 
     <div class="report-section">
       <h2>4. Findings</h2>
@@ -303,40 +293,51 @@
     </div>
 
     <!-- 6. Detailed Vulnerabilities Section (styled like the provided image) -->
-    <div class="report-section">
+    <!-- <div class="report-section"> -->
       <h2>6. Vulnerability Details</h2>
       <ng-container *ngFor="let finding of findings; let i = index">
-        <div class="detailed-vuln-section" style="position: relative; border: 1px solid #bdbdbd; margin: 30px 0; padding: 24px; border-radius: 8px; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+        <div class="detailed-vuln-section report-section"
+          style="position: relative; border: 1px solid #bdbdbd; margin: 30px 0; padding: 24px; border-radius: 8px; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
           <!-- CONFIDENTIAL in top-right corner -->
-          <span style="position: absolute; top: 18px; right: 32px; color: #1976d2; font-weight: bold; font-size: 1em; text-align: right;">CONFIDENTIAL</span>
+          <span
+            style="position: absolute; top: 18px; right: 32px; color: #1976d2; font-weight: bold; font-size: 1em; text-align: right;">CONFIDENTIAL</span>
           <!-- Heading only for first finding, centered -->
-          <div *ngIf="i === 0" style="display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 12px;">
-            <h3 style="margin: 0; font-size: 1.3em; color: #1a237e; font-weight: bold; text-align: center;">{{ selectedManifestType }} vulnerabilities reports</h3>
+          <div *ngIf="i === 0"
+            style="display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 12px;">
+            <h3 style="margin: 0; font-size: 1.3em; color: #1a237e; font-weight: bold; text-align: center;">{{
+              selectedManifestType }} vulnerabilities reports</h3>
           </div>
           <hr *ngIf="i === 0" style="margin: 12px 0 18px 0; border: none; border-top: 1px solid #e0e0e0;" />
           <div style="font-size: 1.2em; font-weight: bold; margin-bottom: 8px;">{{ i + 1 }}.</div>
           <div style="font-size: 1.1em; font-weight: bold; margin-bottom: 10px;">
-            Threat: <span [ngStyle]="{ color: finding.severity === 'Critical' ? '#d32f2f' : finding.severity === 'High' ? '#f57c00' : finding.severity === 'Medium' ? '#ffa000' : finding.severity === 'Low' ? '#689f38' : '#1976d2', fontWeight: 'bold' }">({{ finding.severity }})</span>
+            Threat: <span
+              [ngStyle]="{ color: finding.severity === 'Critical' ? '#d32f2f' : finding.severity === 'High' ? '#f57c00' : finding.severity === 'Medium' ? '#ffa000' : finding.severity === 'Low' ? '#689f38' : '#1976d2', fontWeight: 'bold' }">({{
+              finding.severity }})</span>
           </div>
-          <div *ngIf="finding.threatDetails" style="margin-bottom: 12px; color: #333; font-size: 1em; max-width: 100%; word-break: break-word; overflow-wrap: break-word; white-space: pre-line; padding: 8px 0;">
-            <div style="max-width: 100%; word-break: break-word; overflow-wrap: break-word; white-space: pre-line;">{{ finding.threatDetails }}</div>
+          <div *ngIf="finding.threatDetails"
+            style="margin-bottom: 12px; color: #333; font-size: 1em; max-width: 100%; word-break: break-word; overflow-wrap: break-word; white-space: pre-line; padding: 8px 0;">
+            <div style="max-width: 100%; word-break: break-word; overflow-wrap: break-word; white-space: pre-line;">{{
+              finding.threatDetails }}</div>
           </div>
           <div style="margin-bottom: 12px;">
             <span style="font-weight: bold;">Vulnerability:</span> {{ finding.vuln }}
           </div>
           <div style="margin-bottom: 12px;">
             <span style="font-weight: bold;">Vulnerable url:</span>
-            <a *ngIf="finding.vulnUrl" [href]="finding.vulnUrl" target="_blank" style="color: #1976d2; text-decoration: underline;">{{ finding.vulnUrl }}</a>
+            <a *ngIf="finding.vulnUrl" [href]="finding.vulnUrl" target="_blank"
+              style="color: #1976d2; text-decoration: underline;">{{ finding.vulnUrl }}</a>
             <span *ngIf="!finding.vulnUrl">N/A</span>
           </div>
           <div style="margin-bottom: 8px; font-weight: bold;">Retesting POC:</div>
-          <div *ngIf="finding.pocDataURL" style="display: flex; justify-content: center; align-items: center; width: 100%;">
-            <img [src]="finding.pocDataURL" alt="POC Image" style="max-width: 100%; max-height: 260px; border: 1px solid #888; border-radius: 4px; display: block; margin: 0 auto;" />
+          <div *ngIf="finding.pocDataURL"
+            style="display: flex; justify-content: center; align-items: center; width: 100%;">
+            <img [src]="finding.pocDataURL" alt="POC Image"
+              style="max-width: 100%; max-height: 260px; border: 1px solid #888; border-radius: 4px; display: block; margin: 0 auto;" />
           </div>
           <div *ngIf="!finding.pocDataURL" style="color: #888;">N/A</div>
         </div>
       </ng-container>
-    </div>
+    <!-- </div> -->
     <!-- End 6th section -->
 
     <div class="report-section">
