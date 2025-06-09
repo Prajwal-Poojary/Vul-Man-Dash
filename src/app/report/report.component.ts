@@ -16,7 +16,7 @@ import { Chart, registerables } from 'chart.js';
   styleUrls: ['./report.component.scss']
 })
 export class ReportComponent {
-   reAssessmentOption: 'date' | 'na' = 'date'; 
+  reAssessmentOption: 'date' | 'na' = 'date';
   logoDataURL = '';
   reportVisible = false;
   dropdownOpen = false;
@@ -66,7 +66,7 @@ export class ReportComponent {
   onReAssessmentChange() {
     if (this.reAssessmentOption === 'na') {
       // Clear the date value or set it to null/empty
-       this.form.manifest.reDate = '';
+      this.form.manifest.reDate = '';
 
     }
   }
@@ -230,7 +230,7 @@ export class ReportComponent {
           },
           tooltip: {
             callbacks: {
-              label: function(context) {
+              label: function (context) {
                 const label = context.label || '';
                 const value = context.raw as number;
                 return `${label}: ${value}`;
@@ -246,7 +246,7 @@ export class ReportComponent {
           ctx.save();
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
-          
+
           // Draw CVSS Score exactly in the middle
           ctx.font = 'bold 24px Inter';
           ctx.fillStyle = '#e0e0e0';
@@ -255,7 +255,7 @@ export class ReportComponent {
             width / 2.28,
             height / 1.7
           );
-          
+
           ctx.restore();
         }
       }]
@@ -318,10 +318,10 @@ export class ReportComponent {
           },
           tooltip: {
             callbacks: {
-              title: function(tooltipItems) {
+              title: function (tooltipItems) {
                 return tooltipItems[0].label;
               },
-              label: function(context) {
+              label: function (context) {
                 return `Vulnerabilities: ${context.raw}`;
               }
             }
@@ -410,7 +410,7 @@ export class ReportComponent {
           },
           tooltip: {
             callbacks: {
-              label: function(context) {
+              label: function (context) {
                 const label = context.dataset.label || '';
                 const value = context.raw as number;
                 return `${label}: ${value}`;
