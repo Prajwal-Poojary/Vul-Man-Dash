@@ -1,54 +1,57 @@
-<div class="report-container">
-  <!-- Input Form Section -->
+<div class="report-container" *ngIf="!reportVisible">
   <h2>Security Assessment Report Input</h2>
 
-  <label>Logo Upload: <input type="file" (change)="handleLogoUpload($event)" /></label><br />
-  <label>Logo Title: <input type="text" [(ngModel)]="form.logoName" /></label><br />
-  <label>Client Name: <input type="text" [(ngModel)]="form.client" /></label><br />
-  <label>Report Date: <input type="date" [(ngModel)]="form.reportDate" /></label><br />
-  <label>Audit Type: <input type="text" [(ngModel)]="form.auditType" /></label><br />
-  <label>Report Type: <input type="text" [(ngModel)]="form.reportType" /></label><br />
-  <label>Scope: <input type="text" [(ngModel)]="form.scope" /></label><br />
-  <label>Period: <input type="text" [(ngModel)]="form.period" /></label><br />
-  <label>Summary:</label><br />
-  <textarea rows="4" [(ngModel)]="form.summary"></textarea><br /><br />
-
-  <!-- Findings Section -->
-  <h3>Findings</h3>
-  <div *ngFor="let finding of findings; index as i" class="finding-card">
-    <h4>Finding #{{ i + 1 }}</h4>
-    <label>Vulnerability: <input type="text" [(ngModel)]="finding.vuln" /></label><br />
-    <label>Scope: <input type="text" [(ngModel)]="finding.scope" /></label><br />
-    <label>Severity:
-      <select [(ngModel)]="finding.severity">
-        <option value="Critical">Critical</option>
-        <option value="High">High</option>
-        <option value="Medium" selected>Medium</option>
-        <option value="Low">Low</option>
-      </select>
-    </label><br />
-    <label>Status:
-      <select [(ngModel)]="finding.status">
-        <option value="Fixed">Fixed</option>
-        <option value="Not Fixed">Not Fixed</option>
-      </select>
-    </label>
+  <div class="form-section">
+    <label>Logo Upload: <input type="file" (change)="handleLogoUpload($event)" /></label>
+    <label>Logo Title: <input type="text" [(ngModel)]="form.logoName" /></label>
+    <label>Client Name: <input type="text" [(ngModel)]="form.client" /></label>
+    <label>Report Date: <input type="date" [(ngModel)]="form.reportDate" /></label>
+    <label>Audit Type: <input type="text" [(ngModel)]="form.auditType" /></label>
+    <label>Report Type: <input type="text" [(ngModel)]="form.reportType" /></label>
+    <label>Scope: <input type="text" [(ngModel)]="form.scope" /></label>
+    <label>Period: <input type="text" [(ngModel)]="form.period" /></label>
+    <label>Summary:</label>
+    <textarea rows="4" [(ngModel)]="form.summary"></textarea>
   </div>
-  <button (click)="addFinding()">Add Another Finding</button><br /><br />
 
-  <!-- Scan Manifest Section -->
-  <div class="report-wrapper">
+  <div class="manifest-section">
+    <h3>Scan Manifest</h3>
     <div class="form-group">
-      <label for="manifestType">Select Scan Manifest Type:</label>
-      <select
-        id="manifestType"
-        [(ngModel)]="selectedManifestType"
-        (change)="onManifestSelect()"
-        class="custom-select"
-      >
+      <label>Select Scan Manifest Type:</label>
+      <select [(ngModel)]="selectedManifestType" (change)="onManifestSelect()" class="custom-select">
         <option value="">-- Select Manifest Type --</option>
         <option *ngFor="let type of manifestTypes" [value]="type">{{ type }}</option>
       </select>
+    </div>
+
+    <div *ngIf="selectedManifestType">
+      <h3>Findings</h3>
+      <div *ngFor="let finding of findings; index as i" class="finding-card">
+        <h4>Finding #{{ i + 1 }}</h4>
+        <label>Vulnerability: <input type="text" [(ngModel)]="finding.vuln" /></label>
+        <label>Vulnerability URL: <input type="text" [(ngModel)]="finding.vulnUrl" /></label>
+        <label>Scope: <input type="text" [(ngModel)]="finding.scope" /></label>
+        <label>Threat Details: <textarea rows="2" [(ngModel)]="finding.threatDetails"></textarea></label>
+        <label>Retesting POC: <input type="file" (change)="handlePocUpload($event, i)" accept="image/*" /></label>
+        <div *ngIf="finding.pocDataURL" class="poc-preview">
+          <img [src]="finding.pocDataURL" alt="POC Preview" style="max-width: 200px; margin-top: 10px;" />
+        </div>
+        <label>Severity:
+          <select [(ngModel)]="finding.severity">
+            <option value="Critical">Critical</option>
+            <option value="High">High</option>
+            <option value="Medium" selected>Medium</option>
+            <option value="Low">Low</option>
+          </select>
+        </label>
+        <label>Status:
+          <select [(ngModel)]="finding.status">
+            <option value="Fixed">Fixed</option>
+            <option value="Not Fixed">Not Fixed</option>
+          </select>
+        </label>
+      </div>
+      <button (click)="addFinding()" class="add-finding-btn">Add Another Finding</button>
     </div>
 
     <form *ngIf="selectedManifestType" class="scan-form" (ngSubmit)="generateReport()">
@@ -56,51 +59,58 @@
         <label>Application Name:</label>
         <input type="text" [(ngModel)]="form.manifest.appName" name="appName" />
       </div>
-
       <div class="form-field">
         <label>Tester Name:</label>
         <input type="text" [(ngModel)]="form.manifest.testerName" name="testerName" />
       </div>
-
       <div class="form-field">
-        <label>Current Document Version:</label>
+        <label>Document Version:</label>
         <input type="text" [(ngModel)]="form.manifest.docVersion" name="docVersion" />
       </div>
-
       <div class="form-field">
         <label>Initial Assessment Date:</label>
         <input type="date" [(ngModel)]="form.manifest.initDate" name="initDate" />
       </div>
-
       <div class="form-field">
         <label>Re-Assessment Date:</label>
-        <input type="date" [(ngModel)]="form.manifest.reDate" name="reDate" />
+        <select [(ngModel)]="reAssessmentOption" (change)="onReAssessmentChange()" name="reAssessmentOption">
+          <option value="date">Select Date</option>
+          <option value="na">N/A</option>
+        </select>
+        <input *ngIf="reAssessmentOption === 'date'" type="date" [(ngModel)]="form.manifest.reDate" name="reDate" />        
       </div>
-
       <div class="form-field">
         <label>Tools Used:</label>
         <input type="text" [(ngModel)]="form.manifest.toolsUsed" name="toolsUsed" />
       </div>
-
       <div class="form-field">
-        <label>Scope (Manifest):</label>
+        <label>Scope:</label>
         <input type="text" [(ngModel)]="form.manifest.scope" name="manifestScope" />
       </div>
-
       <div class="form-field">
         <label>Description:</label>
         <textarea rows="4" [(ngModel)]="form.manifest.description" name="manifestDescription"></textarea>
       </div>
-
       <div class="form-actions">
-        <button type="submit">Generate Report</button>
+        <button type="submit" class="generate-btn">Generate Report</button>
       </div>
     </form>
   </div>
+</div>
 
-  <!-- Final Report Section -->
-  <div *ngIf="reportVisible" class="final-report">
-    <div class="report-header">
+<div class="report-view" *ngIf="reportVisible">
+  <div class="final-report">
+    <!-- <div class="report-header">
+      <img *ngIf="logoDataURL" [src]="logoDataURL" alt="Logo" class="report-logo" />
+      <h1 class="report-title">{{ form.logoName }}</h1>
+      <div class="report-meta">
+        <p><strong>Date:</strong> {{ form.reportDate | date:'longDate' }}</p>
+        <p><strong>Prepared for:</strong> {{ form.client }}</p>
+      </div>
+    </div> -->
+
+    <div class="report-section">
+      <div class="report-header">
       <img *ngIf="logoDataURL" [src]="logoDataURL" alt="Logo" class="report-logo" />
       <h1 class="report-title">{{ form.logoName }}</h1>
       <div class="report-meta">
@@ -109,30 +119,37 @@
       </div>
     </div>
 
-    <!-- Section 1: Report Details -->
-    <div class="report-section">
-      <h2>1. Report Details</h2>
-      <table class="report-details">
-        <tr>
-          <th>Report Start Date</th>
-          <td>{{ form.manifest.initDate | date:'mediumDate' }}</td>
+      <div style="padding-top: 90px;">
+        <h2>1. Report Details</h2>
+      <table class="report-details" style="border: 1px solid #000000;">
+        <tr style="border: 1px solid #000000;">
+          <th style="border: 1px solid #000000;">Report Type</th>
+          <td style="border: 1px solid #000000;">{{ form.reportType }}</td>
         </tr>
-        <tr>
-          <th>Report End Date</th>
-          <td>{{ form.manifest.reDate | date:'mediumDate' }}</td>
-        </tr>
-        <tr>
-          <th>Scope</th>
-          <td>{{ form.scope }}</td>
-        </tr>
-        <tr>
-          <th>Audit Type</th>
+        <tr style="border: 1px solid #000000;">
+          <th style="border: 1px solid #000000;">Audit Type</th>
           <td>{{ form.auditType }}</td>
         </tr>
+        <tr style="border: 1px solid #000000;">
+          <th style="border: 1px solid #000000;">Assessment Period</th>
+          <td>{{ form.period }}</td>
+        </tr>
+        <tr style="border: 1px solid #000000;">
+          <th style="border: 1px solid #000000;">Scope</th>
+          <td>{{ form.scope }}</td>
+        </tr>
+        <tr *ngIf="dashboardData" style="border: 1px solid #000000;">
+          <th style="border: 1px solid #000000;">Total Assets Assessed</th>
+          <td>{{ dashboardData.dashboardData.totalAssets }}</td>
+        </tr>
+        <tr *ngIf="dashboardData" style="border: 1px solid #000000;">
+          <th style="border: 1px solid #000000;">High Risk Findings</th>
+          <td>{{ dashboardData.dashboardData.exposureHighRisk }}</td>
+        </tr>
       </table>
+      </div>
     </div>
 
-    <!-- Section 2: Scan Manifest -->
     <div *ngIf="selectedManifestType" class="report-section">
       <h2>2. Scan Manifest</h2>
       <table class="manifest-table">
@@ -158,7 +175,7 @@
         </tr>
         <tr>
           <th>Re-assessment Date</th>
-          <td>{{ form.manifest.reDate | date:'mediumDate' }}</td>
+      <td>{{ form.manifest.reDate ? (form.manifest.reDate | date:'mediumDate') : 'N/A' }}</td>
         </tr>
         <tr>
           <th>Tools Used</th>
@@ -175,13 +192,52 @@
       </table>
     </div>
 
-    <!-- Section 3: Executive Summary -->
     <div class="report-section">
       <h2>3. Executive Summary</h2>
       <p>{{ form.summary }}</p>
+
+      <div *ngIf="dashboardData?.dashboardData" class="metrics-summary">
+        <h3>Key Security Metrics</h3>
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <h4>Exposure Level</h4>
+            <p class="severity-{{ (dashboardData.dashboardData.exposureLevel || 'Medium').toLowerCase() }}">
+              {{ dashboardData.dashboardData.exposureLevel || 'Medium' }}
+            </p>
+          </div>
+          <div class="metric-card">
+            <h4>Configuration Score</h4>
+            <p>{{ dashboardData.dashboardData.configScore || 0 }}/1000</p>
+          </div>
+          <div class="metric-card">
+            <h4>Compliance</h4>
+            <p>{{ dashboardData.dashboardData.configCompliance || 0 }}%</p>
+          </div>
+          <div class="metric-card">
+            <h4>Open Alerts</h4>
+            <p>{{ dashboardData.dashboardData.openAlerts || 0 }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="dashboardData" class="report-charts">
+        <div class="chart-container">
+          <h3 class="chart-title">Vulnerability Severity Distribution</h3>
+          <canvas id="reportSeverityChart"></canvas>
+        </div>
+
+        <div class="chart-container">
+          <h3 class="chart-title">Monthly Vulnerability Trend</h3>
+          <canvas id="reportTrendChart"></canvas>
+        </div>
+
+        <div class="chart-container">
+          <h3 class="chart-title">Remediation Progress</h3>
+          <canvas id="reportRemediationChart"></canvas>
+        </div>
+      </div>
     </div>
 
-    <!-- Section 4: Findings -->
     <div class="report-section">
       <h2>4. Findings</h2>
       <table class="findings-table">
@@ -206,7 +262,6 @@
       </table>
     </div>
 
-    <!-- Section 5: Risk Matrix -->
     <div class="report-section">
       <h2>5. Risk Matrix</h2>
       <table class="risk-matrix">
@@ -214,41 +269,101 @@
           <tr>
             <th>Risk Level</th>
             <th>Description</th>
+            <th>Remediation Timeline</th>
           </tr>
         </thead>
         <tbody>
           <tr>
             <td class="severity-critical">Critical</td>
-            <td>Highest level of risk requiring immediate attention.</td>
+            <td>Immediate threat to business operations or data security</td>
+            <td>Immediate remediation required (within 24 hours)</td>
           </tr>
           <tr>
             <td class="severity-high">High</td>
-            <td>Significant risk, remediation needed soon.</td>
+            <td>Significant risk that could lead to system compromise</td>
+            <td>Remediate within 7 days</td>
           </tr>
           <tr>
             <td class="severity-medium">Medium</td>
-            <td>Moderate risk, should be addressed.</td>
+            <td>Vulnerability that could be exploited under certain conditions</td>
+            <td>Remediate within 30 days</td>
           </tr>
           <tr>
             <td class="severity-low">Low</td>
-            <td>Low risk, monitor or fix when possible.</td>
+            <td>Minimal impact with limited exploit potential</td>
+            <td>Remediate in next maintenance window</td>
           </tr>
           <tr>
             <td class="severity-informative">Informative</td>
-            <td>For informational purposes, no action required.</td>
+            <td>Best practice recommendations</td>
+            <td>Consider for future improvements</td>
           </tr>
         </tbody>
       </table>
     </div>
 
-    <!-- Section 6: Conclusion -->
+    <!-- 6. Detailed Vulnerabilities Section (styled like the provided image) -->
     <div class="report-section">
-      <h2>6. Conclusion</h2>
-      <p>This report confirms that all identified issues were addressed appropriately. The system is considered secure and stable based on the follow-up assessment.</p>
+      <h2>6. Vulnerability Details</h2>
+      <ng-container *ngFor="let finding of findings; let i = index">
+        <div class="detailed-vuln-section" style="position: relative; border: 1px solid #bdbdbd; margin: 30px 0; padding: 24px; border-radius: 8px; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+          <!-- CONFIDENTIAL in top-right corner -->
+          <span style="position: absolute; top: 18px; right: 32px; color: #1976d2; font-weight: bold; font-size: 1em; text-align: right;">CONFIDENTIAL</span>
+          <!-- Heading only for first finding, centered -->
+          <div *ngIf="i === 0" style="display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 12px;">
+            <h3 style="margin: 0; font-size: 1.3em; color: #1a237e; font-weight: bold; text-align: center;">{{ selectedManifestType }} vulnerabilities reports</h3>
+          </div>
+          <hr *ngIf="i === 0" style="margin: 12px 0 18px 0; border: none; border-top: 1px solid #e0e0e0;" />
+          <div style="font-size: 1.2em; font-weight: bold; margin-bottom: 8px;">{{ i + 1 }}.</div>
+          <div style="font-size: 1.1em; font-weight: bold; margin-bottom: 10px;">
+            Threat: <span [ngStyle]="{ color: finding.severity === 'Critical' ? '#d32f2f' : finding.severity === 'High' ? '#f57c00' : finding.severity === 'Medium' ? '#ffa000' : finding.severity === 'Low' ? '#689f38' : '#1976d2', fontWeight: 'bold' }">({{ finding.severity }})</span>
+          </div>
+          <div *ngIf="finding.threatDetails" style="margin-bottom: 12px; color: #333; font-size: 1em; max-width: 100%; word-break: break-word; overflow-wrap: break-word; white-space: pre-line; padding: 8px 0;">
+            <div style="max-width: 100%; word-break: break-word; overflow-wrap: break-word; white-space: pre-line;">{{ finding.threatDetails }}</div>
+          </div>
+          <div style="margin-bottom: 12px;">
+            <span style="font-weight: bold;">Vulnerability:</span> {{ finding.vuln }}
+          </div>
+          <div style="margin-bottom: 12px;">
+            <span style="font-weight: bold;">Vulnerable url:</span>
+            <a *ngIf="finding.vulnUrl" [href]="finding.vulnUrl" target="_blank" style="color: #1976d2; text-decoration: underline;">{{ finding.vulnUrl }}</a>
+            <span *ngIf="!finding.vulnUrl">N/A</span>
+          </div>
+          <div style="margin-bottom: 8px; font-weight: bold;">Retesting POC:</div>
+          <div *ngIf="finding.pocDataURL" style="display: flex; justify-content: center; align-items: center; width: 100%;">
+            <img [src]="finding.pocDataURL" alt="POC Image" style="max-width: 100%; max-height: 260px; border: 1px solid #888; border-radius: 4px; display: block; margin: 0 auto;" />
+          </div>
+          <div *ngIf="!finding.pocDataURL" style="color: #888;">N/A</div>
+        </div>
+      </ng-container>
+    </div>
+    <!-- End 6th section -->
+
+    <div class="report-section">
+      <h2>7. Conclusion</h2>
+      <p>{{ getConclusionText() }}</p>
     </div>
 
-    <div class="report-footer">
-      <p>Confidential - For internal use only</p>
+    <div class="report-actions">
+      <button (click)="editReport()" class="edit-btn">
+        <i class="fas fa-edit"></i> Edit Report
+      </button>
+      <div class="download-dropdown" [class.open]="dropdownOpen">
+        <button (click)="toggleDropdown($event)" class="download-btn">
+          <i class="fas fa-download"></i> Download Report
+        </button>
+        <ul class="dropdown-menu">
+          <li (click)="downloadAsPDF()">
+            <i class="fas fa-file-pdf"></i> PDF
+          </li>
+          <li (click)="downloadAsDOCX()">
+            <i class="fas fa-file-word"></i> DOCX
+          </li>
+        </ul>
+      </div>
+      <button (click)="backToDashboard()" class="back-btn">
+        <i class="fas fa-arrow-left"></i> Back to Dashboard
+      </button>
     </div>
   </div>
 </div>
