@@ -5,8 +5,19 @@ import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
-import { Document, Packer, Paragraph, TextRun, HeadingLevel, Table, TableRow, TableCell, WidthType, ImageRun } from 'docx';
-// import { saveAs } from 'file-saver';
+import {
+  Document,
+  Packer,
+  Paragraph,
+  TextRun,
+  HeadingLevel,
+  Table,
+  TableRow,
+  TableCell,
+  WidthType,
+  BorderStyle,
+  ImageRun
+} from 'docx';
 import { Chart, registerables } from 'chart.js';
 
 @Component({
@@ -23,6 +34,7 @@ export class ReportComponent {
   dropdownOpen = false;
   dashboardData: any;
   private readonly apiUrl = 'http://localhost:5002/api/report';
+  chartImageURLs: string[] = [];
 
   // Chart instances for report
   private reportSeverityChart?: Chart;
@@ -723,52 +735,72 @@ export class ReportComponent {
     }
   }
 
-  async downloadAsDOCX() {
+  async downloadAsDOCX(): Promise<void> {
     try {
       const reportSections = Array.from(document.querySelectorAll('.final-report .report-section'));
       const header = document.querySelector('.final-report .report-header');
-      const allRenderTargets = [header, ...reportSections];
+      const vulnSections = Array.from(document.querySelectorAll('.detailed-vuln-section'));
+      const allRenderTargets = [header, ...reportSections, ...vulnSections];
 
-      // Create a new document with all sections
+
       const sections = [];
+
       for (const element of allRenderTargets) {
         if (!element) continue;
 
-        // Convert canvas elements to images
+        const children: (Paragraph | Table)[] = [];
+
+        // Add title
+        const title = element.querySelector('h1,h2,h3,h4,h5,h6');
+        if (title) {
+          children.push(
+            new Paragraph({
+              text: title.textContent?.trim() || '',
+              heading: HeadingLevel.HEADING_2,
+              spacing: { after: 200 }
+            })
+          );
+        }
+
+        // Add paragraph text
+        const paragraphs = Array.from(element.querySelectorAll('p'));
+        for (const p of paragraphs) {
+          children.push(
+            new Paragraph({
+              children: [new TextRun(p.textContent?.trim() || '')],
+              spacing: { after: 100 }
+            })
+          );
+        }
+
+        // Add HTML tables
+        const tables = Array.from(element.querySelectorAll('table'));
+        for (const table of tables) {
+          const rows = Array.from(table.querySelectorAll('tr')).map(rowEl => {
+            const cells = Array.from(rowEl.querySelectorAll('td,th')).map(cellEl => {
+              return new TableCell({
+                children: [new Paragraph(cellEl.textContent?.trim() || '')],
+                width: { size: 33, type: WidthType.PERCENTAGE }
+              });
+            });
+            return new TableRow({ children: cells });
+          });
+
+          children.push(
+            new Table({
+              width: { size: 100, type: WidthType.PERCENTAGE },
+              rows
+            })
+          );
+        }
+
+        // Add canvas charts as images
         const canvases = Array.from(element.querySelectorAll('canvas'));
-        const canvasImages: HTMLImageElement[] = [];
+        for (const canvas of canvases) {
+          const imgDataUrl = canvas.toDataURL('image/png');
+          const imageBuffer = await fetch(imgDataUrl).then(res => res.arrayBuffer());
 
-        canvases.forEach((canvas) => {
-          const img = new Image();
-          img.src = canvas.toDataURL('image/png');
-          img.style.width = canvas.style.width;
-          img.style.height = canvas.style.height;
-          canvas.parentElement?.insertBefore(img, canvas);
-          canvas.style.display = 'none';
-          canvasImages.push(img);
-        });
-
-        await new Promise(resolve => setTimeout(resolve, 500));
-
-        // Convert HTML to image
-        const canvas = await html2canvas(element as HTMLElement, {
-          scale: 2,
-          useCORS: true
-        });
-
-        // Restore original canvas
-        canvases.forEach((canvas, i) => {
-          canvas.style.display = 'block';
-          canvasImages[i].remove();
-        });
-
-        // Add the image to the document
-        const imgData = canvas.toDataURL('image/png');
-        const imageBuffer = await fetch(imgData).then(res => res.arrayBuffer());
-        
-        sections.push({
-          properties: {},
-          children: [
+          children.push(
             new Paragraph({
               children: [
                 new ImageRun({
@@ -779,18 +811,105 @@ export class ReportComponent {
                   },
                   type: 'png'
                 })
-              ]
+              ],
+              spacing: { after: 200 }
             })
-          ]
+          );
+        }
+
+        // If this is the Vulnerability Details section, render findings
+        if (element.classList.contains('detailed-vuln-section')) {
+  const index = Array.from(document.querySelectorAll('.detailed-vuln-section')).indexOf(element);
+  const finding = this.findings[index];
+
+  children.push(
+    new Paragraph({
+      text: `${index + 1}. Threat: (${finding.severity})`,
+      heading: HeadingLevel.HEADING_3,
+      spacing: { after: 100 }
+    }),
+    new Paragraph({
+      text: `Details: ${finding.threatDetails || 'N/A'}`,
+      spacing: { after: 100 }
+    }),
+    new Paragraph({
+      text: `Vulnerability: ${finding.vuln || 'N/A'}`,
+      spacing: { after: 100 }
+    }),
+    new Paragraph({
+      text: `URL: ${finding.vulnUrl || 'N/A'}`,
+      spacing: { after: 100 }
+    })
+  );
+
+  if (finding.pocDataURL) {
+    const imageBuffer = await fetch(finding.pocDataURL).then(res => res.arrayBuffer());
+    children.push(
+      new Paragraph({
+        children: [
+          new ImageRun({
+            data: imageBuffer,
+            transformation: {
+              width: 500,
+              height: 300
+            },
+            type: 'png'
+          })
+        ],
+        spacing: { after: 200 }
+      })
+    );
+  }
+}
+
+
+        // Push this report section as a new page/section
+        sections.push({
+          properties: {
+            page: {
+              size: {
+                width: 11906,
+                height: 16838
+              },
+              margin: {
+                top: 720,
+                bottom: 720,
+                left: 720,
+                right: 720
+              },
+              borders: {
+                pageBorderTop: {
+                  style: BorderStyle.SINGLE,
+                  size: 6,
+                  color: '000000'
+                },
+                pageBorderBottom: {
+                  style: BorderStyle.SINGLE,
+                  size: 6,
+                  color: '000000'
+                },
+                pageBorderLeft: {
+                  style: BorderStyle.SINGLE,
+                  size: 6,
+                  color: '000000'
+                },
+                pageBorderRight: {
+                  style: BorderStyle.SINGLE,
+                  size: 6,
+                  color: '000000'
+                }
+              }
+            }
+          },
+          children
         });
       }
 
-      // Create document with all sections
+      // Create the document with one section per report part
       const doc = new Document({
-        sections: sections
+        sections
       });
 
-      // Generate and download the document
       const blob = await Packer.toBlob(doc);
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -805,6 +924,8 @@ export class ReportComponent {
       alert('Failed to generate document. Please try again.');
     }
   }
+
+
 
   backToDashboard() {
     this.router.navigate(['/dashboard']);
