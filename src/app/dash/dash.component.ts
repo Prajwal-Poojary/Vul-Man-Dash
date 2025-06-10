@@ -237,9 +237,8 @@ export class DashComponent implements AfterViewInit {
     saveOperation.subscribe({
       next: (response) => {
         console.log('Dashboard data saved successfully:', response);
-        // Use the backend3 response ID if available, otherwise use report-service ID
         if (!this.reportId) {
-          this.reportId = response.backend3?._id || response.reportService?._id;
+          this.reportId = response._id;
         }
         // Add a small delay to ensure DOM is ready
         setTimeout(() => {
@@ -249,10 +248,10 @@ export class DashComponent implements AfterViewInit {
       },
       error: (error) => {
         console.error('Error saving dashboard data:', error);
-        // Still create charts even if save fails
-        setTimeout(() => {
-          this.createCharts();
-        }, 100);
+        // Show error to user
+        alert('Failed to save dashboard data. Please make sure the server is running and try again.');
+        // Reset form state
+        this.showInputForm = true;
       }
     });
   }
