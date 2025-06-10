@@ -16,7 +16,8 @@ import {
   TableCell,
   WidthType,
   BorderStyle,
-  ImageRun
+  ImageRun,
+  AlignmentType,
 } from 'docx';
 import { Chart, registerables } from 'chart.js';
 import { DownloadProgressComponent } from '../shared/download-progress/download-progress.component';
@@ -782,27 +783,27 @@ export class ReportComponent {
     try {
       const reportSections = Array.from(
         document.querySelectorAll('.final-report .report-section:not(.detailed-vuln-section)')
-      );const header = document.querySelector('.final-report .report-header');
+      );
+      const header = document.querySelector('.final-report .report-header');
+      // Separate normal sections and detailed vuln sections
+      const allSections = Array.from(document.querySelectorAll('.final-report .report-section'));
+      const vulnSections = Array.from(document.querySelectorAll('.detailed-vuln-section'));
 
-// Separate normal sections and detailed vuln sections
-const allSections = Array.from(document.querySelectorAll('.final-report .report-section'));
-const vulnSections = Array.from(document.querySelectorAll('.detailed-vuln-section'));
+      // Find the conclusion section
+      const conclusionSection = allSections.find(section =>
+        section.querySelector('h2')?.textContent?.trim().includes('Conclusion')
+      );
 
-// Find the conclusion section
-const conclusionSection = allSections.find(section =>
-  section.querySelector('h2')?.textContent?.trim().includes('Conclusion')
-);
+      // Everything except conclusion
+      const nonConclusionSections = allSections.filter(section => section !== conclusionSection);
 
-// Everything except conclusion
-const nonConclusionSections = allSections.filter(section => section !== conclusionSection);
-
-// Combine in correct order: header → normal sections → findings → conclusion
-const allRenderTargets = [
-  header,
-  ...nonConclusionSections,
-  ...vulnSections,
-  conclusionSection
-].filter(Boolean); // remove any nulls
+      // Combine in correct order: header → normal sections → findings → conclusion
+      const allRenderTargets = [
+        header,
+        ...nonConclusionSections,
+        ...vulnSections,
+        conclusionSection
+      ].filter(Boolean); // remove any nulls
 
 
       const sections = [];
@@ -829,6 +830,31 @@ const allRenderTargets = [
             })
           );
         }
+
+
+        const logoImg = element.querySelector('img');
+        if (logoImg && logoImg.src) {
+          const response = await fetch(logoImg.src);
+          const logoBuffer = await response.arrayBuffer();
+
+          children.push(
+            new Paragraph({
+              children: [
+                new ImageRun({
+                  data: logoBuffer,
+                  transformation: {
+                    width: 150,
+                    height: 60
+                  },
+                  type: 'png' // ✅ REQUIRED
+                })
+              ],
+              alignment: AlignmentType.CENTER, // ✅ USES THE IMPORTED ENUM
+              spacing: { after: 200 }
+            })
+          );
+        }
+
 
         // Add paragraph text
         const paragraphs = Array.from(element.querySelectorAll('p'));
