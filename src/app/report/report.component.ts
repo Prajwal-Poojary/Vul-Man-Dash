@@ -19,11 +19,12 @@ import {
   ImageRun
 } from 'docx';
 import { Chart, registerables } from 'chart.js';
+import { DownloadProgressComponent } from '../shared/download-progress/download-progress.component';
 
 @Component({
   selector: 'app-report',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, DownloadProgressComponent],
   templateUrl: './report.component.html',
   styleUrls: ['./report.component.scss']
 })
@@ -627,12 +628,42 @@ export class ReportComponent {
     });
   }
 
+  showDownloadProgress = false;
+  downloadProgress = 0;
+  downloadFileType = '';
+
+  private updateProgress(current: number, total: number) {
+    // Calculate base progress
+    const baseProgress = (current / total) * 100;
+    
+    // Apply a non-linear scaling to make progress slower in later stages
+    let scaledProgress;
+    if (baseProgress < 80) {
+      // First 80% progresses normally
+      scaledProgress = baseProgress;
+    } else {
+      // Last 20% is stretched out
+      const remainingProgress = baseProgress - 80;
+      scaledProgress = 80 + (remainingProgress * 0.5); // Slow down the last 20%
+    }
+    
+    this.downloadProgress = Math.round(scaledProgress);
+  }
+
   async downloadAsPDF(): Promise<void> {
+    this.showDownloadProgress = true;
+    this.downloadFileType = 'PDF';
+    this.downloadProgress = 0;
+
     const password = prompt('Enter a password to encrypt the PDF:');
-    if (!password) return;
+    if (!password) {
+      this.showDownloadProgress = false;
+      return;
+    }
     const confirmPassword = prompt('Confirm your password:');
     if (password !== confirmPassword) {
       alert('Passwords do not match!');
+      this.showDownloadProgress = false;
       return;
     }
 
@@ -646,11 +677,17 @@ export class ReportComponent {
     const pdfHeight = pageHeight - 2 * margin;
 
     const allRenderTargets = [header, ...reportSections];
+    const totalSteps = allRenderTargets.length;
+    let currentStep = 0;
 
     let isFirstPage = true;
 
     for (const element of allRenderTargets) {
       if (!element) continue;
+
+      // Update progress for each section
+      currentStep++;
+      this.updateProgress(currentStep, totalSteps);
 
       // ✅ Replace canvas in this section with image
       const canvases = Array.from(element.querySelectorAll('canvas'));
@@ -732,21 +769,32 @@ export class ReportComponent {
     } catch (error) {
       console.error('Encryption failed:', error);
       alert('Error encrypting PDF.');
+    } finally {
+      this.showDownloadProgress = false;
     }
   }
 
   async downloadAsDOCX(): Promise<void> {
+    this.showDownloadProgress = true;
+    this.downloadFileType = 'DOCX';
+    this.downloadProgress = 0;
+
     try {
       const reportSections = Array.from(document.querySelectorAll('.final-report .report-section'));
       const header = document.querySelector('.final-report .report-header');
       const vulnSections = Array.from(document.querySelectorAll('.detailed-vuln-section'));
       const allRenderTargets = [header, ...reportSections, ...vulnSections];
 
-
       const sections = [];
+      const totalSteps = allRenderTargets.length;
+      let currentStep = 0;
 
       for (const element of allRenderTargets) {
         if (!element) continue;
+
+        // Update progress for each section
+        currentStep++;
+        this.updateProgress(currentStep, totalSteps);
 
         const children: (Paragraph | Table)[] = [];
 
@@ -819,49 +867,48 @@ export class ReportComponent {
 
         // If this is the Vulnerability Details section, render findings
         if (element.classList.contains('detailed-vuln-section')) {
-  const index = Array.from(document.querySelectorAll('.detailed-vuln-section')).indexOf(element);
-  const finding = this.findings[index];
+          const index = Array.from(document.querySelectorAll('.detailed-vuln-section')).indexOf(element);
+          const finding = this.findings[index];
 
-  children.push(
-    new Paragraph({
-      text: `${index + 1}. Threat: (${finding.severity})`,
-      heading: HeadingLevel.HEADING_3,
-      spacing: { after: 100 }
-    }),
-    new Paragraph({
-      text: `Details: ${finding.threatDetails || 'N/A'}`,
-      spacing: { after: 100 }
-    }),
-    new Paragraph({
-      text: `Vulnerability: ${finding.vuln || 'N/A'}`,
-      spacing: { after: 100 }
-    }),
-    new Paragraph({
-      text: `URL: ${finding.vulnUrl || 'N/A'}`,
-      spacing: { after: 100 }
-    })
-  );
+          children.push(
+            new Paragraph({
+              text: `${index + 1}. Threat: (${finding.severity})`,
+              heading: HeadingLevel.HEADING_3,
+              spacing: { after: 100 }
+            }),
+            new Paragraph({
+              text: `Details: ${finding.threatDetails || 'N/A'}`,
+              spacing: { after: 100 }
+            }),
+            new Paragraph({
+              text: `Vulnerability: ${finding.vuln || 'N/A'}`,
+              spacing: { after: 100 }
+            }),
+            new Paragraph({
+              text: `URL: ${finding.vulnUrl || 'N/A'}`,
+              spacing: { after: 100 }
+            })
+          );
 
-  if (finding.pocDataURL) {
-    const imageBuffer = await fetch(finding.pocDataURL).then(res => res.arrayBuffer());
-    children.push(
-      new Paragraph({
-        children: [
-          new ImageRun({
-            data: imageBuffer,
-            transformation: {
-              width: 500,
-              height: 300
-            },
-            type: 'png'
-          })
-        ],
-        spacing: { after: 200 }
-      })
-    );
-  }
-}
-
+          if (finding.pocDataURL) {
+            const imageBuffer = await fetch(finding.pocDataURL).then(res => res.arrayBuffer());
+            children.push(
+              new Paragraph({
+                children: [
+                  new ImageRun({
+                    data: imageBuffer,
+                    transformation: {
+                      width: 500,
+                      height: 300
+                    },
+                    type: 'png'
+                  })
+                ],
+                spacing: { after: 200 }
+              })
+            );
+          }
+        }
 
         // Push this report section as a new page/section
         sections.push({
@@ -918,14 +965,13 @@ export class ReportComponent {
       a.click();
       window.URL.revokeObjectURL(url);
       this.dropdownOpen = false;
-
     } catch (error) {
       console.error('DOCX download failed:', error);
       alert('Failed to generate document. Please try again.');
+    } finally {
+      this.showDownloadProgress = false;
     }
   }
-
-
 
   backToDashboard() {
     this.router.navigate(['/dashboard']);
