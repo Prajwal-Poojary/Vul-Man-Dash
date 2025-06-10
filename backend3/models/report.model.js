@@ -1,24 +1,40 @@
 const mongoose = require('mongoose');
 
 const reportSchema = new mongoose.Schema({
-  exposureLevel: String,
-  exposureCurrent: Number,
-  exposurePrevious: Number,
-  exposureHighRisk: Number,
-  totalAssets: Number,
-  configScore: Number,
-  configCompliance: Number,
-  openAlerts: Number,
-  sevCritical: Number,
-  sevHigh: Number,
-  sevMedium: Number,
-  sevLow: Number,
-  sevInformative: Number,
-  trendData: String,
-  remediationAreas: String,
-  remediationCompleted: String,
-  remediationPending: String,
-  createdAt: {
+  cvssMetrics: {
+    attackVector: String,
+    attackComplexity: String,
+    privilegesRequired: String,
+    userInteraction: String,
+    scope: String,
+    confidentiality: String,
+    integrity: String,
+    availability: String
+  },
+  trendData: {
+    months: String,
+    counts: String
+  },
+  vulnerabilityFindings: {
+    areas: String,
+    areaVulnerabilities: [{
+      name: String,
+      count: Number
+    }],
+    totalVulnerabilities: Number
+  },
+  severityDistribution: {
+    critical: Number,
+    high: Number,
+    medium: Number,
+    low: Number,
+    informative: Number
+  },
+  cvssScore: {
+    baseScore: Number,
+    riskLevel: String
+  },
+  timestamp: {
     type: Date,
     default: Date.now
   }
