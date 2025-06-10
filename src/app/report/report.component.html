@@ -269,8 +269,6 @@
       </table>
     </div>
 
-    <!-- 6. Detailed Vulnerabilities Section (styled like the provided image) -->
-    <!-- <div class="report-section"> -->
     <h2>6. Vulnerability Details</h2>
     <ng-container *ngFor="let finding of findings; let i = index">
       <div class="detailed-vuln-section report-section"
@@ -314,7 +312,6 @@
         <div *ngIf="!finding.pocDataURL" style="color: #888;">N/A</div>
       </div>
     </ng-container>
-    <!-- </div> -->
     <!-- End 6th section -->
 
     <div class="report-section">
