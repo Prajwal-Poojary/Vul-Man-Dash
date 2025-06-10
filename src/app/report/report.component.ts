@@ -635,7 +635,7 @@ export class ReportComponent {
   private updateProgress(current: number, total: number) {
     // Calculate base progress
     const baseProgress = (current / total) * 100;
-    
+
     // Apply a non-linear scaling to make progress slower in later stages
     let scaledProgress;
     if (baseProgress < 80) {
@@ -646,7 +646,7 @@ export class ReportComponent {
       const remainingProgress = baseProgress - 80;
       scaledProgress = 80 + (remainingProgress * 0.5); // Slow down the last 20%
     }
-    
+
     this.downloadProgress = Math.round(scaledProgress);
   }
 
@@ -780,10 +780,30 @@ export class ReportComponent {
     this.downloadProgress = 0;
 
     try {
-      const reportSections = Array.from(document.querySelectorAll('.final-report .report-section'));
-      const header = document.querySelector('.final-report .report-header');
-      const vulnSections = Array.from(document.querySelectorAll('.detailed-vuln-section'));
-      const allRenderTargets = [header, ...reportSections, ...vulnSections];
+      const reportSections = Array.from(
+        document.querySelectorAll('.final-report .report-section:not(.detailed-vuln-section)')
+      );const header = document.querySelector('.final-report .report-header');
+
+// Separate normal sections and detailed vuln sections
+const allSections = Array.from(document.querySelectorAll('.final-report .report-section'));
+const vulnSections = Array.from(document.querySelectorAll('.detailed-vuln-section'));
+
+// Find the conclusion section
+const conclusionSection = allSections.find(section =>
+  section.querySelector('h2')?.textContent?.trim().includes('Conclusion')
+);
+
+// Everything except conclusion
+const nonConclusionSections = allSections.filter(section => section !== conclusionSection);
+
+// Combine in correct order: header → normal sections → findings → conclusion
+const allRenderTargets = [
+  header,
+  ...nonConclusionSections,
+  ...vulnSections,
+  conclusionSection
+].filter(Boolean); // remove any nulls
+
 
       const sections = [];
       const totalSteps = allRenderTargets.length;
