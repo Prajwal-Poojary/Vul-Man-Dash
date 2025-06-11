@@ -34,6 +34,10 @@ const reportSchema = new mongoose.Schema({
     baseScore: Number,
     riskLevel: String
   },
+  dashboardInput: {
+    type: Object,
+    default: null
+  },
   timestamp: {
     type: Date,
     default: Date.now
