@@ -5,7 +5,7 @@ import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
+import 'jspdf-autotable';
 import {
   Document,
   Packer,
@@ -22,6 +22,78 @@ import {
 } from 'docx';
 import { Chart, registerables } from 'chart.js';
 import { DownloadProgressComponent } from '../shared/download-progress/download-progress.component';
+
+// Add helper function for table drawing
+function drawTable(pdf: jsPDF, headers: string[], rows: any[][], startY: number, margin: number): number {
+  // Table configuration
+  const cellPadding = 3;
+  const colWidths = [15, 60, 50, 30, 25]; // Widths for each column
+  const rowHeight = 12;
+  const startX = margin;
+  let currentY = startY;
+
+  // Helper function to draw a cell
+  function drawCell(text: string, x: number, y: number, width: number, height: number, isHeader: boolean = false) {
+    // Draw cell background for header
+    if (isHeader) {
+      pdf.setFillColor(41, 128, 185);
+      pdf.rect(x, y, width, height, 'F');
+    }
+
+    // Draw cell border
+    pdf.setDrawColor(0);
+    pdf.rect(x, y, width, height);
+
+    // Set text color and font
+    if (isHeader) {
+      pdf.setTextColor(255, 255, 255);
+      pdf.setFont("helvetica", "bold");
+    } else {
+      pdf.setTextColor(0, 0, 0);
+      pdf.setFont("helvetica", "normal");
+    }
+
+    // Add text with padding
+    const textWidth = pdf.getTextWidth(text);
+    let textX = x + cellPadding;
+
+    // Center text for specific columns or headers
+    if (isHeader || x === startX || width === 30 || width === 25) {
+      textX = x + (width - textWidth) / 2;
+    }
+
+    pdf.text(text, textX, y + height - cellPadding);
+  }
+
+  // Draw header row
+  let currentX = startX;
+  headers.forEach((header, index) => {
+    drawCell(header, currentX, currentY, colWidths[index], rowHeight, true);
+    currentX += colWidths[index];
+  });
+  currentY += rowHeight;
+
+  // Draw data rows
+  rows.forEach(row => {
+    // Check if we need a new page
+    if (currentY + rowHeight > 287 - margin) {
+      pdf.addPage();
+      pdf.setDrawColor(0);
+      pdf.setLineWidth(0.5);
+      pdf.rect(5, 5, 200, 287);
+      currentY = margin + 10;
+    }
+
+    currentX = startX;
+    row.forEach((cell, index) => {
+      drawCell(cell.toString(), currentX, currentY, colWidths[index], rowHeight);
+      currentX += colWidths[index];
+    });
+    currentY += rowHeight;
+  });
+
+  return currentY; // Return the final Y position
+}
 
 @Component({
   selector: 'app-report',
@@ -716,8 +788,29 @@ export class ReportComponent {
       const findingsTable = element.querySelector('.findings-table');
       if (findingsTable) {
         const rows: any[] = [];
-        const headers = ['ID', 'Vulnerability', 'Scope', 'Severity', 'Status'];
+        const tableHeading = element.querySelector('h2')?.textContent || 'Findings';
+        
+        // Get headers directly from the first row of thead
+        const thead = findingsTable.querySelector('thead');
+        const headerRow = thead?.querySelector('tr');
+        const headerCells = headerRow?.querySelectorAll('th');
+        
+        console.log('Found thead:', !!thead);
+        console.log('Found header row:', !!headerRow);
+        console.log('Number of header cells:', headerCells?.length);
+        
+        // Extract header texts
+        const tableHeaders = headerCells 
+          ? Array.from(headerCells).map(th => {
+              const text = th.textContent?.trim() || '';
+              console.log('Header cell text:', text);
+              return text;
+            })
+          : ['ID', 'Vulnerability', 'Scope', 'Severity', 'Status'];
 
+        console.log('Final table headers:', tableHeaders);
+
+        // Get table body rows
         const tbodyRows = findingsTable.querySelectorAll('tbody tr');
         tbodyRows.forEach((row) => {
           const cells = Array.from(row.querySelectorAll('td')).map(td => td.textContent?.trim() || '');
@@ -725,34 +818,124 @@ export class ReportComponent {
         });
 
         if (!isFirstPage) pdf.addPage();
+        
+        // Always draw the border for the current page
         pdf.setDrawColor(0);
         pdf.setLineWidth(0.5);
         pdf.rect(5, 5, 200, 287);
-        // (autoTable as any)(jsPDF); // Register plugin
+        
+        // Table configuration
+        const startX = margin;
+        let startY = margin + 10;
+        const colWidths = [15, 60, 50, 30, 25]; // Widths for each column
+        const rowHeight = 10;
+        const pageHeight = 287;
+        const maxY = pageHeight - margin;
 
-        pdf.autoTable({
-          head: [headers],
-          body: rows,
-          startY: margin,
-          margin: { left: margin, right: margin },
-          styles: {
-            fontSize: 9,
-            cellPadding: 2
-          },
-          theme: 'grid',
-          headStyles: {
-            fillColor: [41, 128, 185],
-            textColor: 255,
-            halign: 'center'
-          },
-          bodyStyles: {
-            halign: 'left'
-          },
-          didDrawPage: () => {
+        // Draw table heading (h2)
+        pdf.setFont("helvetica", "bold");
+        pdf.setFontSize(12);
+        pdf.setTextColor(0, 0, 0);
+        pdf.text(tableHeading, startX, startY);
+        startY += 15; // Add space after heading
+
+        // Draw header row
+        pdf.setFillColor(41, 128, 185); // Blue background
+        pdf.setTextColor(255, 255, 255); // White text
+        pdf.setFont("helvetica", "bold");
+        pdf.setFontSize(10);
+        
+        let currentX = startX;
+        
+        // Draw all header cells
+        console.log('Drawing headers:', tableHeaders);
+        tableHeaders.forEach((header, index) => {
+          console.log(`Drawing header ${index}:`, header, 'at x:', currentX);
+          
+          // Draw header cell background with border
+          pdf.setDrawColor(0); // Black border
+          pdf.setLineWidth(0.5);
+          pdf.setFillColor(44, 62, 80); // Darker blue background
+          pdf.rect(currentX, startY, colWidths[index], rowHeight, 'FD'); // 'FD' means fill and draw
+          
+          // Draw header text
+          pdf.setTextColor(255, 255, 255); // Ensure text is white
+          const textWidth = pdf.getTextWidth(header);
+          const x = currentX + (colWidths[index] - textWidth) / 2;
+          pdf.text(header, x, startY + 7);
+          
+          currentX += colWidths[index];
+        });
+        
+        // Reset styles for data rows
+        pdf.setTextColor(0, 0, 0);
+        pdf.setFont("helvetica", "normal");
+        pdf.setDrawColor(0);
+        pdf.setLineWidth(0.1);
+        startY += rowHeight;
+
+        // Draw data rows
+        rows.forEach((row, rowIndex) => {
+          // Check if we need a new page
+          if (startY + rowHeight > maxY) {
+            pdf.addPage();
             pdf.setDrawColor(0);
             pdf.setLineWidth(0.5);
             pdf.rect(5, 5, 200, 287);
+            
+            // Reset Y position and redraw header on new page
+            startY = margin + 10;
+            
+            // Draw header on new page
+            pdf.setFillColor(44, 62, 80); // Darker blue background
+            pdf.setTextColor(255, 255, 255); // White text
+            pdf.setFont("helvetica", "bold");
+            pdf.setFontSize(10);
+            
+            currentX = startX;
+            tableHeaders.forEach((header, index) => {
+              // Draw header cell background with border
+              pdf.setDrawColor(0); // Black border
+              pdf.setLineWidth(0.5);
+              pdf.rect(currentX, startY, colWidths[index], rowHeight, 'FD');
+              
+              // Draw header text
+              pdf.setTextColor(255, 255, 255); // Ensure text is white
+              const textWidth = pdf.getTextWidth(header);
+              const x = currentX + (colWidths[index] - textWidth) / 2;
+              pdf.text(header, x, startY + 7);
+              currentX += colWidths[index];
+            });
+            
+            // Reset styles for data rows
+            pdf.setTextColor(0, 0, 0);
+            pdf.setFont("helvetica", "normal");
+            pdf.setDrawColor(0);
+            pdf.setLineWidth(0.1);
+            startY += rowHeight;
           }
+
+          // Draw row
+          currentX = startX;
+          row.forEach((cell: string, colIndex: number) => {
+            // Draw cell border
+            pdf.rect(currentX, startY, colWidths[colIndex], rowHeight);
+            
+            // Add cell text
+            const text = cell.toString();
+            let x = currentX + 3; // Default left padding
+            
+            // Center text for ID, Severity, and Status columns
+            if (colIndex === 0 || colIndex === 3 || colIndex === 4) {
+              const textWidth = pdf.getTextWidth(text);
+              x = currentX + (colWidths[colIndex] - textWidth) / 2;
+            }
+            
+            pdf.text(text, x, startY + 7);
+            currentX += colWidths[colIndex];
+          });
+          
+          startY += rowHeight;
         });
 
         isFirstPage = false;
