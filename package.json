@@ -30,6 +30,7 @@
     "file-saver": "^2.0.5",
     "html2canvas": "^1.4.1",
     "jspdf": "^3.0.1",
+    "jspdf-autotable": "^5.0.2",
     "ng2-charts": "^8.0.0",
     "ngx-build-plus": "^19.0.0",
     "rxjs": "~7.8.0",
@@ -39,7 +40,7 @@
   "devDependencies": {
     "@angular-builders/custom-webpack": "^8.4.1",
     "@angular/build": "^20.0.1",
-    "@angular/cli": "^20.0.1",
+    "@angular/cli": "^14.2.13",
     "@angular/compiler-cli": "^20.0.2",
     "@types/file-saver": "^2.0.7",
     "@types/html2canvas": "^1.0.0",

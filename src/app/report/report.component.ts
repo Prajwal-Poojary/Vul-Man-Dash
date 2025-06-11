@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import {
   Document,
   Packer,
@@ -668,8 +669,37 @@ export class ReportComponent {
       return;
     }
 
-    const reportSections = Array.from(document.querySelectorAll('.final-report .report-section'));
+    const reportSections = Array.from(
+      document.querySelectorAll('.final-report .report-section:not(.detailed-vuln-section)')
+    );
     const header = document.querySelector('.final-report .report-header');
+    // Separate normal sections and detailed vuln sections
+    const allSections = Array.from(document.querySelectorAll('.final-report .report-section'));
+    const vulnSections = Array.from(document.querySelectorAll('.detailed-vuln-section'));
+
+    // Find the conclusion section
+    const conclusionSection = allSections.find(section =>
+      section.querySelector('h2')?.textContent?.trim().includes('Conclusion')
+    );
+
+    // Everything except conclusion
+    const nonConclusionSections = allSections.filter(section => section !== conclusionSection);
+
+    // Combine in correct order: header → normal sections → findings → conclusion
+    const allRenderTargets = [
+      header,
+      ...nonConclusionSections,
+      ...vulnSections,
+      conclusionSection
+    ].filter(Boolean); // remove any nulls
+
+
+    const sections = [];
+    const totalSteps = allRenderTargets.length;
+    let currentStep = 0;
+
+
+
     const pdf = new jsPDF('p', 'mm', 'a4');
     const margin = 10;
     const pageWidth = 210;
@@ -677,14 +707,60 @@ export class ReportComponent {
     const pdfWidth = pageWidth - 2 * margin;
     const pdfHeight = pageHeight - 2 * margin;
 
-    const allRenderTargets = [header, ...reportSections];
-    const totalSteps = allRenderTargets.length;
-    let currentStep = 0;
-
     let isFirstPage = true;
 
     for (const element of allRenderTargets) {
       if (!element) continue;
+
+
+      const findingsTable = element.querySelector('.findings-table');
+      if (findingsTable) {
+        const rows: any[] = [];
+        const headers = ['ID', 'Vulnerability', 'Scope', 'Severity', 'Status'];
+
+        const tbodyRows = findingsTable.querySelectorAll('tbody tr');
+        tbodyRows.forEach((row) => {
+          const cells = Array.from(row.querySelectorAll('td')).map(td => td.textContent?.trim() || '');
+          rows.push(cells);
+        });
+
+        if (!isFirstPage) pdf.addPage();
+        pdf.setDrawColor(0);
+        pdf.setLineWidth(0.5);
+        pdf.rect(5, 5, 200, 287);
+        // (autoTable as any)(jsPDF); // Register plugin
+
+        pdf.autoTable({
+          head: [headers],
+          body: rows,
+          startY: margin,
+          margin: { left: margin, right: margin },
+          styles: {
+            fontSize: 9,
+            cellPadding: 2
+          },
+          theme: 'grid',
+          headStyles: {
+            fillColor: [41, 128, 185],
+            textColor: 255,
+            halign: 'center'
+          },
+          bodyStyles: {
+            halign: 'left'
+          },
+          didDrawPage: () => {
+            pdf.setDrawColor(0);
+            pdf.setLineWidth(0.5);
+            pdf.rect(5, 5, 200, 287);
+          }
+        });
+
+        isFirstPage = false;
+        continue;
+      }
+
+
+
 
       // Update progress for each section
       currentStep++;
