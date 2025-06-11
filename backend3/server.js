@@ -12,7 +12,7 @@ app.use(cors());
 app.use(express.json());
 
 // MongoDB connection
-const MONGODB_URI = 'mongodb+srv://Raghavendra:nkraghu2005@projecteye.6hfflmb.mongodb.net/dashbord?retryWrites=true&w=majority&appName=projecteye';
+const MONGODB_URI = 'mongodb+srv://Raghavendra:nkraghu2005@projecteye.6hfflmb.mongodb.net/dashbordinput?retryWrites=true&w=majority&appName=projecteye';
 
 mongoose.connect(MONGODB_URI, {
   useNewUrlParser: true,
