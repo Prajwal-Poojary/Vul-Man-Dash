@@ -13,6 +13,20 @@ type UserInteraction = 'None' | 'Required';
 type Scope = 'Unchanged' | 'Changed';
 type CIA = 'None' | 'Low' | 'High';
 
+interface FormData {
+  attackVector: AttackVector;
+  attackComplexity: AttackComplexity;
+  privilegesRequired: PrivilegesRequired;
+  userInteraction: UserInteraction;
+  scope: Scope;
+  confidentiality: CIA;
+  integrity: CIA;
+  availability: CIA;
+  trendMonths: string;
+  trendData: string;
+  remediationAreas: string;
+}
+
 @Component({
   selector: 'app-dash',
   templateUrl: './dash.component.html',
@@ -25,7 +39,7 @@ export class DashComponent implements AfterViewInit {
   currentDate = new Date();
   reportId: string | null = null;
 
-  formData = {
+  formData: FormData = {
     // CVSS metrics
     attackVector: 'Network' as AttackVector,
     attackComplexity: 'Low' as AttackComplexity,
@@ -72,18 +86,30 @@ export class DashComponent implements AfterViewInit {
     // Check if we're in edit mode
     const navigation = this.router.getCurrentNavigation();
     const state = navigation?.extras.state as { 
-      dashboardData: DashboardData, 
       isEdit: boolean,
       reportId?: string,
-      showInputForm?: boolean
+      showInputForm?: boolean,
+      dashboardData?: DashboardData
     };
     
-    if (state?.isEdit && state?.dashboardData) {
+    if (state?.isEdit) {
       this.reportId = state.reportId || null;
-      this.loadDashboardData(state.dashboardData);
       // Set showInputForm based on navigation state
       if (state.showInputForm !== undefined) {
         this.showInputForm = state.showInputForm;
+      }
+      
+      // If we have dashboard data passed directly, use it
+      if (state.dashboardData) {
+        this.loadDashboardData(state.dashboardData);
+        this.showInputForm = false;
+      }
+      // Otherwise if we have a reportId, try to fetch the dashboard data
+      else if (this.reportId) {
+        this.fetchDashboardData(this.reportId as string);
+      } else {
+        // If no reportId, start with empty form
+        this.showInputForm = true;
       }
     }
   }
@@ -202,6 +228,7 @@ export class DashComponent implements AfterViewInit {
     
     // Prepare dashboard data
     const dashboardData: DashboardData = {
+      _id: this.reportId || undefined,
       cvssMetrics: {
         attackVector: this.formData.attackVector,
         attackComplexity: this.formData.attackComplexity,
@@ -218,10 +245,16 @@ export class DashComponent implements AfterViewInit {
       },
       vulnerabilityFindings: {
         areas: this.formData.remediationAreas,
-        areaVulnerabilities: this.areaVulnerabilities,
+        areaVulnerabilities: this.areaVulnerabilities.map(v => ({ name: v.name, count: v.count })),
         totalVulnerabilities: this.totalVulnerabilities
       },
-      severityDistribution: this.severityDistribution,
+      severityDistribution: {
+        critical: this.severityDistribution.critical,
+        high: this.severityDistribution.high,
+        medium: this.severityDistribution.medium,
+        low: this.severityDistribution.low,
+        informative: 0
+      },
       cvssScore: {
         baseScore: this.cvssBaseScore,
         riskLevel: this.cvssRiskLevel
@@ -229,16 +262,16 @@ export class DashComponent implements AfterViewInit {
       timestamp: this.currentDate
     };
 
-    // Save or update dashboard data
-    const saveOperation = this.reportId
-      ? this.reportService.updateDashboardData(this.reportId, dashboardData)
-      : this.reportService.saveDashboardData(dashboardData);
-
-    saveOperation.subscribe({
+    // Save dashboard data
+    this.reportService.saveDashboardData(dashboardData).subscribe({
       next: (response) => {
         console.log('Dashboard data saved successfully:', response);
-        if (!this.reportId) {
-          this.reportId = response._id;
+        // Get the ID from the response
+        const savedReport = response.report || response;
+        if (savedReport && savedReport._id) {
+          this.reportId = savedReport._id;
+          // Reload the data with the new ID
+          this.fetchDashboardData(this.reportId as string);
         }
         // Add a small delay to ensure DOM is ready
         setTimeout(() => {
@@ -248,9 +281,7 @@ export class DashComponent implements AfterViewInit {
       },
       error: (error) => {
         console.error('Error saving dashboard data:', error);
-        // Show error to user
-        alert('Failed to save dashboard data. Please make sure the server is running and try again.');
-        // Reset form state
+        // If save fails, keep the form open
         this.showInputForm = true;
       }
     });
@@ -646,8 +677,13 @@ export class DashComponent implements AfterViewInit {
   }
 
   // Add method to load saved dashboard data
-  private loadDashboardData(data: DashboardData) {
-    // Restore form data
+  loadDashboardData(data: DashboardData) {
+    // Parse the comma-separated strings back into arrays
+    const months = data.trendData.months;
+    const counts = data.trendData.counts;
+    const areas = data.vulnerabilityFindings.areas;
+
+    // Update form data
     this.formData = {
       attackVector: data.cvssMetrics.attackVector as AttackVector,
       attackComplexity: data.cvssMetrics.attackComplexity as AttackComplexity,
@@ -657,23 +693,55 @@ export class DashComponent implements AfterViewInit {
       confidentiality: data.cvssMetrics.confidentiality as CIA,
       integrity: data.cvssMetrics.integrity as CIA,
       availability: data.cvssMetrics.availability as CIA,
-      trendMonths: data.trendData.months,
-      trendData: data.trendData.counts,
-      remediationAreas: data.vulnerabilityFindings.areas
+      trendMonths: months,
+      trendData: counts,
+      remediationAreas: areas
     };
 
-    // Restore other data
+    // Update other data
     this.areaVulnerabilities = data.vulnerabilityFindings.areaVulnerabilities;
     this.totalVulnerabilities = data.vulnerabilityFindings.totalVulnerabilities;
     this.severityDistribution = data.severityDistribution;
     this.cvssBaseScore = data.cvssScore.baseScore;
     this.cvssRiskLevel = data.cvssScore.riskLevel;
-    this.currentDate = new Date(data.timestamp);
+    this.currentDate = data.timestamp;
 
-    // Show dashboard view and create charts
-    this.showInputForm = false;
-    setTimeout(() => {
-      this.createCharts();
-    }, 100);
+    // Update charts
+    this.createCharts();
+  }
+
+  // Update fetchDashboardData to handle the case when data doesn't exist
+  fetchDashboardData(reportId: string) {
+    this.reportService.getDashboardData(reportId).subscribe({
+      next: (data) => {
+        console.log('Fetched dashboard data:', data);
+        if (data) {
+          this.loadDashboardData(data);
+          // Update the reportId if it's not set
+          if (!this.reportId && data._id) {
+            this.reportId = data._id;
+          }
+          // Hide input form and show dashboard
+          this.showInputForm = false;
+        } else {
+          // If no data exists, start with empty form
+          this.showInputForm = true;
+          this.reportId = null;
+        }
+      },
+      error: (error) => {
+        console.error('Error fetching dashboard data:', error);
+        // If fetch fails, start with empty form
+        this.showInputForm = true;
+        this.reportId = null;
+      }
+    });
+  }
+
+  // Add method to reload dashboard data
+  reloadDashboardData() {
+    if (this.reportId) {
+      this.fetchDashboardData(this.reportId);
+    }
   }
 }
