@@ -37,23 +37,47 @@ app.post('/api/reports/dashboard', async (req, res) => {
     const dashboardData = req.body;
     console.log('Received dashboard data:', dashboardData); // Debug log
     
-    // Generate a new reportId if not provided
-    const reportId = dashboardData._id || new mongoose.Types.ObjectId().toString();
+    // Check if we have an _id in the request
+    const providedId = dashboardData._id;
+    console.log('Provided ID:', providedId);
     
-    // Create new report with dashboard data
-    const report = new Report({
-      reportId: reportId,
-      ...dashboardData
-    });
+    let report;
     
-    const savedReport = await report.save();
-    console.log('Saved report:', savedReport); // Debug log
+    if (providedId) {
+      // Check if a report with this ID already exists
+      const existingReport = await Report.findById(providedId);
+      if (existingReport) {
+        // Update existing report
+        console.log('Updating existing report with ID:', providedId);
+        report = await Report.findByIdAndUpdate(providedId, dashboardData, { new: true });
+      } else {
+        // Create new report with specific ID
+        console.log('Creating new report with specific ID:', providedId);
+        report = new Report({
+          _id: providedId, // Use the provided ID as MongoDB _id
+          reportId: providedId, // Also set as reportId for consistency
+          ...dashboardData
+        });
+        await report.save();
+      }
+    } else {
+      // Generate a new ID
+      const newId = new mongoose.Types.ObjectId().toString();
+      console.log('Creating new report with generated ID:', newId);
+      report = new Report({
+        reportId: newId,
+        ...dashboardData
+      });
+      await report.save();
+    }
+    
+    console.log('Saved report:', report); // Debug log
     
     // Return both the report and its ID
     res.status(201).json({ 
       message: 'Dashboard data saved', 
-      report: savedReport,
-      reportId: savedReport.reportId // Use reportId instead of _id
+      report: report,
+      reportId: report.reportId || report._id
     });
   } catch (err) {
     console.error('Error saving dashboard data:', err);
@@ -104,12 +128,32 @@ app.get('/api/reports/dashboard/:id', async (req, res) => {
 // Update dashboard data
 app.put('/api/reports/dashboard/:id', async (req, res) => {
   try {
-    const report = await Report.findByIdAndUpdate(
-      req.params.id,
+    const id = req.params.id;
+    console.log('Updating dashboard data for ID:', id);
+    
+    // Try to find by _id first
+    let report = await Report.findByIdAndUpdate(
+      id,
       req.body,
       { new: true, runValidators: true }
     );
-    if (!report) return res.status(404).json({ error: 'Report not found' });
+    
+    // If not found, try to find by reportId
+    if (!report) {
+      console.log('Not found by _id, trying reportId');
+      report = await Report.findOneAndUpdate(
+        { reportId: id },
+        req.body,
+        { new: true, runValidators: true }
+      );
+    }
+    
+    if (!report) {
+      console.log('Report not found for update, ID:', id);
+      return res.status(404).json({ error: 'Report not found' });
+    }
+    
+    console.log('Updated report:', report);
     res.json({ message: 'Dashboard data updated', report });
   } catch (err) {
     console.error('Error updating dashboard data:', err);

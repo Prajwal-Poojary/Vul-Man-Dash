@@ -37,4 +37,85 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
+// Get dashboard data by report ID
+router.get('/dashboard/:id', async (req, res) => {
+  try {
+    const report = await Report.findById(req.params.id);
+    if (!report) {
+      return res.status(404).json({ error: 'Report not found' });
+    }
+    
+    // Return the dashboard data if it exists
+    if (report.dashboardData) {
+      res.json(report.dashboardData);
+    } else {
+      res.status(404).json({ error: 'Dashboard data not found' });
+    }
+  } catch (err) {
+    console.error('Error fetching dashboard data:', err);
+    res.status(500).json({ error: 'Failed to fetch dashboard data', details: err.message });
+  }
+});
+
+// Save dashboard data for a report
+router.post('/dashboard/:id', async (req, res) => {
+  try {
+    const reportId = req.params.id;
+    const dashboardData = req.body;
+    
+    console.log('Saving dashboard data for report:', reportId);
+    console.log('Dashboard data:', dashboardData);
+    
+    const report = await Report.findByIdAndUpdate(
+      reportId,
+      { dashboardData: dashboardData },
+      { new: true, runValidators: true }
+    );
+    
+    if (!report) {
+      return res.status(404).json({ error: 'Report not found' });
+    }
+    
+    console.log('Dashboard data saved successfully');
+    res.status(200).json({ 
+      message: 'Dashboard data saved', 
+      report: report,
+      dashboardData: report.dashboardData
+    });
+  } catch (err) {
+    console.error('Error saving dashboard data:', err);
+    res.status(500).json({ error: 'Failed to save dashboard data', details: err.message });
+  }
+});
+
+// Update dashboard data for a report
+router.put('/dashboard/:id', async (req, res) => {
+  try {
+    const reportId = req.params.id;
+    const dashboardData = req.body;
+    
+    console.log('Updating dashboard data for report:', reportId);
+    
+    const report = await Report.findByIdAndUpdate(
+      reportId,
+      { dashboardData: dashboardData },
+      { new: true, runValidators: true }
+    );
+    
+    if (!report) {
+      return res.status(404).json({ error: 'Report not found' });
+    }
+    
+    console.log('Dashboard data updated successfully');
+    res.json({ 
+      message: 'Dashboard data updated', 
+      report: report,
+      dashboardData: report.dashboardData
+    });
+  } catch (err) {
+    console.error('Error updating dashboard data:', err);
+    res.status(500).json({ error: 'Failed to update dashboard data', details: err.message });
+  }
+});
+
 export default router;

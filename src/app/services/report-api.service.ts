@@ -44,12 +44,12 @@ export interface DashboardData {
 
 @Injectable({ providedIn: 'root' })
 export class ReportApiService {
-  private apiUrl = 'http://localhost:3001/api/reports';
+  private apiUrl = 'http://localhost:3001/api/reports/dashboard';
 
   constructor(private http: HttpClient) {}
 
   saveDashboardData(data: DashboardData): Observable<any> {
-    return this.http.post(`${this.apiUrl}/dashboard`, data).pipe(
+    return this.http.post(`${this.apiUrl}`, data).pipe(
       catchError(error => {
         console.error('Error saving dashboard data:', error);
         throw error;
@@ -58,15 +58,15 @@ export class ReportApiService {
   }
 
   getDashboardData(id: string): Observable<DashboardData> {
-    return this.http.get<DashboardData>(`${this.apiUrl}/dashboard/${id}`);
+    return this.http.get<DashboardData>(`${this.apiUrl}/${id}`);
   }
 
   getAllDashboardReports(): Observable<DashboardData[]> {
-    return this.http.get<DashboardData[]>(`${this.apiUrl}/dashboard`);
+    return this.http.get<DashboardData[]>(`${this.apiUrl}`);
   }
 
   updateDashboardData(id: string, data: DashboardData): Observable<any> {
-    return this.http.put(`${this.apiUrl}/dashboard/${id}`, data).pipe(
+    return this.http.put(`${this.apiUrl}/${id}`, data).pipe(
       catchError(error => {
         console.error('Error updating dashboard data:', error);
         throw error;
@@ -75,7 +75,7 @@ export class ReportApiService {
   }
 
   deleteReport(id: string): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/dashboard/${id}`).pipe(
+    return this.http.delete(`${this.apiUrl}/${id}`).pipe(
       catchError(error => {
         console.error('Error deleting dashboard data:', error);
         throw error;

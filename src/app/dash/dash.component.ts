@@ -2,8 +2,7 @@ import { Component, AfterViewInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Chart, registerables } from 'chart.js';
-import { ReportApiService, DashboardData } from '../services/report-api.service';
-import { ReportApi2Service } from '../services/report-api2.service';
+import { ReportService, DashboardData } from '../services/report.service';
 import { Router } from '@angular/router';
 
 // Define types for CVSS metrics
@@ -82,8 +81,7 @@ export class DashComponent implements AfterViewInit {
   private remediationChart?: Chart;
 
   constructor(
-    private reportService: ReportApiService,
-    private reportApi2Service: ReportApi2Service,
+    private reportService: ReportService,
     private router: Router
   ) {
     Chart.register(...registerables);
@@ -111,7 +109,7 @@ export class DashComponent implements AfterViewInit {
       }
       // Otherwise if we have a reportId, try to fetch the dashboard data
       else if (this.reportId) {
-        this.fetchDashboardData(this.reportId as string);
+        this.fetchDashboardDataForEdit(this.reportId as string);
       } else {
         // If no reportId, start with empty form
         this.showInputForm = true;
@@ -232,6 +230,7 @@ export class DashComponent implements AfterViewInit {
     this.updateSeverityDistribution();
 
     const dashboardData: DashboardData = {
+      _id: this.reportId || undefined, // Use the basic report ID as the dashboard ID
       cvssScore: {
         baseScore: cvssScore,
         riskLevel: this.cvssRiskLevel
@@ -262,25 +261,23 @@ export class DashComponent implements AfterViewInit {
 
     try {
       console.log('Saving dashboard data to MongoDB...');
-      const reportData = {
-        title: 'Dashboard Report',
-        description: 'Security Assessment Dashboard',
-        date: new Date(),
-        status: 'Generated',
-        data: dashboardData
-      };
-
+      console.log('Using reportId:', this.reportId);
+      
       if (this.reportId) {
         // Update existing report
         console.log('Updating existing report:', this.reportId);
-        await this.reportApi2Service.updateReport(this.reportId, reportData).toPromise();
+        await this.reportService.updateDashboardData(this.reportId, dashboardData).toPromise();
         console.log('Report updated successfully');
       } else {
-        // Create new report
-        console.log('Creating new report');
-        const result = await this.reportApi2Service.saveReport(reportData).toPromise();
-        this.reportId = result._id;
-        console.log('New report created with ID:', this.reportId);
+        // Create new report - this shouldn't happen in edit mode
+        console.log('No reportId found - this should not happen in edit mode');
+        this.saveError = true;
+        this.errorMessage = 'No report ID found for saving dashboard data';
+        setTimeout(() => {
+          this.saveError = false;
+          this.errorMessage = '';
+        }, 3000);
+        return;
       }
 
       this.saveSuccess = true;
@@ -745,6 +742,35 @@ export class DashComponent implements AfterViewInit {
     setTimeout(() => this.createCharts(), 100);
   }
 
+  fetchDashboardDataForEdit(reportId: string) {
+    console.log('Fetching dashboard data for edit mode, reportId:', reportId);
+    console.log('Using ReportService to fetch from:', 'http://localhost:5001/api/reports/dashboard/' + reportId);
+    
+    this.reportService.getDashboardData(reportId).subscribe({
+      next: (data) => {
+        console.log('Fetched dashboard data for edit:', data);
+        if (data) {
+          // Populate the form fields with existing data
+          this.populateFormWithData(data);
+          // Show the input form with populated data
+          this.showInputForm = true;
+        } else {
+          console.log('No data found for reportId:', reportId);
+          // If no data exists, start with empty form
+          this.showInputForm = true;
+          this.reportId = null;
+        }
+      },
+      error: (error) => {
+        console.error('Error fetching dashboard data for edit:', error);
+        console.error('Error details:', error.status, error.message);
+        // If fetch fails, start with empty form
+        this.showInputForm = true;
+        this.reportId = null;
+      }
+    });
+  }
+
   fetchDashboardData(reportId: string) {
     this.reportService.getDashboardData(reportId).subscribe({
       next: (data) => {
@@ -772,9 +798,62 @@ export class DashComponent implements AfterViewInit {
     });
   }
 
+  populateFormWithData(data: DashboardData) {
+    console.log('Populating form with data:', data);
+    
+    // Populate CVSS metrics
+    if (data.cvssMetrics) {
+      this.formData.attackVector = data.cvssMetrics.attackVector as AttackVector;
+      this.formData.attackComplexity = data.cvssMetrics.attackComplexity as AttackComplexity;
+      this.formData.privilegesRequired = data.cvssMetrics.privilegesRequired as PrivilegesRequired;
+      this.formData.userInteraction = data.cvssMetrics.userInteraction as UserInteraction;
+      this.formData.scope = data.cvssMetrics.scope as Scope;
+      this.formData.confidentiality = data.cvssMetrics.confidentiality as CIA;
+      this.formData.integrity = data.cvssMetrics.integrity as CIA;
+      this.formData.availability = data.cvssMetrics.availability as CIA;
+    }
+
+    // Populate trend data
+    if (data.trendData) {
+      this.formData.trendMonths = data.trendData.months;
+      this.formData.trendData = data.trendData.counts;
+    }
+
+    // Populate vulnerability findings
+    if (data.vulnerabilityFindings) {
+      this.formData.remediationAreas = data.vulnerabilityFindings.areas;
+      this.areaVulnerabilities = [...data.vulnerabilityFindings.areaVulnerabilities];
+      this.totalVulnerabilities = data.vulnerabilityFindings.totalVulnerabilities;
+    }
+
+    // Populate severity distribution
+    if (data.severityDistribution) {
+      this.severityDistribution = { ...data.severityDistribution };
+    }
+
+    // Populate CVSS score
+    if (data.cvssScore) {
+      this.cvssBaseScore = data.cvssScore.baseScore;
+      this.cvssRiskLevel = data.cvssScore.riskLevel;
+    }
+
+    // Set timestamp
+    if (data.timestamp) {
+      this.currentDate = new Date(data.timestamp);
+    }
+
+    console.log('Form data populated:', this.formData);
+  }
+
   reloadDashboardData() {
     if (this.reportId) {
-      this.fetchDashboardData(this.reportId);
+      if (this.showInputForm) {
+        // If we're showing the input form, we're likely in edit mode
+        this.fetchDashboardDataForEdit(this.reportId);
+      } else {
+        // If we're showing the dashboard view, fetch for display
+        this.fetchDashboardData(this.reportId);
+      }
     }
   }
 }

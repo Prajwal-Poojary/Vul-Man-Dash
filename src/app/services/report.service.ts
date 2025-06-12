@@ -5,12 +5,15 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { DashboardData } from './report-api.service';
 
+export type { DashboardData } from './report-api.service';
+
 export interface Report {
   _id?: string;
   title: string;
   content?: string;
   password?: string;
   createdTime?: Date;
+  dashboardData?: DashboardData;
 }
 
 @Injectable({
@@ -18,7 +21,6 @@ export interface Report {
 })
 export class ReportService {
   private apiUrl = 'http://localhost:5001/api/reports';
-  private dashboardUrl = 'http://localhost:3001/api/reports/dashboard';
 
   constructor(private http: HttpClient) {}
 
@@ -44,6 +46,16 @@ export class ReportService {
 
   // Get dashboard data by report ID
   getDashboardData(reportId: string): Observable<DashboardData> {
-    return this.http.get<DashboardData>(`${this.dashboardUrl}/${reportId}`);
+    return this.http.get<DashboardData>(`${this.apiUrl}/dashboard/${reportId}`);
+  }
+
+  // Save dashboard data for a report
+  saveDashboardData(reportId: string, dashboardData: DashboardData): Observable<any> {
+    return this.http.post(`${this.apiUrl}/dashboard/${reportId}`, dashboardData);
+  }
+
+  // Update dashboard data for a report
+  updateDashboardData(reportId: string, dashboardData: DashboardData): Observable<any> {
+    return this.http.put(`${this.apiUrl}/dashboard/${reportId}`, dashboardData);
   }
 }
