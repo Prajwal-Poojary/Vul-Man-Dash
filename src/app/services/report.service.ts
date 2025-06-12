@@ -3,6 +3,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { DashboardData } from './report-api.service';
 
 export interface Report {
   _id?: string;
@@ -17,6 +18,7 @@ export interface Report {
 })
 export class ReportService {
   private apiUrl = 'http://localhost:5001/api/reports';
+  private dashboardUrl = 'http://localhost:3001/api/reports/dashboard';
 
   constructor(private http: HttpClient) {}
 
@@ -38,5 +40,10 @@ export class ReportService {
   // Delete report by _id
   deleteReport(id: string): Observable<any> {
     return this.http.delete(`${this.apiUrl}/${id}`);
+  }
+
+  // Get dashboard data by report ID
+  getDashboardData(reportId: string): Observable<DashboardData> {
+    return this.http.get<DashboardData>(`${this.dashboardUrl}/${reportId}`);
   }
 }
