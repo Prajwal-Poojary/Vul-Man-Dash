@@ -19,13 +19,15 @@ export class PasswordVerifyComponent {
   isLoading = false;
 
   reportTitle: string | null = null;
+  reportId: string | null = null;
   report: any = null;
 
   constructor(private router: Router, private reportService: ReportService) {
     const navigation = this.router.getCurrentNavigation();
     this.reportTitle = navigation?.extras.state?.['reportTitle'] ?? null;
+    this.reportId = navigation?.extras.state?.['reportId'] ?? null;
 
-    if (!this.reportTitle) {
+    if (!this.reportTitle || !this.reportId) {
       this.errorMsg = 'No report specified for editing';
       setTimeout(() => this.router.navigate(['/myreport']), 2000);
       return;
@@ -59,16 +61,16 @@ export class PasswordVerifyComponent {
         this.successMsg = 'Password verified! Redirecting to dashboard...';
 
         // Check if dashboard data exists
-        this.reportService.getDashboardData(this.report._id).subscribe({
+        this.reportService.getDashboardData(this.reportId!).subscribe({
           next: (dashboardData: DashboardData) => {
             console.log('Found existing dashboard data:', dashboardData);
             // Navigate to dashboard with existing data
             this.router.navigate(['/dashboard'], {
               state: {
                 isEdit: true,
-                reportId: this.report._id,
+                reportId: this.reportId,
                 showInputForm: false,
-                dashboardData: dashboardData // Pass the dashboard data directly
+                dashboardData: dashboardData
               }
             });
           },
@@ -78,7 +80,7 @@ export class PasswordVerifyComponent {
             this.router.navigate(['/dashboard'], {
               state: {
                 isEdit: true,
-                reportId: this.report._id,
+                reportId: this.reportId,
                 showInputForm: true
               }
             });
