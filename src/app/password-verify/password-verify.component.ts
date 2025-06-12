@@ -62,17 +62,21 @@ export class PasswordVerifyComponent {
 
         // Check if dashboard data exists
         this.reportService.getDashboardData(this.reportId!).subscribe({
-          next: (dashboardData: DashboardData) => {
-            console.log('Found existing dashboard data:', dashboardData);
-            // Navigate to dashboard with existing data
-            this.router.navigate(['/dashboard'], {
-              state: {
-                isEdit: true,
-                reportId: this.reportId,
-                showInputForm: false,
-                dashboardData: dashboardData
-              }
-            });
+          next: (report: any) => {
+            console.log('Fetched report:', report);
+            if (report.dashboardData && Object.keys(report.dashboardData).length > 0) {
+              // Show dashboard view
+              this.report = report;
+            } else {
+              // Show dashboard input form
+              this.router.navigate(['/dashboard'], {
+                state: {
+                  isEdit: true,
+                  reportId: this.reportId,
+                  showInputForm: true
+                }
+              });
+            }
           },
           error: (error: any) => {
             console.log('No dashboard data found, showing input form');

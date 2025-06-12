@@ -22,6 +22,7 @@ import {
 } from 'docx';
 import { Chart, registerables } from 'chart.js';
 import { DownloadProgressComponent } from '../shared/download-progress/download-progress.component';
+import { ReportApi2Service } from '../services/report-api2.service';
 
 // Add helper function for table drawing
 function drawTable(pdf: jsPDF, headers: string[], rows: any[][], startY: number, margin: number): number {
@@ -159,14 +160,27 @@ export class ReportComponent {
     }
   }
 
-  constructor(private router: Router, private http: HttpClient) {
+  saveSuccess = false;
+  saveError = false;
+  errorMessage = '';
+  reportId: string | null = null;
+
+  constructor(
+    private router: Router, 
+    private http: HttpClient,
+    private reportApi2Service: ReportApi2Service
+  ) {
     Chart.register(...registerables);
     const navigation = this.router.getCurrentNavigation();
     if (navigation?.extras.state) {
       this.dashboardData = navigation.extras.state['reportData'];
-      // Initialize findings from dashboard data if available
       if (this.dashboardData?.dashboardData?.findings) {
         this.findings = this.dashboardData.dashboardData.findings;
+      }
+      // Get report ID if it exists
+      if (this.dashboardData?.reportId) {
+        this.reportId = this.dashboardData.reportId;
+        console.log('Loaded existing report ID:', this.reportId);
       }
     }
   }
@@ -229,15 +243,67 @@ export class ReportComponent {
     }
   }
 
-  generateReport() {
+  async generateReport() {
     this.reportVisible = true;
     this.dropdownOpen = false;
+    
+    // Prepare report data for MongoDB
+    const reportData = {
+      title: this.form.client,
+      description: this.form.summary,
+      date: new Date(),
+      status: 'Generated',
+      data: {
+        form: this.form,
+        findings: this.findings,
+        dashboardData: this.dashboardData,
+        manifest: this.form.manifest
+      }
+    };
+
+    console.log('Starting to save report...');
+    console.log('Report data:', reportData);
+
+    try {
+      // Save to MongoDB
+      console.log('Sending data to MongoDB...');
+      let result;
+      
+      if (this.reportId) {
+        // Update existing report
+        console.log('Updating existing report:', this.reportId);
+        result = await this.reportApi2Service.updateReport(this.reportId, reportData).toPromise();
+        console.log('Report updated successfully:', result);
+      } else {
+        // Create new report
+        console.log('Creating new report');
+        result = await this.reportApi2Service.saveReport(reportData).toPromise();
+        this.reportId = result._id;
+        console.log('New report created with ID:', this.reportId);
+      }
+
+      this.saveSuccess = true;
+      setTimeout(() => {
+        this.saveSuccess = false;
+      }, 3000);
+    } catch (error) {
+      console.error('Failed to save report:', error);
+      this.saveError = true;
+      this.errorMessage = 'Failed to save report to database';
+      setTimeout(() => {
+        this.saveError = false;
+        this.errorMessage = '';
+      }, 3000);
+    }
+
+    // Create charts after a short delay
     setTimeout(() => this.createReportCharts(), 100);
   }
 
   editReport() {
     this.reportVisible = false;
     this.dropdownOpen = false;
+    console.log('Editing report:', this.reportId);
   }
 
   toggleDropdown(event: Event) {

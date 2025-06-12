@@ -1,6 +1,16 @@
 <div class="report-container" *ngIf="!reportVisible">
   <h2>Security Assessment Report Input</h2>
 
+  <!-- Add success message -->
+  <div *ngIf="saveSuccess" class="alert alert-success">
+    Report saved successfully to database!
+  </div>
+
+  <!-- Add error message -->
+  <div *ngIf="saveError" class="alert alert-danger">
+    {{ errorMessage }}
+  </div>
+
   <div class="form-section">
     <label>Logo Upload: <input type="file" (change)="handleLogoUpload($event)" /></label>
     <label>Logo Title: <input type="text" [(ngModel)]="form.logoName" /></label>
@@ -199,7 +209,7 @@
     <div class="report-section">
       <div *ngIf="dashboardData" class="report-charts">
         <div class="chart-container">
-          <h3 class="chart-title">Remediation Progress</h3>
+          <h3 class="chart-title">Vulnerability Findings by Area</h3>
           <canvas id="reportRemediationChart"></canvas>
         </div>
       </div>

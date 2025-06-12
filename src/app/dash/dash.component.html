@@ -1,5 +1,13 @@
 <div class="dashboard-wrapper">
- 
+  <!-- Add success message -->
+  <div *ngIf="saveSuccess" class="alert alert-success">
+    Dashboard data saved successfully!
+  </div>
+
+  <!-- Add error message -->
+  <div *ngIf="saveError" class="alert alert-danger">
+    {{ errorMessage }}
+  </div>
 
   <div class="form-container" *ngIf="showInputForm">
     <div class="form-header">

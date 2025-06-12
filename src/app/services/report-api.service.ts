@@ -5,6 +5,21 @@ import { catchError } from 'rxjs/operators';
 
 export interface DashboardData {
   _id?: string;
+  cvssScore: {
+    baseScore: number;
+    riskLevel: string;
+  };
+  severityDistribution: {
+    critical: number;
+    high: number;
+    medium: number;
+    low: number;
+    informative: number;
+  };
+  trendData: {
+    months: string;
+    counts: string;
+  };
   cvssMetrics: {
     attackVector: string;
     attackComplexity: string;
@@ -14,26 +29,15 @@ export interface DashboardData {
     confidentiality: string;
     integrity: string;
     availability: string;
-  };
-  trendData: {
-    months: string;
-    counts: string;
+    trendMonths: string;
   };
   vulnerabilityFindings: {
     areas: string;
-    areaVulnerabilities: { name: string; count: number }[];
+    areaVulnerabilities: Array<{
+      name: string;
+      count: number;
+    }>;
     totalVulnerabilities: number;
-  };
-  severityDistribution: {
-    critical: number;
-    high: number;
-    medium: number;
-    low: number;
-    informative: number;
-  };
-  cvssScore: {
-    baseScore: number;
-    riskLevel: string;
   };
   timestamp: Date;
 }

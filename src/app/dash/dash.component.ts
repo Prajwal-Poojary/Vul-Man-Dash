@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Chart, registerables } from 'chart.js';
 import { ReportApiService, DashboardData } from '../services/report-api.service';
+import { ReportApi2Service } from '../services/report-api2.service';
 import { Router } from '@angular/router';
 
 // Define types for CVSS metrics
@@ -38,6 +39,9 @@ export class DashComponent implements AfterViewInit {
   showInputForm = true;
   currentDate = new Date();
   reportId: string | null = null;
+  saveSuccess = false;
+  saveError = false;
+  errorMessage = '';
 
   formData: FormData = {
     // CVSS metrics
@@ -79,6 +83,7 @@ export class DashComponent implements AfterViewInit {
 
   constructor(
     private reportService: ReportApiService,
+    private reportApi2Service: ReportApi2Service,
     private router: Router
   ) {
     Chart.register(...registerables);
@@ -219,16 +224,23 @@ export class DashComponent implements AfterViewInit {
     }
   }
 
-  onSubmit() {
-    this.cvssBaseScore = this.calculateCVSS();
-    this.cvssRiskLevel = this.getRiskLevel(this.cvssBaseScore);
+  async onSubmit() {
+    console.log('Starting dashboard submission...');
+    const cvssScore = this.calculateCVSS();
+    this.cvssBaseScore = cvssScore;
+    this.cvssRiskLevel = this.getRiskLevel(cvssScore);
     this.updateSeverityDistribution();
-    this.showInputForm = false;
-    this.currentDate = new Date();
-    
-    // Prepare dashboard data
+
     const dashboardData: DashboardData = {
-      _id: this.reportId || undefined,
+      cvssScore: {
+        baseScore: cvssScore,
+        riskLevel: this.cvssRiskLevel
+      },
+      severityDistribution: this.severityDistribution,
+      trendData: {
+        months: this.formData.trendMonths,
+        counts: this.formData.trendData
+      },
       cvssMetrics: {
         attackVector: this.formData.attackVector,
         attackComplexity: this.formData.attackComplexity,
@@ -237,91 +249,95 @@ export class DashComponent implements AfterViewInit {
         scope: this.formData.scope,
         confidentiality: this.formData.confidentiality,
         integrity: this.formData.integrity,
-        availability: this.formData.availability
-      },
-      trendData: {
-        months: this.formData.trendMonths,
-        counts: this.formData.trendData
+        availability: this.formData.availability,
+        trendMonths: this.formData.trendMonths
       },
       vulnerabilityFindings: {
         areas: this.formData.remediationAreas,
-        areaVulnerabilities: this.areaVulnerabilities.map(v => ({ name: v.name, count: v.count })),
+        areaVulnerabilities: this.areaVulnerabilities,
         totalVulnerabilities: this.totalVulnerabilities
       },
-      severityDistribution: {
-        critical: this.severityDistribution.critical,
-        high: this.severityDistribution.high,
-        medium: this.severityDistribution.medium,
-        low: this.severityDistribution.low,
-        informative: 0
-      },
+      timestamp: new Date()
+    };
+
+    try {
+      console.log('Saving dashboard data to MongoDB...');
+      const reportData = {
+        title: 'Dashboard Report',
+        description: 'Security Assessment Dashboard',
+        date: new Date(),
+        status: 'Generated',
+        data: dashboardData
+      };
+
+      if (this.reportId) {
+        // Update existing report
+        console.log('Updating existing report:', this.reportId);
+        await this.reportApi2Service.updateReport(this.reportId, reportData).toPromise();
+        console.log('Report updated successfully');
+      } else {
+        // Create new report
+        console.log('Creating new report');
+        const result = await this.reportApi2Service.saveReport(reportData).toPromise();
+        this.reportId = result._id;
+        console.log('New report created with ID:', this.reportId);
+      }
+
+      this.saveSuccess = true;
+      setTimeout(() => {
+        this.saveSuccess = false;
+      }, 3000);
+
+      this.showInputForm = false;
+      setTimeout(() => this.createCharts(), 100);
+    } catch (error) {
+      console.error('Error saving dashboard data:', error);
+      this.saveError = true;
+      this.errorMessage = 'Failed to save dashboard data';
+      setTimeout(() => {
+        this.saveError = false;
+        this.errorMessage = '';
+      }, 3000);
+    }
+  }
+
+  navigateToReport() {
+    const dashboardData = {
       cvssScore: {
         baseScore: this.cvssBaseScore,
         riskLevel: this.cvssRiskLevel
       },
-      timestamp: this.currentDate
-    };
-
-    // Save dashboard data
-    this.reportService.saveDashboardData(dashboardData).subscribe({
-      next: (response) => {
-        console.log('Dashboard data saved successfully:', response);
-        // Get the ID from the response
-        const savedReport = response.report || response;
-        if (savedReport && savedReport._id) {
-          this.reportId = savedReport._id;
-          // Reload the data with the new ID
-          this.fetchDashboardData(this.reportId as string);
-        }
-        // Add a small delay to ensure DOM is ready
-        setTimeout(() => {
-          console.log('Creating charts after form submission');
-          this.createCharts();
-        }, 100);
+      severityDistribution: this.severityDistribution,
+      trendData: {
+        months: this.formData.trendMonths,
+        counts: this.formData.trendData
       },
-      error: (error) => {
-        console.error('Error saving dashboard data:', error);
-        // If save fails, keep the form open
-        this.showInputForm = true;
-      }
-    });
-  }
-
-  navigateToReport() {
-    // Prepare dashboard data for the report
-    const reportData = {
-      dashboardData: {
-        cvssMetrics: this.formData,
-        trendData: this.formData.trendData,
-        severityDistribution: this.severityDistribution,
-        cvssScore: {
-          baseScore: this.cvssBaseScore,
-          riskLevel: this.cvssRiskLevel
-        },
-        vulnerabilityFindings: {
-          areas: this.formData.remediationAreas,
-          areaVulnerabilities: this.areaVulnerabilities,
-          totalVulnerabilities: this.totalVulnerabilities
-        },
-        timestamp: this.currentDate,
-        findings: [
-          {
-            slno: 1,
-            vuln: 'SQL Injection',
-            scope: 'Login Page',
-            severity: this.cvssRiskLevel || 'High',
-            status: 'Not Fixed',
-            vulnUrl: '',
-            pocDataURL: '',
-            threatDetails: `CVSS Score: ${this.cvssBaseScore}\nAttack Vector: ${this.formData.attackVector}\nAttack Complexity: ${this.formData.attackComplexity}\nPrivileges Required: ${this.formData.privilegesRequired}\nUser Interaction: ${this.formData.userInteraction}\nScope: ${this.formData.scope}\nConfidentiality Impact: ${this.formData.confidentiality}\nIntegrity Impact: ${this.formData.integrity}\nAvailability Impact: ${this.formData.availability}`
-          }
-        ]
-      }
+      cvssMetrics: {
+        attackVector: this.formData.attackVector,
+        attackComplexity: this.formData.attackComplexity,
+        privilegesRequired: this.formData.privilegesRequired,
+        userInteraction: this.formData.userInteraction,
+        scope: this.formData.scope,
+        confidentiality: this.formData.confidentiality,
+        integrity: this.formData.integrity,
+        availability: this.formData.availability,
+        trendMonths: this.formData.trendMonths
+      },
+      vulnerabilityFindings: {
+        areas: this.formData.remediationAreas,
+        areaVulnerabilities: this.areaVulnerabilities,
+        totalVulnerabilities: this.totalVulnerabilities
+      },
+      timestamp: new Date()
     };
 
-    // Navigate to report component with the data
-    this.router.navigate(['/report'], { 
-      state: { reportData: reportData }
+    this.router.navigate(['/report'], {
+      state: {
+        reportData: {
+          dashboardData,
+          reportId: this.reportId // Pass the report ID
+        }
+      }
     });
   }
 
@@ -676,41 +692,59 @@ export class DashComponent implements AfterViewInit {
     this.totalVulnerabilities = this.areaVulnerabilities.reduce((sum, area) => sum + area.count, 0);
   }
 
-  // Add method to load saved dashboard data
   loadDashboardData(data: DashboardData) {
-    // Parse the comma-separated strings back into arrays
-    const months = data.trendData.months;
-    const counts = data.trendData.counts;
-    const areas = data.vulnerabilityFindings.areas;
+    console.log('Loading dashboard data:', data);
+    
+    // Load CVSS score
+    if (data.cvssScore) {
+      this.cvssBaseScore = data.cvssScore.baseScore;
+      this.cvssRiskLevel = data.cvssScore.riskLevel;
+    }
 
-    // Update form data
-    this.formData = {
-      attackVector: data.cvssMetrics.attackVector as AttackVector,
-      attackComplexity: data.cvssMetrics.attackComplexity as AttackComplexity,
-      privilegesRequired: data.cvssMetrics.privilegesRequired as PrivilegesRequired,
-      userInteraction: data.cvssMetrics.userInteraction as UserInteraction,
-      scope: data.cvssMetrics.scope as Scope,
-      confidentiality: data.cvssMetrics.confidentiality as CIA,
-      integrity: data.cvssMetrics.integrity as CIA,
-      availability: data.cvssMetrics.availability as CIA,
-      trendMonths: months,
-      trendData: counts,
-      remediationAreas: areas
-    };
+    // Load severity distribution
+    if (data.severityDistribution) {
+      this.severityDistribution = { ...data.severityDistribution };
+    }
 
-    // Update other data
-    this.areaVulnerabilities = data.vulnerabilityFindings.areaVulnerabilities;
-    this.totalVulnerabilities = data.vulnerabilityFindings.totalVulnerabilities;
-    this.severityDistribution = data.severityDistribution;
-    this.cvssBaseScore = data.cvssScore.baseScore;
-    this.cvssRiskLevel = data.cvssScore.riskLevel;
-    this.currentDate = data.timestamp;
+    // Load trend data
+    if (data.trendData) {
+      this.formData.trendMonths = data.trendData.months;
+      this.formData.trendData = data.trendData.counts;
+    }
 
-    // Update charts
-    this.createCharts();
+    // Load CVSS metrics
+    if (data.cvssMetrics) {
+      this.formData.attackVector = data.cvssMetrics.attackVector as AttackVector;
+      this.formData.attackComplexity = data.cvssMetrics.attackComplexity as AttackComplexity;
+      this.formData.privilegesRequired = data.cvssMetrics.privilegesRequired as PrivilegesRequired;
+      this.formData.userInteraction = data.cvssMetrics.userInteraction as UserInteraction;
+      this.formData.scope = data.cvssMetrics.scope as Scope;
+      this.formData.confidentiality = data.cvssMetrics.confidentiality as CIA;
+      this.formData.integrity = data.cvssMetrics.integrity as CIA;
+      this.formData.availability = data.cvssMetrics.availability as CIA;
+    }
+
+    // Load vulnerability findings
+    if (data.vulnerabilityFindings) {
+      this.formData.remediationAreas = data.vulnerabilityFindings.areas;
+      this.areaVulnerabilities = [...data.vulnerabilityFindings.areaVulnerabilities];
+      this.totalVulnerabilities = data.vulnerabilityFindings.totalVulnerabilities;
+    }
+
+    // Load timestamp
+    if (data.timestamp) {
+      this.currentDate = new Date(data.timestamp);
+    }
+
+    // Set report ID if available
+    if (!this.reportId && data._id) {
+      this.reportId = data._id;
+    }
+
+    this.showInputForm = false;
+    setTimeout(() => this.createCharts(), 100);
   }
 
-  // Update fetchDashboardData to handle the case when data doesn't exist
   fetchDashboardData(reportId: string) {
     this.reportService.getDashboardData(reportId).subscribe({
       next: (data) => {
@@ -738,7 +772,6 @@ export class DashComponent implements AfterViewInit {
     });
   }
 
-  // Add method to reload dashboard data
   reloadDashboardData() {
     if (this.reportId) {
       this.fetchDashboardData(this.reportId);
