@@ -60,9 +60,9 @@ export class MyreportComponent implements OnInit, OnDestroy {
   }
 
   editReport(index: number) {
-    const report = this.reports[index];
+    const report = this.filteredReports()[index];
     this.router.navigate(['/password-verify'], {
-      state: { reportTitle: report.title }
+      state: { reportTitle: report.title, reportId: report._id }
     });
   }
 
