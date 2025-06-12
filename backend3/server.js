@@ -36,10 +36,25 @@ app.post('/api/reports/dashboard', async (req, res) => {
   try {
     const dashboardData = req.body;
     console.log('Received dashboard data:', dashboardData); // Debug log
-    const report = new Report(dashboardData);
+    
+    // Generate a new reportId if not provided
+    const reportId = dashboardData._id || new mongoose.Types.ObjectId().toString();
+    
+    // Create new report with dashboard data
+    const report = new Report({
+      reportId: reportId,
+      ...dashboardData
+    });
+    
     const savedReport = await report.save();
     console.log('Saved report:', savedReport); // Debug log
-    res.status(201).json({ message: 'Dashboard data saved', report: savedReport });
+    
+    // Return both the report and its ID
+    res.status(201).json({ 
+      message: 'Dashboard data saved', 
+      report: savedReport,
+      reportId: savedReport.reportId // Use reportId instead of _id
+    });
   } catch (err) {
     console.error('Error saving dashboard data:', err);
     res.status(500).json({ error: 'Failed to save dashboard data', details: err.message });
@@ -60,8 +75,25 @@ app.get('/api/reports/dashboard', async (req, res) => {
 // Get dashboard data by ID
 app.get('/api/reports/dashboard/:id', async (req, res) => {
   try {
-    const report = await Report.findById(req.params.id);
-    if (!report) return res.status(404).json({ error: 'Report not found' });
+    const id = req.params.id;
+    console.log('Fetching dashboard data for ID:', id); // Debug log
+    
+    // Try to find by _id first
+    let report = await Report.findById(id);
+    console.log('Search by _id result:', report ? 'Found' : 'Not found');
+    
+    // If not found, try to find by reportId
+    if (!report) {
+      report = await Report.findOne({ reportId: id });
+      console.log('Search by reportId result:', report ? 'Found' : 'Not found');
+    }
+    
+    if (!report) {
+      console.log('Report not found for ID:', id); // Debug log
+      return res.status(404).json({ error: 'Report not found' });
+    }
+    
+    console.log('Found report:', report); // Debug log
     res.json(report);
   } catch (err) {
     console.error('Error fetching dashboard data:', err);
