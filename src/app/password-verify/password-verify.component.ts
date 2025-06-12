@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ReportService } from '../services/report.service';
+import { DashboardData } from '../services/report-api.service';
 
 @Component({
   selector: 'app-password-verify',
@@ -57,17 +58,32 @@ export class PasswordVerifyComponent {
       if (this.password === this.report?.password) {
         this.successMsg = 'Password verified! Redirecting to dashboard...';
 
-        setTimeout(() => {
-          this.router.navigate(['/dashboard'], {
-            state: {
-              reportData: {
-                ...this.report,
-                exposureLevel: 'Medium',
-                exposureCurrent: 65,
+        // Check if dashboard data exists
+        this.reportService.getDashboardData(this.report._id).subscribe({
+          next: (dashboardData: DashboardData) => {
+            console.log('Found existing dashboard data:', dashboardData);
+            // Navigate to dashboard with existing data
+            this.router.navigate(['/dashboard'], {
+              state: {
+                isEdit: true,
+                reportId: this.report._id,
+                showInputForm: false,
+                dashboardData: dashboardData // Pass the dashboard data directly
               }
-            }
-          });
-        }, 1500);
+            });
+          },
+          error: (error: any) => {
+            console.log('No dashboard data found, showing input form');
+            // If error (like 404), show input form
+            this.router.navigate(['/dashboard'], {
+              state: {
+                isEdit: true,
+                reportId: this.report._id,
+                showInputForm: true
+              }
+            });
+          }
+        });
       } else {
         this.errorMsg = 'Incorrect password. Please try again.';
       }
