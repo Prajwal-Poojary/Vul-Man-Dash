@@ -1,6 +1,11 @@
 const mongoose = require('mongoose');
 
 const reportSchema = new mongoose.Schema({
+  reportId: {
+    type: String,
+    required: true,
+    unique: true
+  },
   cvssMetrics: {
     attackVector: String,
     attackComplexity: String,
