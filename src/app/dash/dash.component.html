@@ -12,7 +12,6 @@
   <div class="form-container" *ngIf="showInputForm">
     <div class="form-header">
       <h1 class="form-title">
-        <span class="title-icon">📊</span>
         Dashboard Input
       </h1>
       <p class="form-subtitle">Enter threat and vulnerability metrics</p>
@@ -22,7 +21,6 @@
       <!-- CVSS Metrics Section -->
       <div class="form-section">
         <h2 class="section-title">
-          <span class="section-icon">🎯</span>
           CVSS Metrics
         </h2>
         <div class="form-grid">
@@ -101,7 +99,6 @@
       <!-- Trend Data Section -->
       <div class="form-section">
         <h2 class="section-title">
-          <span class="section-icon">📈</span>
           Vulnerability Trend
         </h2>
         <div class="form-group">
@@ -121,7 +118,6 @@
       <!-- Remediation Section -->
       <div class="form-section">
         <h2 class="section-title">
-          <span class="section-icon">✅</span>
           Vulnerability Findings
         </h2>
         <div class="form-group">
@@ -152,7 +148,6 @@
 
       <div class="form-actions">
         <button type="submit" class="submit-button">
-          <span class="button-icon">🚀</span>
           Generate Dashboard
         </button>
       </div>
@@ -163,13 +158,11 @@
     <div class="dashboard-header">
       <div>
         <h1 class="dashboard-title">
-          <span class="title-icon">🛡️</span>
           Threat & Vulnerability Dashboard
         </h1>
         <p class="dashboard-subtitle">Last updated: {{ currentDate | date:'medium' }}</p>
       </div>
       <button (click)="showInputForm = true" class="edit-button">
-        <span class="button-icon">✏️</span>
         Edit Data
       </button>
     </div>
@@ -178,7 +171,6 @@
       <!-- CVSS Score Display -->
       <div class="dashboard-section" *ngIf="cvssBaseScore !== null">
         <h2 class="section-title">
-          <span class="section-icon">🎯</span>
           CVSS Score
         </h2>
         <div class="score-display">
@@ -195,7 +187,6 @@
       <!-- Enhanced Risk Matrix -->
       <div class="dashboard-section">
         <h2 class="section-title">
-          <span class="section-icon">📊</span>
           Risk Matrix
         </h2>
         <div class="risk-matrix">
@@ -274,7 +265,6 @@
       <!-- Charts Section -->
       <div class="dashboard-section">
         <h2 class="section-title">
-          <span class="section-icon">📊</span>
           Security Visualizations
         </h2>
         
@@ -307,7 +297,6 @@
             </div>
             <div class="chart-actions">
               <button (click)="navigateToReport()" class="submit-button">
-                <span class="button-icon">📝</span>
                 Enter Report
               </button>
             </div>
