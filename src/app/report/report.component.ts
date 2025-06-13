@@ -317,9 +317,23 @@ export class ReportComponent {
       return;
     }
 
-    this.createReportSeverityChart();
-    this.createReportTrendChart();
-    this.createReportRemediationChart();
+    // Destroy existing charts if they exist
+    if (this.reportSeverityChart) {
+      this.reportSeverityChart.destroy();
+    }
+    if (this.reportTrendChart) {
+      this.reportTrendChart.destroy();
+    }
+    if (this.reportRemediationChart) {
+      this.reportRemediationChart.destroy();
+    }
+
+    // Create new charts
+    setTimeout(() => {
+      this.createReportSeverityChart();
+      this.createReportTrendChart();
+      this.createReportRemediationChart();
+    }, 100);
   }
 
   private createReportSeverityChart() {
@@ -355,80 +369,25 @@ export class ReportComponent {
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        cutout: '60%',
         plugins: {
-          title: {
-            display: true,
-            text: 'Vulnerability Severity Distribution',
-            color: '#e0e0e0',
-            font: {
-              size: 16,
-              family: "'Inter', sans-serif",
-              weight: 500 as const
-            },
-            padding: {
-              top: 10,
-              bottom: 20
-            }
-          },
           legend: {
-            position: 'right',
-            labels: {
-              padding: 20,
-              color: '#e0e0e0',
-              font: {
-                size: 12,
-                family: "'Inter', sans-serif"
-              }
-            }
-          },
-          tooltip: {
-            callbacks: {
-              label: function (context) {
-                const label = context.label || '';
-                const value = context.raw as number;
-                return `${label}: ${value}`;
-              }
-            }
+            position: 'bottom'
           }
         }
-      },
-      plugins: [{
-        id: 'centerText',
-        afterDraw: (chart) => {
-          const { ctx, width, height } = chart;
-          ctx.save();
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-
-          // Draw CVSS Score exactly in the middle
-          ctx.font = 'bold 24px Inter';
-          ctx.fillStyle = '#e0e0e0';
-          ctx.fillText(
-            (data.cvssScore?.baseScore || 0).toString(),
-            width / 2.28,
-            height / 1.7
-          );
-
-          ctx.restore();
-        }
-      }]
+      }
     });
   }
 
   private createReportTrendChart() {
     const ctx = document.getElementById('reportTrendChart') as HTMLCanvasElement;
-    if (!ctx || !this.dashboardData?.dashboardData?.trendData || !this.dashboardData?.dashboardData?.cvssMetrics?.trendMonths) {
+    if (!ctx || !this.dashboardData?.dashboardData?.trendData) {
       console.warn('Trend chart data is not available');
       return;
     }
 
     const data = this.dashboardData.dashboardData;
-    const trendData = data.trendData.split(',').map(Number);
-    const months = data.cvssMetrics.trendMonths.split(',').map((month: string) => {
-      const date = new Date(month + '-01');
-      return date.toLocaleString('default', { month: 'short', year: '2-digit' });
-    });
+    const months = data.trendData.months.split(',');
+    const counts = data.trendData.counts.split(',').map(Number);
 
     this.reportTrendChart = new Chart(ctx, {
       type: 'line',
@@ -436,9 +395,10 @@ export class ReportComponent {
         labels: months,
         datasets: [{
           label: 'Vulnerabilities',
-          data: trendData,
+          data: counts,
           borderColor: 'rgba(67, 97, 238, 0.8)',
           backgroundColor: 'rgba(67, 97, 238, 0.1)',
+          borderWidth: 2,
           fill: true,
           tension: 0.4
         }]
@@ -447,64 +407,15 @@ export class ReportComponent {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          title: {
-            display: true,
-            text: 'Monthly Vulnerability Trend',
-            color: '#e0e0e0',
-            font: {
-              size: 16,
-              family: "'Inter', sans-serif",
-              weight: 500 as const
-            },
-            padding: {
-              top: 10,
-              bottom: 20
-            }
-          },
           legend: {
-            position: 'top',
-            labels: {
-              color: '#e0e0e0',
-              font: {
-                family: "'Inter', sans-serif"
-              }
-            }
-          },
-          tooltip: {
-            callbacks: {
-              title: function (tooltipItems) {
-                return tooltipItems[0].label;
-              },
-              label: function (context) {
-                return `Vulnerabilities: ${context.raw}`;
-              }
-            }
+            position: 'bottom'
           }
         },
         scales: {
           y: {
             beginAtZero: true,
-            grid: {
-              color: 'rgba(255, 255, 255, 0.1)'
-            },
             ticks: {
-              color: '#a0a0a0'
-            },
-            title: {
-              display: true,
-              text: 'Number of Vulnerabilities',
-              color: '#e0e0e0',
-              font: {
-                family: "'Inter', sans-serif"
-              }
-            }
-          },
-          x: {
-            grid: {
-              color: 'rgba(255, 255, 255, 0.1)'
-            },
-            ticks: {
-              color: '#a0a0a0'
+              stepSize: 1
             }
           }
         }
@@ -539,63 +450,15 @@ export class ReportComponent {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          title: {
-            display: true,
-            text: 'Vulnerability Findings by Area',
-            color: '#e0e0e0',
-            font: {
-              size: 16,
-              family: "'Inter', sans-serif",
-              weight: 500 as const
-            },
-            padding: {
-              top: 10,
-              bottom: 20
-            }
-          },
           legend: {
-            position: 'top',
-            labels: {
-              color: '#e0e0e0',
-              font: {
-                family: "'Inter', sans-serif"
-              }
-            }
-          },
-          tooltip: {
-            callbacks: {
-              label: function (context) {
-                const label = context.dataset.label || '';
-                const value = context.raw as number;
-                return `${label}: ${value}`;
-              }
-            }
+            position: 'bottom'
           }
         },
         scales: {
           y: {
             beginAtZero: true,
-            grid: {
-              color: 'rgba(255, 255, 255, 0.1)'
-            },
             ticks: {
-              color: '#a0a0a0'
-            },
-            title: {
-              display: true,
-              text: 'Number of Vulnerabilities',
-              color: '#e0e0e0',
-              font: {
-                family: "'Inter', sans-serif"
-              }
-            }
-          },
-          x: {
-            grid: {
-              color: 'rgba(255, 255, 255, 0.1)'
-            },
-            ticks: {
-              color: '#a0a0a0'
+              stepSize: 1
             }
           }
         }
