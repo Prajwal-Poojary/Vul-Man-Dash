@@ -658,295 +658,320 @@ export class ReportComponent {
     this.downloadFileType = 'PDF';
     this.downloadProgress = 0;
 
-    const password = prompt('Enter a password to encrypt the PDF:');
-    if (!password) {
-      this.showDownloadProgress = false;
-      return;
-    }
-    const confirmPassword = prompt('Confirm your password:');
-    if (password !== confirmPassword) {
-      alert('Passwords do not match!');
-      this.showDownloadProgress = false;
-      return;
-    }
+    try {
+      const password = prompt('Enter a password to encrypt the PDF:');
+      if (!password) {
+        this.showDownloadProgress = false;
+        return;
+      }
+      const confirmPassword = prompt('Confirm your password:');
+      if (password !== confirmPassword) {
+        alert('Passwords do not match!');
+        this.showDownloadProgress = false;
+        return;
+      }
 
-    const reportSections = Array.from(
-      document.querySelectorAll('.final-report .report-section:not(.detailed-vuln-section)')
-    );
-    const header = document.querySelector('.final-report .report-header');
-    // Separate normal sections and detailed vuln sections
-    const allSections = Array.from(document.querySelectorAll('.final-report .report-section'));
-    const vulnSections = Array.from(document.querySelectorAll('.detailed-vuln-section'));
+      if (password.length < 6) {
+        alert('Password must be at least 6 characters long!');
+        this.showDownloadProgress = false;
+        return;
+      }
 
-    // Find the conclusion section
-    const conclusionSection = allSections.find(section =>
-      section.querySelector('h2')?.textContent?.trim().includes('Conclusion')
-    );
+      // Update progress
+      this.updateProgress(10, 100);
 
-    // Everything except conclusion
-    const nonConclusionSections = allSections.filter(section => section !== conclusionSection);
+      const reportSections = Array.from(
+        document.querySelectorAll('.final-report .report-section:not(.detailed-vuln-section)')
+      );
+      const header = document.querySelector('.final-report .report-header');
+      const allSections = Array.from(document.querySelectorAll('.final-report .report-section'));
+      const vulnSections = Array.from(document.querySelectorAll('.detailed-vuln-section'));
 
-    // Combine in correct order: header → normal sections → findings → conclusion
-    const allRenderTargets = [
-      header,
-      ...nonConclusionSections,
-      ...vulnSections,
-      conclusionSection
-    ].filter(Boolean); // remove any nulls
+      // Find the conclusion section
+      const conclusionSection = allSections.find(section =>
+        section.querySelector('h2')?.textContent?.trim().includes('Conclusion')
+      );
 
+      // Everything except conclusion
+      const nonConclusionSections = allSections.filter(section => section !== conclusionSection);
 
-    const sections = [];
-    const totalSteps = allRenderTargets.length;
-    let currentStep = 0;
+      // Combine in correct order: header → normal sections → findings → conclusion
+      const allRenderTargets = [
+        header,
+        ...nonConclusionSections,
+        ...vulnSections,
+        conclusionSection
+      ].filter(Boolean);
 
+      // Update progress
+      this.updateProgress(20, 100);
 
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const margin = 10;
+      const pageWidth = 210;
+      const pageHeight = 297;
+      const pdfWidth = pageWidth - 2 * margin;
+      const pdfHeight = pageHeight - 2 * margin;
 
-    const pdf = new jsPDF('p', 'mm', 'a4');
-    const margin = 10;
-    const pageWidth = 210;
-    const pageHeight = 297;
-    const pdfWidth = pageWidth - 2 * margin;
-    const pdfHeight = pageHeight - 2 * margin;
+      let isFirstPage = true;
+      const totalSteps = allRenderTargets.length;
+      let currentStep = 0;
 
-    let isFirstPage = true;
+      // Process each section
+      for (const element of allRenderTargets) {
+        if (!element) continue;
 
-    for (const element of allRenderTargets) {
-      if (!element) continue;
+        // Update progress
+        currentStep++;
+        this.updateProgress(20 + (currentStep / totalSteps * 60), 100);
 
-
-      const findingsTable = element.querySelector('.findings-table');
-      if (findingsTable) {
-        const rows: any[] = [];
-        const tableHeading = element.querySelector('h2')?.textContent || 'Findings';
-        
-        // Get headers directly from the first row of thead
-        const thead = findingsTable.querySelector('thead');
-        const headerRow = thead?.querySelector('tr');
-        const headerCells = headerRow?.querySelectorAll('th');
-        
-        console.log('Found thead:', !!thead);
-        console.log('Found header row:', !!headerRow);
-        console.log('Number of header cells:', headerCells?.length);
-        
-        // Extract header texts
-        const tableHeaders = headerCells 
-          ? Array.from(headerCells).map(th => {
-              const text = th.textContent?.trim() || '';
-              console.log('Header cell text:', text);
-              return text;
-            })
-          : ['ID', 'Vulnerability', 'Scope', 'Severity', 'Status'];
-
-        console.log('Final table headers:', tableHeaders);
-
-        // Get table body rows
-        const tbodyRows = findingsTable.querySelectorAll('tbody tr');
-        tbodyRows.forEach((row) => {
-          const cells = Array.from(row.querySelectorAll('td')).map(td => td.textContent?.trim() || '');
-          rows.push(cells);
-        });
-
-        if (!isFirstPage) pdf.addPage();
-        
-        // Always draw the border for the current page
-        pdf.setDrawColor(0);
-        pdf.setLineWidth(0.5);
-        pdf.rect(5, 5, 200, 287);
-        
-        // Table configuration
-        const startX = margin;
-        let startY = margin + 10;
-        const colWidths = [15, 60, 50, 30, 25]; // Widths for each column
-        const rowHeight = 10;
-        const pageHeight = 287;
-        const maxY = pageHeight - margin;
-
-        // Draw table heading (h2)
-        pdf.setFont("helvetica", "bold");
-        pdf.setFontSize(12);
-        pdf.setTextColor(0, 0, 0);
-        pdf.text(tableHeading, startX, startY);
-        startY += 15; // Add space after heading
-
-        // Draw header row
-        pdf.setFillColor(41, 128, 185); // Blue background
-        pdf.setTextColor(255, 255, 255); // White text
-        pdf.setFont("helvetica", "bold");
-        pdf.setFontSize(10);
-        
-        let currentX = startX;
-        
-        // Draw all header cells
-        console.log('Drawing headers:', tableHeaders);
-        tableHeaders.forEach((header, index) => {
-          console.log(`Drawing header ${index}:`, header, 'at x:', currentX);
+        // Handle findings table
+        const findingsTable = element.querySelector('.findings-table');
+        if (findingsTable) {
+          const rows: any[] = [];
+          const tableHeading = element.querySelector('h2')?.textContent || 'Findings';
           
-          // Draw header cell background with border
-          pdf.setDrawColor(0); // Black border
+          // Get headers directly from the first row of thead
+          const thead = findingsTable.querySelector('thead');
+          const headerRow = thead?.querySelector('tr');
+          const headerCells = headerRow?.querySelectorAll('th');
+          
+          console.log('Found thead:', !!thead);
+          console.log('Found header row:', !!headerRow);
+          console.log('Number of header cells:', headerCells?.length);
+          
+          // Extract header texts
+          const tableHeaders = headerCells 
+            ? Array.from(headerCells).map(th => {
+                const text = th.textContent?.trim() || '';
+                console.log('Header cell text:', text);
+                return text;
+              })
+            : ['ID', 'Vulnerability', 'Scope', 'Severity', 'Status'];
+
+          console.log('Final table headers:', tableHeaders);
+
+          // Get table body rows
+          const tbodyRows = findingsTable.querySelectorAll('tbody tr');
+          tbodyRows.forEach((row) => {
+            const cells = Array.from(row.querySelectorAll('td')).map(td => td.textContent?.trim() || '');
+            rows.push(cells);
+          });
+
+          if (!isFirstPage) pdf.addPage();
+          
+          // Always draw the border for the current page
+          pdf.setDrawColor(0);
           pdf.setLineWidth(0.5);
-          pdf.setFillColor(44, 62, 80); // Darker blue background
-          pdf.rect(currentX, startY, colWidths[index], rowHeight, 'FD'); // 'FD' means fill and draw
+          pdf.rect(5, 5, 200, 287);
           
-          // Draw header text
-          pdf.setTextColor(255, 255, 255); // Ensure text is white
-          const textWidth = pdf.getTextWidth(header);
-          const x = currentX + (colWidths[index] - textWidth) / 2;
-          pdf.text(header, x, startY + 7);
-          
-          currentX += colWidths[index];
-        });
-        
-        // Reset styles for data rows
-        pdf.setTextColor(0, 0, 0);
-        pdf.setFont("helvetica", "normal");
-        pdf.setDrawColor(0);
-        pdf.setLineWidth(0.1);
-        startY += rowHeight;
+          // Table configuration
+          const startX = margin;
+          let startY = margin + 10;
+          const colWidths = [15, 60, 50, 30, 25]; // Widths for each column
+          const rowHeight = 10;
+          const pageHeight = 287;
+          const maxY = pageHeight - margin;
 
-        // Draw data rows
-        rows.forEach((row, rowIndex) => {
-          // Check if we need a new page
-          if (startY + rowHeight > maxY) {
+          // Draw table heading (h2)
+          pdf.setFont("helvetica", "bold");
+          pdf.setFontSize(12);
+          pdf.setTextColor(0, 0, 0);
+          pdf.text(tableHeading, startX, startY);
+          startY += 15; // Add space after heading
+
+          // Draw header row
+          pdf.setFillColor(41, 128, 185); // Blue background
+          pdf.setTextColor(255, 255, 255); // White text
+          pdf.setFont("helvetica", "bold");
+          pdf.setFontSize(10);
+          
+          let currentX = startX;
+          
+          // Draw all header cells
+          console.log('Drawing headers:', tableHeaders);
+          tableHeaders.forEach((header, index) => {
+            console.log(`Drawing header ${index}:`, header, 'at x:', currentX);
+            
+            // Draw header cell background with border
+            pdf.setDrawColor(0); // Black border
+            pdf.setLineWidth(0.5);
+            pdf.setFillColor(44, 62, 80); // Darker blue background
+            pdf.rect(currentX, startY, colWidths[index], rowHeight, 'FD'); // 'FD' means fill and draw
+            
+            // Draw header text
+            pdf.setTextColor(255, 255, 255); // Ensure text is white
+            const textWidth = pdf.getTextWidth(header);
+            const x = currentX + (colWidths[index] - textWidth) / 2;
+            pdf.text(header, x, startY + 7);
+            
+            currentX += colWidths[index];
+          });
+          
+          // Reset styles for data rows
+          pdf.setTextColor(0, 0, 0);
+          pdf.setFont("helvetica", "normal");
+          pdf.setDrawColor(0);
+          pdf.setLineWidth(0.1);
+          startY += rowHeight;
+
+          // Draw data rows
+          rows.forEach((row, rowIndex) => {
+            // Check if we need a new page
+            if (startY + rowHeight > maxY) {
+              pdf.addPage();
+              pdf.setDrawColor(0);
+              pdf.setLineWidth(0.5);
+              pdf.rect(5, 5, 200, 287);
+              
+              // Reset Y position and redraw header on new page
+              startY = margin + 10;
+              
+              // Draw header on new page
+              pdf.setFillColor(44, 62, 80); // Darker blue background
+              pdf.setTextColor(255, 255, 255); // White text
+              pdf.setFont("helvetica", "bold");
+              pdf.setFontSize(10);
+              
+              currentX = startX;
+              tableHeaders.forEach((header, index) => {
+                // Draw header cell background with border
+                pdf.setDrawColor(0); // Black border
+                pdf.setLineWidth(0.5);
+                pdf.rect(currentX, startY, colWidths[index], rowHeight, 'FD');
+                
+                // Draw header text
+                pdf.setTextColor(255, 255, 255); // Ensure text is white
+                const textWidth = pdf.getTextWidth(header);
+                const x = currentX + (colWidths[index] - textWidth) / 2;
+                pdf.text(header, x, startY + 7);
+                currentX += colWidths[index];
+              });
+              
+              // Reset styles for data rows
+              pdf.setTextColor(0, 0, 0);
+              pdf.setFont("helvetica", "normal");
+              pdf.setDrawColor(0);
+              pdf.setLineWidth(0.1);
+              startY += rowHeight;
+            }
+
+            // Draw row
+            currentX = startX;
+            row.forEach((cell: string, colIndex: number) => {
+              // Draw cell border
+              pdf.rect(currentX, startY, colWidths[colIndex], rowHeight);
+              
+              // Add cell text
+              const text = cell.toString();
+              let x = currentX + 3; // Default left padding
+              
+              // Center text for ID, Severity, and Status columns
+              if (colIndex === 0 || colIndex === 3 || colIndex === 4) {
+                const textWidth = pdf.getTextWidth(text);
+                x = currentX + (colWidths[colIndex] - textWidth) / 2;
+              }
+              
+              pdf.text(text, x, startY + 7);
+              currentX += colWidths[colIndex];
+            });
+            
+            startY += rowHeight;
+          });
+
+          isFirstPage = false;
+          continue;
+        }
+
+        // Handle other content
+        const canvases = Array.from(element.querySelectorAll('canvas'));
+        const canvasImages: HTMLImageElement[] = [];
+
+        // Replace canvases with images
+        for (const canvas of canvases) {
+          try {
+            const img = new Image();
+            img.src = canvas.toDataURL('image/png');
+            img.style.width = canvas.style.width;
+            img.style.height = canvas.style.height;
+            canvas.parentElement?.insertBefore(img, canvas);
+            canvas.style.display = 'none';
+            canvasImages.push(img);
+          } catch (error) {
+            console.error('Error converting canvas to image:', error);
+          }
+        }
+
+        // Wait for images to load
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        try {
+          const canvas = await html2canvas(element as HTMLElement, {
+            scale: 2,
+            useCORS: true,
+            logging: false,
+            allowTaint: true
+          });
+
+          // Restore original canvas
+          canvases.forEach((canvas, i) => {
+            canvas.style.display = 'block';
+            canvasImages[i]?.remove();
+          });
+
+          const imgData = canvas.toDataURL('image/png');
+          const imgWidth = pdfWidth;
+          const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+          if (!isFirstPage) pdf.addPage();
+          
+          // Add border to the page
+          pdf.setDrawColor(0);
+          pdf.setLineWidth(0.5);
+          pdf.rect(5, 5, 200, 287);
+          isFirstPage = false;
+
+          let position = margin;
+          let heightLeft = imgHeight;
+
+          pdf.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight);
+          heightLeft -= pdfHeight;
+
+          while (heightLeft > 0) {
             pdf.addPage();
             pdf.setDrawColor(0);
             pdf.setLineWidth(0.5);
             pdf.rect(5, 5, 200, 287);
-            
-            // Reset Y position and redraw header on new page
-            startY = margin + 10;
-            
-            // Draw header on new page
-            pdf.setFillColor(44, 62, 80); // Darker blue background
-            pdf.setTextColor(255, 255, 255); // White text
-            pdf.setFont("helvetica", "bold");
-            pdf.setFontSize(10);
-            
-            currentX = startX;
-            tableHeaders.forEach((header, index) => {
-              // Draw header cell background with border
-              pdf.setDrawColor(0); // Black border
-              pdf.setLineWidth(0.5);
-              pdf.rect(currentX, startY, colWidths[index], rowHeight, 'FD');
-              
-              // Draw header text
-              pdf.setTextColor(255, 255, 255); // Ensure text is white
-              const textWidth = pdf.getTextWidth(header);
-              const x = currentX + (colWidths[index] - textWidth) / 2;
-              pdf.text(header, x, startY + 7);
-              currentX += colWidths[index];
-            });
-            
-            // Reset styles for data rows
-            pdf.setTextColor(0, 0, 0);
-            pdf.setFont("helvetica", "normal");
-            pdf.setDrawColor(0);
-            pdf.setLineWidth(0.1);
-            startY += rowHeight;
+            position = heightLeft - imgHeight + margin;
+            pdf.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight);
+            heightLeft -= pdfHeight;
           }
-
-          // Draw row
-          currentX = startX;
-          row.forEach((cell: string, colIndex: number) => {
-            // Draw cell border
-            pdf.rect(currentX, startY, colWidths[colIndex], rowHeight);
-            
-            // Add cell text
-            const text = cell.toString();
-            let x = currentX + 3; // Default left padding
-            
-            // Center text for ID, Severity, and Status columns
-            if (colIndex === 0 || colIndex === 3 || colIndex === 4) {
-              const textWidth = pdf.getTextWidth(text);
-              x = currentX + (colWidths[colIndex] - textWidth) / 2;
-            }
-            
-            pdf.text(text, x, startY + 7);
-            currentX += colWidths[colIndex];
-          });
-          
-          startY += rowHeight;
-        });
-
-        isFirstPage = false;
-        continue;
+        } catch (error) {
+          console.error('Error processing section:', error);
+        }
       }
 
+      // Update progress
+      this.updateProgress(90, 100);
 
+      // Generate PDF blob
+      const pdfBlob = pdf.output('blob');
+      const formData = new FormData();
+      const pdfFile = new File([pdfBlob], 'report.pdf', { type: 'application/pdf' });
+      formData.append('file', pdfFile);
+      formData.append('password', password);
+      formData.append('confirm_password', password);
 
-
-      // Update progress for each section
-      currentStep++;
-      this.updateProgress(currentStep, totalSteps);
-
-      // ✅ Replace canvas in this section with image
-      const canvases = Array.from(element.querySelectorAll('canvas'));
-      const canvasImages: HTMLImageElement[] = [];
-
-      canvases.forEach((canvas) => {
-        const img = new Image();
-        img.src = canvas.toDataURL('image/png');
-        img.style.width = canvas.style.width;
-        img.style.height = canvas.style.height;
-        canvas.parentElement?.insertBefore(img, canvas);
-        canvas.style.display = 'none';
-        canvasImages.push(img);
-      });
-
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      const canvas = await html2canvas(element as HTMLElement, {
-        scale: 2,
-        useCORS: true
-      });
-
-      // Restore original canvas
-      canvases.forEach((canvas, i) => {
-        canvas.style.display = 'block';
-        canvasImages[i].remove();
-      });
-
-      const imgData = canvas.toDataURL('image/png');
-      const imgWidth = pdfWidth;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-      let position = margin;
-      let heightLeft = imgHeight;
-
-      if (!isFirstPage) pdf.addPage();
-      // ✳️ Add border to the page
-      pdf.setDrawColor(0);
-      pdf.setLineWidth(0.5);
-      pdf.rect(5, 5, 200, 287);
-      isFirstPage = false;
-
-      pdf.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight);
-      heightLeft -= pdfHeight;
-
-      while (heightLeft > 0) {
-        pdf.addPage();
-        pdf.setDrawColor(0);
-        pdf.setLineWidth(0.5);
-        pdf.rect(5, 5, 200, 287);
-        position = heightLeft - imgHeight + margin;
-        pdf.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight);
-        heightLeft -= pdfHeight;
-      }
-    }
-
-    const pdfBlob = pdf.output('blob');
-    const formData = new FormData();
-    const pdfFile = new File([pdfBlob], 'report.pdf', { type: 'application/pdf' });
-    formData.append('file', pdfFile);
-    formData.append('password', password);
-    formData.append('confirm_password', password);
-
-    try {
+      // Send to backend for encryption
       const response = await fetch('http://localhost:5002/api/report/protect-pdf', {
         method: 'POST',
         body: formData
       });
 
-      if (!response.ok) throw new Error('Failed to encrypt PDF');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to encrypt PDF');
+      }
 
       const encryptedBlob = await response.blob();
       const url = window.URL.createObjectURL(encryptedBlob);
@@ -955,9 +980,12 @@ export class ReportComponent {
       a.download = 'Final_Report.pdf';
       a.click();
       window.URL.revokeObjectURL(url);
+
+      // Update progress
+      this.updateProgress(100, 100);
     } catch (error) {
-      console.error('Encryption failed:', error);
-      alert('Error encrypting PDF.');
+      console.error('PDF generation failed:', error);
+      alert(error instanceof Error ? error.message : 'Failed to generate PDF. Please try again.');
     } finally {
       this.showDownloadProgress = false;
     }
