@@ -20,7 +20,8 @@ export class AppComponent {
         this.showNavbar = !(
           url.startsWith('/login') ||
           url.startsWith('/register') ||
-          url.startsWith('/forgot-password')
+          url.startsWith('/forgot-password') ||
+          url.startsWith('/reset-password')
         );
       }
     });
