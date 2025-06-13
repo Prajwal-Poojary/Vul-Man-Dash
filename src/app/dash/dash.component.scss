@@ -329,13 +329,19 @@
   font-size: 0.9375rem;
   transition: var(--transition);
   
+  
   &:focus {
     outline: none;
     border-color: var(--primary-color);
     box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
   }
 }
-
+ option {
+    background-color: #ffffff;
+    color: #000000;
+    padding: 0.75rem;
+    font-size: 0.95rem;
+  }
 .input-hint {
   display: block;
   font-size: 0.75rem;
@@ -349,7 +355,7 @@
   margin-top: 2rem;
   
   button {
-    width: 48%;
+    width: 30%;
   }
 }
 
