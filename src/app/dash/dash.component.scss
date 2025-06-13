@@ -243,9 +243,11 @@
 .form-container {
   max-width: 1000px;
   margin: 0 auto;
-  background-color: var(--darker-color);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
+  background: #232323;
+  border: 1.5px solid #292929;
+  border-radius: 18px;
+  box-shadow: 0 4px 24px 0 rgba(0,0,0,0.18);
+  padding: 2.5rem 2rem 2rem 2rem;
   overflow: hidden;
 }
 
@@ -368,20 +370,17 @@
   font-size: 1rem;
   font-weight: 500;
   cursor: pointer;
-  transition: var(--transition);
+  transition: background-color 0.3s, color 0.3s, border-color 0.3s, box-shadow 0.3s, transform 0.2s, border-radius 0.3s;
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  
-  &:hover {
-    background-color: darken(#4361ee, 10%);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow);
-  }
-  
-  .button-icon {
-    font-size: 1.25rem;
-  }
+}
+
+.submit-button:hover {
+  background-color: #2746b2;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+  border-radius: 24px;
 }
 
 /* Dashboard View */
@@ -426,18 +425,19 @@
   font-size: 0.9375rem;
   font-weight: 500;
   cursor: pointer;
-  transition: var(--transition);
+  transition: background-color 0.3s, color 0.3s, border-color 0.3s, box-shadow 0.3s, transform 0.2s, border-radius 0.3s;
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  
-  &:hover {
-    background-color: rgba(67, 97, 238, 0.1);
-  }
-  
-  .button-icon {
-    font-size: 1rem;
-  }
+}
+
+.edit-button:hover {
+  background-color: #2746b2;
+  color: #fff;
+  border-color: #2746b2;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+  border-radius: 24px;
 }
 
 .dashboard-section {
@@ -512,6 +512,7 @@
     
     button {
       width: 100%;
+      
     }
   }
   
@@ -610,30 +611,6 @@
 .chart-actions {
   margin-top: 1.5rem;
   text-align: center;
-
-  .submit-button {
-    background: var(--primary-color);
-    color: white;
-    border: none;
-    padding: 0.75rem 1.5rem;
-    border-radius: 6px;
-    font-size: 1rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-
-    &:hover {
-      background: var(--primary-color-dark);
-      transform: translateY(-1px);
-    }
-
-    .button-icon {
-      font-size: 1.2rem;
-    }
-  }
 }
 
 .alert {

@@ -5,7 +5,7 @@
     <a (click)="goToReports()" class="logo">My Reports</a>
   </div>
 
-  <div class="navbar-search">
+  <div class="navbar-search" *ngIf="isMyReportPage">
     <input
       type="text"
       placeholder="Search reports..."
@@ -14,7 +14,7 @@
     />
   </div>
 
-  <div class="navbar-actions">
+  <div class="navbar-actions" *ngIf="isMyReportPage">
     <button (click)="goToCreate()" class="btn-add">+ Add New Report</button>
   </div>
 </nav>

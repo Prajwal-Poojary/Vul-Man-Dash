@@ -40,7 +40,6 @@
         <h4>Finding #{{ i + 1 }}</h4>
         <label>Vulnerability: <input type="text" [(ngModel)]="finding.vuln" /></label>
         <label>Vulnerability URL: <input type="text" [(ngModel)]="finding.vulnUrl" /></label>
-        <label>Scope: <input type="text" [(ngModel)]="finding.scope" /></label>
         <label>Threat Details: <textarea rows="2" [(ngModel)]="finding.threatDetails"></textarea></label>
         <label>Retesting POC: <input type="file" (change)="handlePocUpload($event, i)" accept="image/*" /></label>
         <div *ngIf="finding.pocDataURL" class="poc-preview">
@@ -138,14 +137,6 @@
             <th class="border" class="row">Scope</th>
             <td>{{ form.scope }}</td>
           </tr>
-          <tr class="row" *ngIf="dashboardData" class="row">
-            <th class="border" class="row">Total Assets Assessed</th>
-            <td>{{ dashboardData.dashboardData.totalAssets }}</td>
-          </tr>
-          <tr class="row" *ngIf="dashboardData" class="row">
-            <th class="border" class="row">High Risk Findings</th>
-            <td>{{ dashboardData.dashboardData.exposureHighRisk }}</td>
-          </tr>
         </table>
       </div>
     </div>
@@ -230,7 +221,6 @@
           <tr>
             <th>ID</th>
             <th>Vulnerability</th>
-            <th>Scope</th>
             <th>Severity</th>
             <th>Status</th>
           </tr>
@@ -239,7 +229,6 @@
           <tr *ngFor="let finding of findings; let i = index">
             <td>{{ i + 1 }}</td>
             <td>{{ finding.vuln }}</td>
-            <td>{{ finding.scope }}</td>
             <td [class]="'severity-' + finding.severity.toLowerCase()">{{ finding.severity }}</td>
             <td [class]="'status-' + finding.status.toLowerCase().replace(' ', '-')">{{ finding.status }}</td>
           </tr>

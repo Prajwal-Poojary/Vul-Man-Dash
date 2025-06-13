@@ -22,24 +22,21 @@ export class CreateReportComponent implements OnInit {
   };
 
   passwordStrength = '';
-  showPassword = false;
-  showConfirmPassword = false;
+  errorMsg = '';
+  successMsg = '';
 
   constructor(private reportService: ReportService, private router: Router) {}
-
-  togglePassword() {
-    this.showPassword = !this.showPassword;
-  }
-
-  toggleConfirmPassword() {
-    this.showConfirmPassword = !this.showConfirmPassword;
-  }
 
   checkStrength() {
     const pwd = this.report.password;
     if (pwd.length < 5) {
       this.passwordStrength = 'weak';
-    } else if (/[A-Z]/.test(pwd) && /\d/.test(pwd)) {
+    } else if (
+      pwd.length >= 8 &&
+      /[A-Z]/.test(pwd) &&
+      /[0-9]/.test(pwd) &&
+      /[^A-Za-z0-9]/.test(pwd)
+    ) {
       this.passwordStrength = 'strong';
     } else {
       this.passwordStrength = 'medium';
@@ -49,20 +46,39 @@ export class CreateReportComponent implements OnInit {
   saveReport() {
     const { title, password, confirmPassword } = this.report;
 
-    if (!title.trim()) return alert('Title is required!');
-    if (!password.trim()) return alert('Password is required!');
-    if (password.length < 5) return alert('Password must be at least 5 characters!');
-    if (password !== confirmPassword) return alert('Passwords do not match!');
+    if (!title.trim()) {
+      this.errorMsg = 'Title is required!';
+      setTimeout(() => this.errorMsg = '', 3000);
+      return;
+    }
+    if (!password.trim()) {
+      this.errorMsg = 'Password is required!';
+      setTimeout(() => this.errorMsg = '', 3000);
+      return;
+    }
+    if (password.length < 5) {
+      this.errorMsg = ' Password must be at least 5 characters!';
+      setTimeout(() => this.errorMsg = '', 3000);
+      return;
+    }
+    if (password !== confirmPassword) {
+      this.errorMsg = ' Password does not match!';
+      setTimeout(() => this.errorMsg = '', 3000);
+      return;
+    }
 
     // Call addReport and wait for success
     this.reportService.addReport(this.report).subscribe({
       next: () => {
-        alert('Report saved!');
+        this.errorMsg = '';
+        this.successMsg = ' Report saved successfully!';
+        setTimeout(() => this.successMsg = '', 3000);
         this.router.navigate(['/myreport']);
       },
       error: (err) => {
         console.error('Save failed', err);
-        alert('Failed to save report!');
+        this.errorMsg = 'Failed to save Report!';
+        setTimeout(() => this.errorMsg = '', 3000);
       }
     });
   }

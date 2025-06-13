@@ -38,4 +38,8 @@ export class NavbarComponent {
   onSearchChange() {
     this.searchService.updateSearchTerm(this.searchQuery);
   }
+
+  get isMyReportPage(): boolean {
+    return this.router.url === '/myreport';
+  }
 }

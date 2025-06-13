@@ -121,7 +121,8 @@ export class ReportComponent {
     'Web Application',
     'API',
     'Network',
-    'Mobile Application',
+    'iOS Application',
+    'Android Application',
     'Cloud Infrastructure'
   ];
 
