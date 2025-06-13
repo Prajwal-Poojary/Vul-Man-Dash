@@ -195,22 +195,31 @@
     <div class="report-section">
       <h2>3. Executive Summary</h2>
       <div *ngIf="dashboardData" class="report-charts">
+        <!-- Severity Chart -->
         <div class="chart-container">
           <h3 class="chart-title">Vulnerability Severity Distribution</h3>
-          <canvas id="reportSeverityChart"></canvas>
+          <div class="chart-wrapper">
+            <canvas id="reportSeverityChart"></canvas>
+          </div>
         </div>
-
+        <!-- Trend Chart -->
         <div class="chart-container">
           <h3 class="chart-title">Monthly Vulnerability Trend</h3>
-          <canvas id="reportTrendChart"></canvas>
+          <div class="chart-wrapper">
+            <canvas id="reportTrendChart"></canvas>
+          </div>
         </div>
       </div>
     </div>
     <div class="report-section">
+      <h2>3. Executive Summary</h2>
       <div *ngIf="dashboardData" class="report-charts">
+        <!-- Remediation Chart -->
         <div class="chart-container">
           <h3 class="chart-title">Vulnerability Findings by Area</h3>
-          <canvas id="reportRemediationChart"></canvas>
+          <div class="chart-wrapper">
+            <canvas id="reportRemediationChart"></canvas>
+          </div>
         </div>
       </div>
     </div>
@@ -346,15 +355,9 @@
           </li>
         </ul>
       </div>
-      <button (click)="backToDashboard()" class="back-btn">
-        <i class="fas fa-arrow-left"></i> Back to Dashboard
-      </button>
     </div>
   </div>
 </div>
 
-<app-download-progress
-  [show]="showDownloadProgress"
-  [progress]="downloadProgress"
-  [fileType]="downloadFileType">
+<app-download-progress [show]="showDownloadProgress" [progress]="downloadProgress" [fileType]="downloadFileType">
 </app-download-progress>
