@@ -5,9 +5,14 @@ import tempfile
 import os
 import zipfile
 from PyPDF2 import PdfWriter, PdfReader
+import logging
 
 report_routes = Blueprint('report', __name__, url_prefix='/api/report')
 CORS(report_routes)
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 @report_routes.route('/protect-docx', methods=['POST'])
 def protect_docx():
@@ -68,6 +73,7 @@ def protect_docx():
 def protect_pdf():
     try:
         if 'file' not in request.files:
+            logger.error("No file uploaded")
             return {"error": "No file uploaded"}, 400
             
         file = request.files['file']
@@ -75,28 +81,55 @@ def protect_pdf():
         confirm_password = request.form.get('confirm_password', '')
         
         if len(password) < 6:
+            logger.error("Password too short")
             return {"error": "Password must be at least 6 characters"}, 400
         if password != confirm_password:
+            logger.error("Passwords do not match")
             return {"error": "Passwords do not match"}, 400
 
-        # Process PDF
-        pdf_writer = PdfWriter()
-        pdf_reader = PdfReader(file.stream)
-        
-        for page in pdf_reader.pages:
-            pdf_writer.add_page(page)
+        # Create a temporary file to store the uploaded PDF
+        temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.pdf')
+        file.save(temp_file.name)
+        temp_file.close()
+
+        try:
+            # Process PDF
+            pdf_writer = PdfWriter()
+            pdf_reader = PdfReader(temp_file.name)
             
-        pdf_writer.encrypt(user_pwd=password, owner_pwd=None, use_128bit=True)
-        
-        buffer = io.BytesIO()
-        pdf_writer.write(buffer)
-        buffer.seek(0)
-        
-        return send_file(
-            buffer,
-            as_attachment=True,
-            download_name='protected_report.pdf',
-            mimetype='application/pdf'
-        )
+            # Check if PDF is already encrypted
+            if pdf_reader.is_encrypted:
+                logger.error("PDF is already encrypted")
+                return {"error": "PDF is already encrypted"}, 400
+            
+            # Add all pages
+            for page in pdf_reader.pages:
+                pdf_writer.add_page(page)
+            
+            # Set encryption with 128-bit key
+            pdf_writer.encrypt(user_pwd=password, owner_pwd=password, use_128bit=True)
+            
+            # Write to buffer
+            buffer = io.BytesIO()
+            pdf_writer.write(buffer)
+            buffer.seek(0)
+            
+            # Clean up temporary file
+            os.unlink(temp_file.name)
+            
+            return send_file(
+                buffer,
+                as_attachment=True,
+                download_name='protected_report.pdf',
+                mimetype='application/pdf'
+            )
+        except Exception as e:
+            logger.error(f"PDF processing error: {str(e)}")
+            # Clean up temporary file in case of error
+            if os.path.exists(temp_file.name):
+                os.unlink(temp_file.name)
+            raise
+            
     except Exception as e:
+        logger.error(f"PDF protection failed: {str(e)}")
         return {"error": f"PDF protection failed: {str(e)}"}, 500
