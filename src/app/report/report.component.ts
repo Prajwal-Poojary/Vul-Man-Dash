@@ -1,4 +1,4 @@
-import { Component, HostListener } from '@angular/core';
+import { Component, HostListener, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -103,7 +103,7 @@ function drawTable(pdf: jsPDF, headers: string[], rows: any[][], startY: number,
   templateUrl: './report.component.html',
   styleUrls: ['./report.component.scss']
 })
-export class ReportComponent {
+export class ReportComponent implements AfterViewInit {
   reAssessmentOption: 'date' | 'na' = 'date';
   logoDataURL = '';
   reportVisible = false;
@@ -720,20 +720,19 @@ export class ReportComponent {
     this.downloadProgress = 0;
 
     try {
-      const password = prompt('Enter a password to encrypt the PDF:');
+      let password = prompt('Enter a password to encrypt the PDF (minimum 12 characters):');
       if (!password) {
+        this.showDownloadProgress = false;
+        return;
+      }
+      if (password.length < 12) {
+        alert('Password must be at least 12 characters long!');
         this.showDownloadProgress = false;
         return;
       }
       const confirmPassword = prompt('Confirm your password:');
       if (password !== confirmPassword) {
         alert('Passwords do not match!');
-        this.showDownloadProgress = false;
-        return;
-      }
-
-      if (password.length < 6) {
-        alert('Password must be at least 6 characters long!');
         this.showDownloadProgress = false;
         return;
       }
@@ -1384,6 +1383,12 @@ export class ReportComponent {
       this.form.scopes.splice(index, 1);
     } else if (type === 'manifest' && this.form.manifest.scopes.length > 1) {
       this.form.manifest.scopes.splice(index, 1);
+    }
+  }
+
+  ngAfterViewInit() {
+    if (this.dashboardData) {
+      this.createReportCharts();
     }
   }
 }
