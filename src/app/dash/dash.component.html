@@ -96,22 +96,30 @@
         </div>
       </div>
 
-      <!-- Trend Data Section -->
+      <!-- Severity Distribution Section -->
       <div class="form-section">
-        <h2 class="section-title">
-          Vulnerability Trend
-        </h2>
-        <div class="form-group">
-          <label for="trendMonths" class="form-label">Months</label>
-          <input type="text" id="trendMonths" name="trendMonths" [(ngModel)]="formData.trendMonths" 
-                 class="form-input" placeholder="e.g. 2024-01,2024-02,2024-03" required>
-          <span class="input-hint">Comma-separated months (YYYY-MM)</span>
-        </div>
-        <div class="form-group">
-          <label for="trendData" class="form-label">Monthly Counts</label>
-          <input type="text" id="trendData" name="trendData" [(ngModel)]="formData.trendData" 
-                 class="form-input" placeholder="e.g. 200,180,160" required>
-          <span class="input-hint">Comma-separated values (one per month)</span>
+        <h2 class="section-title">Severity Distribution</h2>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="critical" class="form-label">Critical</label>
+            <input type="number" id="critical" name="critical" [(ngModel)]="formData.critical" class="form-input" min="0" />
+          </div>
+          <div class="form-group">
+            <label for="high" class="form-label">High</label>
+            <input type="number" id="high" name="high" [(ngModel)]="formData.high" class="form-input" min="0" />
+          </div>
+          <div class="form-group">
+            <label for="medium" class="form-label">Medium</label>
+            <input type="number" id="medium" name="medium" [(ngModel)]="formData.medium" class="form-input" min="0" />
+          </div>
+          <div class="form-group">
+            <label for="low" class="form-label">Low</label>
+            <input type="number" id="low" name="low" [(ngModel)]="formData.low" class="form-input" min="0" />
+          </div>
+          <div class="form-group">
+            <label for="informative" class="form-label">Informative</label>
+            <input type="number" id="informative" name="informative" [(ngModel)]="formData.informative" class="form-input" min="0" />
+          </div>
         </div>
       </div>
 
@@ -267,7 +275,6 @@
         <h2 class="section-title">
           Security Visualizations
         </h2>
-        
         <div class="charts-grid">
           <!-- Severity Chart -->
           <div class="chart-container">
@@ -276,15 +283,6 @@
               <canvas id="severityChart"></canvas>
             </div>
           </div>
-          
-          <!-- Trend Chart -->
-          <div class="chart-container">
-            <h3 class="chart-title">Monthly Trend</h3>
-            <div class="chart-wrapper">
-              <canvas id="trendChart"></canvas>
-            </div>
-          </div>
-          
           <!-- Remediation Chart -->
           <div class="chart-container">
             <h3 class="chart-title">Vulnerability Findings by Area</h3>

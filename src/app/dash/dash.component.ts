@@ -22,8 +22,11 @@ interface FormData {
   confidentiality: CIA;
   integrity: CIA;
   availability: CIA;
-  trendMonths: string;
-  trendData: string;
+  critical: number;
+  high: number;
+  medium: number;
+  low: number;
+  informative: number;
   remediationAreas: string;
 }
 
@@ -43,7 +46,6 @@ export class DashComponent implements AfterViewInit {
   errorMessage = '';
 
   formData: FormData = {
-    // CVSS metrics
     attackVector: 'Network' as AttackVector,
     attackComplexity: 'Low' as AttackComplexity,
     privilegesRequired: 'None' as PrivilegesRequired,
@@ -52,10 +54,11 @@ export class DashComponent implements AfterViewInit {
     confidentiality: 'None' as CIA,
     integrity: 'None' as CIA,
     availability: 'None' as CIA,
-    // Trend data
-    trendMonths: '',
-    trendData: '',
-    // Vulnerability findings
+    critical: 0,
+    high: 0,
+    medium: 0,
+    low: 0,
+    informative: 0,
     remediationAreas: ''
   };
 
@@ -77,7 +80,6 @@ export class DashComponent implements AfterViewInit {
   }
 
   private severityChart?: Chart;
-  private trendChart?: Chart;
   private remediationChart?: Chart;
 
   constructor(
@@ -227,7 +229,13 @@ export class DashComponent implements AfterViewInit {
     const cvssScore = this.calculateCVSS();
     this.cvssBaseScore = cvssScore;
     this.cvssRiskLevel = this.getRiskLevel(cvssScore);
-    this.updateSeverityDistribution();
+    this.severityDistribution = {
+      critical: this.formData.critical,
+      high: this.formData.high,
+      medium: this.formData.medium,
+      low: this.formData.low,
+      informative: this.formData.informative
+    };
 
     const dashboardData: DashboardData = {
       _id: this.reportId || undefined, // Use the basic report ID as the dashboard ID
@@ -237,8 +245,8 @@ export class DashComponent implements AfterViewInit {
       },
       severityDistribution: this.severityDistribution,
       trendData: {
-        months: this.formData.trendMonths,
-        counts: this.formData.trendData
+        months: '',
+        counts: ''
       },
       cvssMetrics: {
         attackVector: this.formData.attackVector,
@@ -249,7 +257,7 @@ export class DashComponent implements AfterViewInit {
         confidentiality: this.formData.confidentiality,
         integrity: this.formData.integrity,
         availability: this.formData.availability,
-        trendMonths: this.formData.trendMonths
+        trendMonths: ''
       },
       vulnerabilityFindings: {
         areas: this.formData.remediationAreas,
@@ -306,8 +314,8 @@ export class DashComponent implements AfterViewInit {
       },
       severityDistribution: this.severityDistribution,
       trendData: {
-        months: this.formData.trendMonths,
-        counts: this.formData.trendData
+        months: '',
+        counts: ''
       },
       cvssMetrics: {
         attackVector: this.formData.attackVector,
@@ -318,7 +326,7 @@ export class DashComponent implements AfterViewInit {
         confidentiality: this.formData.confidentiality,
         integrity: this.formData.integrity,
         availability: this.formData.availability,
-        trendMonths: this.formData.trendMonths
+        trendMonths: ''
       },
       vulnerabilityFindings: {
         areas: this.formData.remediationAreas,
@@ -338,42 +346,9 @@ export class DashComponent implements AfterViewInit {
     });
   }
 
-  private updateSeverityDistribution() {
-    // Reset all values
-    this.severityDistribution = {
-      critical: 0,
-      high: 0,
-      medium: 0,
-      low: 0,
-      informative: 0
-    };
-
-    // Set the count based on CVSS risk level
-    if (this.cvssRiskLevel) {
-      switch (this.cvssRiskLevel) {
-        case 'Critical':
-          this.severityDistribution.critical = 1;
-          break;
-        case 'High':
-          this.severityDistribution.high = 1;
-          break;
-        case 'Medium':
-          this.severityDistribution.medium = 1;
-          break;
-        case 'Low':
-          this.severityDistribution.low = 1;
-          break;
-        case 'Informative':
-          this.severityDistribution.informative = 1;
-          break;
-      }
-    }
-  }
-
   private createCharts() {
     console.log('Starting chart creation');
     this.createSeverityChart();
-    this.createTrendChart();
     this.createRemediationChart();
   }
 
@@ -477,106 +452,6 @@ export class DashComponent implements AfterViewInit {
           ctx.restore();
         }
       }]
-    });
-  }
-
-  private createTrendChart() {
-    const ctx = document.getElementById('trendChart') as HTMLCanvasElement;
-    if (!ctx) return;
-
-    if (this.trendChart) {
-      this.trendChart.destroy();
-    }
-
-    const trendData = this.formData.trendData.split(',').map(Number);
-    const months = this.formData.trendMonths.split(',').map(month => {
-      const date = new Date(month + '-01');
-      return date.toLocaleString('default', { month: 'short', year: '2-digit' });
-    });
-
-    console.log('Selected months:', this.formData.trendMonths);
-    console.log('Generated month labels:', months);
-    console.log('Trend data:', trendData);
-
-    this.trendChart = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: months,
-        datasets: [{
-          label: 'Vulnerabilities',
-          data: trendData,
-          borderColor: 'rgba(67, 97, 238, 0.8)',
-          backgroundColor: 'rgba(67, 97, 238, 0.1)',
-          fill: true,
-          tension: 0.4
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          title: {
-            display: true,
-            text: 'Monthly Vulnerability Trend',
-            color: '#e0e0e0',
-            font: {
-              size: 16,
-              family: "'Inter', sans-serif",
-              weight: 500 as const
-            },
-            padding: {
-              top: 10,
-              bottom: 20
-            }
-          },
-          legend: {
-            position: 'top',
-            labels: {
-              color: '#e0e0e0',
-              font: {
-                family: "'Inter', sans-serif"
-              }
-            }
-          },
-          tooltip: {
-            callbacks: {
-              title: function(tooltipItems) {
-                return tooltipItems[0].label;
-              },
-              label: function(context) {
-                return `Vulnerabilities: ${context.raw}`;
-              }
-            }
-          }
-        },
-        scales: {
-          y: {
-            beginAtZero: true,
-            grid: {
-              color: 'rgba(255, 255, 255, 0.1)'
-            },
-            ticks: {
-              color: '#a0a0a0'
-            },
-            title: {
-              display: true,
-              text: 'Number of Vulnerabilities',
-              color: '#e0e0e0',
-              font: {
-                family: "'Inter', sans-serif"
-              }
-            }
-          },
-          x: {
-            grid: {
-              color: 'rgba(255, 255, 255, 0.1)'
-            },
-            ticks: {
-              color: '#a0a0a0'
-            }
-          }
-        }
-      }
     });
   }
 
@@ -703,12 +578,6 @@ export class DashComponent implements AfterViewInit {
       this.severityDistribution = { ...data.severityDistribution };
     }
 
-    // Load trend data
-    if (data.trendData) {
-      this.formData.trendMonths = data.trendData.months;
-      this.formData.trendData = data.trendData.counts;
-    }
-
     // Load CVSS metrics
     if (data.cvssMetrics) {
       this.formData.attackVector = data.cvssMetrics.attackVector as AttackVector;
@@ -811,12 +680,6 @@ export class DashComponent implements AfterViewInit {
       this.formData.confidentiality = data.cvssMetrics.confidentiality as CIA;
       this.formData.integrity = data.cvssMetrics.integrity as CIA;
       this.formData.availability = data.cvssMetrics.availability as CIA;
-    }
-
-    // Populate trend data
-    if (data.trendData) {
-      this.formData.trendMonths = data.trendData.months;
-      this.formData.trendData = data.trendData.counts;
     }
 
     // Populate vulnerability findings
