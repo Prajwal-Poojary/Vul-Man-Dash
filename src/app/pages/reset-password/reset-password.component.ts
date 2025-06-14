@@ -63,32 +63,35 @@ import { passwordStrengthValidator } from '../../shared/validators';
       justify-content: center;
       align-items: center;
       padding: 3rem 1rem;
-      background: #18191a;
+      background: linear-gradient(135deg, #18191a 0%, #1a1a2e 100%);
     }
     .card {
       max-width: 500px;
       width: 100%;
-      background: #232323;
-      border: 1.5px solid #292929;
+      background: rgba(35, 35, 35, 0.95);
+      border: 1px solid rgba(41, 41, 41, 0.8);
       border-radius: 18px;
-      box-shadow: 0 4px 24px 0 rgba(0,0,0,0.18);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
       color: #e2e8f0;
       font-family: 'Inter', sans-serif;
       padding: 2.5rem 2rem 2rem 2rem;
+      backdrop-filter: blur(10px);
     }
     .header h2 {
       font-size: 1.75rem;
       font-weight: 600;
       color: #e2e8f0;
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.75rem;
       text-align: center;
       font-family: 'Inter', sans-serif;
+      letter-spacing: -0.5px;
     }
     .header p {
       margin: 0 0 1.5rem;
-      font-size: 0.98rem;
+      font-size: 1rem;
       color: #a0aec0;
       text-align: center;
+      line-height: 1.5;
     }
     .form {
       display: flex;
@@ -98,63 +101,88 @@ import { passwordStrengthValidator } from '../../shared/validators';
     .input-group {
       display: flex;
       flex-direction: column;
-      gap: 1rem;
+      gap: 1.25rem;
     }
     .password-field {
       display: flex;
       flex-direction: column;
-      gap: 0.5rem;
+      gap: 0.75rem;
     }
     .btn-submit {
       width: 100%;
       padding: 0.875rem 1.5rem;
       font-size: 1.1rem;
-      font-weight: 700;
+      font-weight: 600;
       color: #fff;
-      background: #4361ee;
+      background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
       border: none;
-      border-radius: 8px;
+      border-radius: 12px;
       cursor: pointer;
-      transition: background-color 0.3s, color 0.3s, border-color 0.3s, box-shadow 0.3s, transform 0.2s, border-radius 0.3s;
+      transition: all 0.3s ease;
       margin-top: 1rem;
       display: flex;
       align-items: center;
       justify-content: center;
-    }
-    .btn-submit:hover:not(:disabled) {
-      background: #2746b2;
-      border-radius: 24px;
-      box-shadow: 0 2px 8px 0 rgba(67, 97, 238, 0.18);
-      transform: translateY(-2px);
-    }
-    .btn-submit:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
+      gap: 0.75rem;
+      position: relative;
+      overflow: hidden;
+      
+      &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+      
+      &:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
+        
+        &::before {
+          opacity: 1;
+        }
+      }
+      
+      &:active:not(:disabled) {
+        transform: translateY(0);
+      }
+      
+      &:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+        background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+      }
     }
     .icon-lock {
-      position: absolute;
-      left: 1rem;
+      position: relative;
       height: 1.25rem;
       width: 1.25rem;
-      color: #3b82f6; /* blue-500 */
+      color: #fff;
       display: flex;
       align-items: center;
       justify-content: center;
     }
     .back-to-login {
       text-align: center;
-      font-size: 0.98rem;
+      font-size: 0.95rem;
       color: #a0aec0;
+      margin-top: 0.5rem;
     }
     .back-to-login a {
       color: #4cc9f0;
-      font-weight: 600;
+      font-weight: 500;
       text-decoration: none;
-      transition: color 0.2s;
-    }
-    .back-to-login a:hover {
-      color: #4895ef;
-      text-decoration: underline;
+      transition: all 0.2s ease;
+      
+      &:hover {
+        color: #4895ef;
+        text-decoration: underline;
+      }
     }
   `],
 })

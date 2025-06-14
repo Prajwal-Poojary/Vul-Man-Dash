@@ -30,29 +30,32 @@ export function getPasswordStrength(password: string): PasswordStrength {
 
   switch (score) {
     case 0:
-    case 1:
       message = 'Very Weak';
-      color = '#ff4444';
+      color = '#dc2626'; // Professional red
+      break;
+    case 1:
+      message = 'Weak';
+      color = '#ea580c'; // Professional orange
       break;
     case 2:
-      message = 'Weak';
-      color = '#ffbb33';
+      message = 'Fair';
+      color = '#d97706'; // Professional amber
       break;
     case 3:
-      message = 'Fair';
-      color = '#ffbb33';
+      message = 'Good';
+      color = '#16a34a'; // Professional green
       break;
     case 4:
-      message = 'Good';
-      color = '#00C851';
+      message = 'Strong';
+      color = '#0284c7'; // Professional blue
       break;
     case 5:
-      message = 'Strong';
-      color = '#007E33';
+      message = 'Very Strong';
+      color = '#0f766e'; // Professional teal
       break;
     default:
       message = 'Very Weak';
-      color = '#ff4444';
+      color = '#dc2626';
   }
 
   return {
