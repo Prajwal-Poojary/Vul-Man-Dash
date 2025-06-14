@@ -44,6 +44,8 @@ export class DashComponent implements AfterViewInit {
   saveSuccess = false;
   saveError = false;
   errorMessage = '';
+  showValidationPopup = false;
+  validationMessage = '';
 
   formData: FormData = {
     attackVector: 'Network' as AttackVector,
@@ -225,6 +227,15 @@ export class DashComponent implements AfterViewInit {
   }
 
   async onSubmit() {
+    // Validate form fields
+    if (!this.validateForm()) {
+      this.showValidationPopup = true;
+      setTimeout(() => {
+        this.showValidationPopup = false;
+      }, 3000);
+      return;
+    }
+
     console.log('Starting dashboard submission...');
     const cvssScore = this.calculateCVSS();
     this.cvssBaseScore = cvssScore;
@@ -304,6 +315,39 @@ export class DashComponent implements AfterViewInit {
         this.errorMessage = '';
       }, 3000);
     }
+  }
+
+  validateForm(): boolean {
+    // Check CVSS Metrics
+    if (!this.formData.attackVector || !this.formData.attackComplexity || 
+        !this.formData.privilegesRequired || !this.formData.userInteraction || 
+        !this.formData.scope || !this.formData.confidentiality || 
+        !this.formData.integrity || !this.formData.availability) {
+      this.validationMessage = 'Please fill in all CVSS Metrics fields';
+      return false;
+    }
+
+    // Check Severity Distribution
+    if (this.formData.critical === undefined || this.formData.high === undefined || 
+        this.formData.medium === undefined || this.formData.low === undefined || 
+        this.formData.informative === undefined) {
+      this.validationMessage = 'Please fill in all Severity Distribution fields';
+      return false;
+    }
+
+    // Check Vulnerability Findings
+    if (!this.formData.remediationAreas) {
+      this.validationMessage = 'Please enter at least one remediation area';
+      return false;
+    }
+
+    // Check if all areas have vulnerability counts
+    if (this.areaVulnerabilities.some(area => area.count === undefined || area.count === null)) {
+      this.validationMessage = 'Please enter vulnerability counts for all areas';
+      return false;
+    }
+
+    return true;
   }
 
   navigateToReport() {
