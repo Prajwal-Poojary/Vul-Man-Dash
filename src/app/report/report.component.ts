@@ -384,8 +384,26 @@ export class ReportComponent {
           legend: {
             position: 'bottom'
           }
+        },
+        cutout: '60%'
+      },
+      plugins: [{
+        id: 'centerText',
+        afterDraw: (chart) => {
+          const { ctx, width, height } = chart;
+          ctx.save();
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.font = 'bold 24px Inter';
+          ctx.fillStyle = 'black';
+          ctx.fillText(
+            (this.dashboardData?.dashboardData?.cvssScore?.baseScore?.toString() || '0'),
+            width / 2,
+            height / 2.2
+          );
+          ctx.restore();
         }
-      }
+      }]
     });
   }
 
