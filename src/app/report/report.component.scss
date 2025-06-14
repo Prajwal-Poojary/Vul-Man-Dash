@@ -980,6 +980,23 @@ button {
       }
     }
   }
+
+  /* POC and Retesting POC Images in Final Report */
+  img.poc-image, img.retesting-poc-image {
+    display: block;
+    margin: 0 auto 12px auto;
+    max-width: 400px;
+    max-height: 260px;
+    min-width: 180px;
+    min-height: 120px;
+    width: auto;
+    height: auto;
+    border: 1px solid #888;
+    border-radius: 6px;
+    object-fit: contain;
+    background: #f5f5f5;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
 }
 
 /* Responsive adjustments */
@@ -1350,4 +1367,21 @@ button {
       background-color: rgba(255, 255, 255, 0.1);
     }
   }
+}
+
+/* Logo image styling for input preview and final report */
+.logo-preview, .report-logo {
+  display: block;
+  max-width: 120px;
+  max-height: 60px;
+  min-width: 60px;
+  min-height: 30px;
+  width: auto;
+  height: auto;
+  border: 1px solid #888;
+  border-radius: 6px;
+  object-fit: contain;
+  background: #f5f5f5;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  margin-bottom: 8px;
 }

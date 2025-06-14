@@ -128,9 +128,24 @@ export class ReportComponent {
 
   selectedManifestType = '';
 
-  findings = [
-    { slno: 1, vuln: 'SQL Injection', vulnUrl: '', threat: '', threatDetails: '', impact: '', stepsToReproduce: '', pocDataURL: '', retestingPocDataURL: '', pocType: 'poc', mitigation: '', references: '', severity: 'High', status: 'Fixed' },
-    { slno: 2, vuln: 'XSS', vulnUrl: '', threat: '', threatDetails: '', impact: '', stepsToReproduce: '', pocDataURL: '', retestingPocDataURL: '', pocType: 'poc', mitigation: '', references: '', severity: 'Medium', status: 'Not Fixed' }
+  findings: Array<{
+    slno: number;
+    vuln: string;
+    vulnUrl: string;
+    threat: string;
+    threatDetails: string;
+    impact: string;
+    stepsToReproduce: string;
+    pocDataURL: string[];
+    retestingPocDataURL: string[];
+    pocType: string;
+    mitigation: string;
+    references: string;
+    severity: string;
+    status: string;
+  }> = [
+    { slno: 1, vuln: 'SQL Injection', vulnUrl: '', threat: '', threatDetails: '', impact: '', stepsToReproduce: '', pocDataURL: [], retestingPocDataURL: [], pocType: 'poc', mitigation: '', references: '', severity: 'High', status: 'Fixed' },
+    { slno: 2, vuln: 'XSS', vulnUrl: '', threat: '', threatDetails: '', impact: '', stepsToReproduce: '', pocDataURL: [], retestingPocDataURL: [], pocType: 'poc', mitigation: '', references: '', severity: 'Medium', status: 'Not Fixed' }
   ];
 
   form = {
@@ -140,7 +155,8 @@ export class ReportComponent {
     auditType: '',
     reportType: '',
     scopes: ['', ''],
-    period: '',
+    periodStart: '',
+    periodEnd: '',
     summary: '',
     manifest: {
       appName: '',
@@ -228,8 +244,8 @@ export class ReportComponent {
       threatDetails: '',
       impact: '',
       stepsToReproduce: '',
-      pocDataURL: '',
-      retestingPocDataURL: '',
+      pocDataURL: [],
+      retestingPocDataURL: [],
       pocType: 'poc',
       mitigation: '',
       references: '',
@@ -240,17 +256,19 @@ export class ReportComponent {
 
   handlePocUpload(event: Event, index: number, type: 'poc' | 'retesting' = 'poc') {
     const input = event.target as HTMLInputElement;
-    const file = input?.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        if (type === 'poc') {
-          this.findings[index].pocDataURL = reader.result as string;
-        } else if (type === 'retesting') {
-          this.findings[index].retestingPocDataURL = reader.result as string;
-        }
-      };
-      reader.readAsDataURL(file);
+    const files = input?.files;
+    if (files && files.length > 0) {
+      Array.from(files).forEach(file => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          if (type === 'poc') {
+            this.findings[index].pocDataURL.push(reader.result as string);
+          } else if (type === 'retesting') {
+            this.findings[index].retestingPocDataURL.push(reader.result as string);
+          }
+        };
+        reader.readAsDataURL(file);
+      });
     }
   }
 
@@ -569,7 +587,7 @@ export class ReportComponent {
           new TableRow({
             children: [
               new TableCell({ children: [new Paragraph("Assessment Period")] }),
-              new TableCell({ children: [new Paragraph(this.form.period)] })
+              new TableCell({ children: [new Paragraph(this.form.periodStart + ' - ' + this.form.periodEnd)] })
             ]
           }),
           new TableRow({
@@ -617,7 +635,7 @@ export class ReportComponent {
                 new TableCell({ children: [new Paragraph(finding.vulnUrl || 'N/A')] }),
                 new TableCell({ children: [new Paragraph(finding.impact || 'N/A')] }),
                 new TableCell({ children: [new Paragraph(finding.stepsToReproduce || 'N/A')] }),
-                new TableCell({ children: [new Paragraph(finding.pocDataURL ? 'Available' : 'N/A')] }),
+                new TableCell({ children: [new Paragraph(finding.pocDataURL.length > 0 ? 'Available' : 'N/A')] }),
                 new TableCell({ children: [new Paragraph(finding.mitigation || 'N/A')] }),
                 new TableCell({ children: [new Paragraph(finding.references || 'N/A')] }),
                 new TableCell({
@@ -1206,7 +1224,7 @@ export class ReportComponent {
               spacing: { after: 100 }
             }),
             new Paragraph({
-              text: `Proof Of Concept: ${finding.pocDataURL ? 'Available' : 'N/A'}`,
+              text: `Proof Of Concept: ${finding.pocDataURL.length > 0 ? 'Available' : 'N/A'}`,
               spacing: { after: 100 }
             }),
             new Paragraph({
@@ -1227,23 +1245,24 @@ export class ReportComponent {
             })
           );
 
-          if (finding.pocDataURL) {
-            const imageBuffer = await fetch(finding.pocDataURL).then(res => res.arrayBuffer());
-            children.push(
-              new Paragraph({
-                children: [
-                  new ImageRun({
-                    data: imageBuffer,
-                    transformation: {
-                      width: 500,
-                      height: 300
-                    },
-                    type: 'png'
-                  })
-                ],
-                spacing: { after: 200 }
-              })
-            );
+          if (finding.pocDataURL.length > 0) {
+            finding.pocDataURL.forEach((pocUrl, i) => {
+              children.push(
+                new Paragraph({
+                  children: [
+                    new ImageRun({
+                      data: pocUrl,
+                      transformation: {
+                        width: 500,
+                        height: 300
+                      },
+                      type: 'png'
+                    })
+                  ],
+                  spacing: { after: 200 }
+                })
+              );
+            });
           }
         }
 
@@ -1340,13 +1359,11 @@ export class ReportComponent {
             the overall security posture is assessed as ${posture}.`;
   }
 
-  removePoc(finding: any, input: HTMLInputElement) {
-    finding.pocDataURL = '';
-    input.value = '';
+  removePoc(finding: any, i: number) {
+    finding.pocDataURL.splice(i, 1);
   }
-  removeRetestingPoc(finding: any, input: HTMLInputElement) {
-    finding.retestingPocDataURL = '';
-    input.value = '';
+  removeRetestingPoc(finding: any, i: number) {
+    finding.retestingPocDataURL.splice(i, 1);
   }
   removeLogo(input: HTMLInputElement) {
     this.logoDataURL = '';

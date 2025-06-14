@@ -14,7 +14,7 @@
   <div class="form-section">
     <label>Logo Upload: <input #logoFileInput type="file" (change)="handleLogoUpload($event)" /></label>
     <div *ngIf="logoDataURL" style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-      <img [src]="logoDataURL" alt="Logo Preview" style="max-width: 120px; max-height: 60px; border: 1px solid #888; border-radius: 4px;" />
+      <img [src]="logoDataURL" alt="Logo Preview" class="logo-preview" />
       <button type="button" (click)="removeLogo(logoFileInput)" style="background: #d32f2f; color: #fff; border: none; border-radius: 4px; padding: 6px 12px; cursor: pointer;">Remove</button>
     </div>
     <label>Logo Title: <input type="text" [(ngModel)]="form.logoName" /></label>
@@ -33,9 +33,12 @@
         <span class="add-icon">+</span> Add Scope
       </button>
     </div>
-    <label>Period: <input type="text" [(ngModel)]="form.period" /></label>
-    <label>Summary:</label>
-    <textarea rows="4" [(ngModel)]="form.summary"></textarea>
+    <div class="period-fields">
+      <label>Period:</label>
+      <input type="date" [(ngModel)]="form.periodStart" placeholder="Start Date" />
+      <span style="margin: 0 8px;">to</span>
+      <input type="date" [(ngModel)]="form.periodEnd" placeholder="End Date" />
+    </div>
   </div>
 
   <div class="manifest-section">
@@ -65,17 +68,21 @@
           </select>
         </label>
         <label *ngIf="finding.pocType === 'poc'">
-          POC: <input #pocFileInput type="file" (change)="handlePocUpload($event, i, 'poc')" accept="image/*" />
-          <ng-container *ngIf="finding.pocDataURL">
-            <img [src]="finding.pocDataURL" alt="POC Preview" style="max-width: 200px; margin-top: 10px;" />
-            <button type="button" (click)="removePoc(finding, pocFileInput)" style="margin-left: 10px; background: #d32f2f; color: #fff; border: none; border-radius: 4px; padding: 6px 12px; cursor: pointer;">Remove</button>
+          POC: <input #pocFileInput type="file" (change)="handlePocUpload($event, i, 'poc')" accept="image/*" multiple />
+          <ng-container *ngIf="finding.pocDataURL && finding.pocDataURL.length">
+            <div *ngFor="let img of finding.pocDataURL; let imgIdx = index" style="margin-top: 10px; display: flex; align-items: center; gap: 10px;">
+              <img [src]="img" alt="POC Preview" style="max-width: 200px; border: 1px solid #888; border-radius: 4px;" />
+              <button type="button" (click)="removePoc(finding, imgIdx)" style="background: #d32f2f; color: #fff; border: none; border-radius: 4px; padding: 6px 12px; cursor: pointer;">Remove</button>
+            </div>
           </ng-container>
         </label>
         <label *ngIf="finding.pocType === 'retesting'">
-          Retesting POC: <input #retestingPocFileInput type="file" (change)="handlePocUpload($event, i, 'retesting')" accept="image/*" />
-          <ng-container *ngIf="finding.retestingPocDataURL">
-            <img [src]="finding.retestingPocDataURL" alt="Retesting POC Preview" style="max-width: 200px; margin-top: 10px;" />
-            <button type="button" (click)="removeRetestingPoc(finding, retestingPocFileInput)" style="margin-left: 10px; background: #d32f2f; color: #fff; border: none; border-radius: 4px; padding: 6px 12px; cursor: pointer;">Remove</button>
+          Retesting POC: <input #retestingPocFileInput type="file" (change)="handlePocUpload($event, i, 'retesting')" accept="image/*" multiple />
+          <ng-container *ngIf="finding.retestingPocDataURL && finding.retestingPocDataURL.length">
+            <div *ngFor="let img of finding.retestingPocDataURL; let imgIdx = index" style="margin-top: 10px; display: flex; align-items: center; gap: 10px;">
+              <img [src]="img" alt="Retesting POC Preview" style="max-width: 200px; border: 1px solid #888; border-radius: 4px;" />
+              <button type="button" (click)="removeRetestingPoc(finding, imgIdx)" style="background: #d32f2f; color: #fff; border: none; border-radius: 4px; padding: 6px 12px; cursor: pointer;">Remove</button>
+            </div>
           </ng-container>
         </label>
         <label>Mitigation: <textarea rows="2" [(ngModel)]="finding.mitigation"></textarea></label>
@@ -177,7 +184,7 @@
           </tr>
           <tr class="row" class="row">
             <th class="border" class="row">Assessment Period</th>
-            <td>{{ form.period }}</td>
+            <td>{{ form.periodStart }} - {{ form.periodEnd }}</td>
           </tr>
           <tr class="row" class="row">
             <th class="border" class="row">Scope</th>
@@ -360,18 +367,20 @@
         <div *ngIf="finding.stepsToReproduce" style="margin-bottom: 12px;">
           <span style="font-weight: bold;">Steps to Reproduce:</span> {{ finding.stepsToReproduce }}
         </div>
-        <div *ngIf="finding.pocType === 'poc' && finding.pocDataURL" style="margin-bottom: 8px; font-weight: bold;">
+        <div *ngIf="finding.pocType === 'poc' && finding.pocDataURL && finding.pocDataURL.length" style="margin-bottom: 8px; font-weight: bold;">
           POC:
-          <div style="display: flex; justify-content: center; align-items: center; width: 100%;">
-            <img [src]="finding.pocDataURL" alt="POC Image"
-              style="max-width: 100%; max-height: 260px; border: 1px solid #888; border-radius: 4px; display: block; margin: 0 auto;" />
+          <div *ngFor="let img of finding.pocDataURL" style="display: flex; justify-content: center; align-items: center; width: 100%; margin-bottom: 8px;">
+            <img [src]="img" alt="POC Image"
+              class="poc-image"
+              style="display: block; margin: 0 auto;" />
           </div>
         </div>
-        <div *ngIf="finding.pocType === 'retesting' && finding.retestingPocDataURL" style="margin-bottom: 8px; font-weight: bold;">
+        <div *ngIf="finding.pocType === 'retesting' && finding.retestingPocDataURL && finding.retestingPocDataURL.length" style="margin-bottom: 8px; font-weight: bold;">
           Retesting POC:
-          <div style="display: flex; justify-content: center; align-items: center; width: 100%;">
-            <img [src]="finding.retestingPocDataURL" alt="Retesting POC Image"
-              style="max-width: 100%; max-height: 260px; border: 1px solid #888; border-radius: 4px; display: block; margin: 0 auto;" />
+          <div *ngFor="let img of finding.retestingPocDataURL" style="display: flex; justify-content: center; align-items: center; width: 100%; margin-bottom: 8px;">
+            <img [src]="img" alt="Retesting POC Image"
+              class="retesting-poc-image"
+              style="display: block; margin: 0 auto;" />
           </div>
         </div>
         <div *ngIf="finding.mitigation" style="margin-bottom: 12px;">
