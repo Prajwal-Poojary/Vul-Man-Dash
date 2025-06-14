@@ -22,7 +22,17 @@
     <label>Report Date: <input type="date" [(ngModel)]="form.reportDate" /></label>
     <label>Audit Type: <input type="text" [(ngModel)]="form.auditType" /></label>
     <label>Report Type: <input type="text" [(ngModel)]="form.reportType" /></label>
-    <label>Scope: <input type="text" [(ngModel)]="form.scope" /></label>
+    <div class="scope-fields">
+      <div *ngFor="let scope of form.scopes; let i = index" class="scope-field">
+        <label>Scope {{i + 1}}: <input type="text" [(ngModel)]="form.scopes[i]" /></label>
+        <button type="button" class="remove-scope" (click)="removeScope(i, 'main')" *ngIf="form.scopes.length > 1">
+          <span class="remove-icon">×</span>
+        </button>
+      </div>
+      <button type="button" class="add-scope" (click)="addScope('main')">
+        <span class="add-icon">+</span> Add Scope
+      </button>
+    </div>
     <label>Period: <input type="text" [(ngModel)]="form.period" /></label>
     <label>Summary:</label>
     <textarea rows="4" [(ngModel)]="form.summary"></textarea>
@@ -71,17 +81,19 @@
         <label>Mitigation: <textarea rows="2" [(ngModel)]="finding.mitigation"></textarea></label>
         <label>References: <input type="text" [(ngModel)]="finding.references" /></label>
         <label>Severity:
-          <select [(ngModel)]="finding.severity">
+          <select [(ngModel)]="finding.severity" class="severity-select">
             <option value="Critical">Critical</option>
             <option value="High">High</option>
-            <option value="Medium" selected>Medium</option>
+            <option value="Medium">Medium</option>
             <option value="Low">Low</option>
+            <option value="Informative">Informative</option>
           </select>
         </label>
         <label>Status:
-          <select [(ngModel)]="finding.status">
+          <select [(ngModel)]="finding.status" class="status-select">
             <option value="Fixed">Fixed</option>
             <option value="Not Fixed">Not Fixed</option>
+            <option value="Alive">Alive</option>
           </select>
         </label>
       </div>
@@ -118,8 +130,17 @@
         <input type="text" [(ngModel)]="form.manifest.toolsUsed" name="toolsUsed" />
       </div>
       <div class="form-field">
-        <label>Scope:</label>
-        <input type="text" [(ngModel)]="form.manifest.scope" name="manifestScope" />
+        <div class="scope-fields">
+          <div *ngFor="let scope of form.manifest.scopes; let i = index" class="scope-field">
+            <label>Scope {{i + 1}}: <input type="text" [(ngModel)]="form.manifest.scopes[i]" name="manifestScope" /></label>
+            <button type="button" class="remove-scope" (click)="removeScope(i, 'manifest')" *ngIf="form.manifest.scopes.length > 1">
+              <span class="remove-icon">×</span>
+            </button>
+          </div>
+          <button type="button" class="add-scope" (click)="addScope('manifest')">
+            <span class="add-icon">+</span> Add Scope
+          </button>
+        </div>
       </div>
       <div class="form-field">
         <label>Description:</label>
@@ -160,7 +181,9 @@
           </tr>
           <tr class="row" class="row">
             <th class="border" class="row">Scope</th>
-            <td>{{ form.scope }}</td>
+            <td>
+              <div *ngFor="let scope of form.scopes" class="scope-item">{{ scope }}</div>
+            </td>
           </tr>
         </table>
       </div>
@@ -197,9 +220,11 @@
           <th>Tools Used</th>
           <td>{{ form.manifest.toolsUsed }}</td>
         </tr>
-        <tr *ngIf="form.manifest.scope">
+        <tr *ngIf="form.manifest.scopes.length > 0">
           <th>Scope</th>
-          <td>{{ form.manifest.scope }}</td>
+          <td>
+            <div *ngFor="let scope of form.manifest.scopes" class="scope-item">{{ scope }}</div>
+          </td>
         </tr>
         <tr *ngIf="form.manifest.description">
           <th>Description</th>

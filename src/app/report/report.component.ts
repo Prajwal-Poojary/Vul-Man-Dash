@@ -139,7 +139,7 @@ export class ReportComponent {
     reportDate: new Date().toISOString().split('T')[0],
     auditType: '',
     reportType: '',
-    scope: '',
+    scopes: ['', ''],
     period: '',
     summary: '',
     manifest: {
@@ -149,7 +149,7 @@ export class ReportComponent {
       initDate: '',
       reDate: '',
       toolsUsed: '',
-      scope: '',
+      scopes: ['', ''],
       description: ''
     }
   };
@@ -212,7 +212,7 @@ export class ReportComponent {
         initDate: '',
         reDate: '',
         toolsUsed: '',
-        scope: '',
+        scopes: ['', ''],
         description: ''
       };
     }
@@ -575,7 +575,7 @@ export class ReportComponent {
           new TableRow({
             children: [
               new TableCell({ children: [new Paragraph("Scope")] }),
-              new TableCell({ children: [new Paragraph(this.form.scope)] })
+              new TableCell({ children: [new Paragraph(this.form.scopes.join(', '))] })
             ]
           })
         ],
@@ -1351,5 +1351,22 @@ export class ReportComponent {
   removeLogo(input: HTMLInputElement) {
     this.logoDataURL = '';
     input.value = '';
+  }
+
+  // Add methods for managing scope fields
+  addScope(type: 'main' | 'manifest') {
+    if (type === 'main') {
+      this.form.scopes.push('');
+    } else {
+      this.form.manifest.scopes.push('');
+    }
+  }
+
+  removeScope(index: number, type: 'main' | 'manifest') {
+    if (type === 'main' && this.form.scopes.length > 1) {
+      this.form.scopes.splice(index, 1);
+    } else if (type === 'manifest' && this.form.manifest.scopes.length > 1) {
+      this.form.manifest.scopes.splice(index, 1);
+    }
   }
 }
