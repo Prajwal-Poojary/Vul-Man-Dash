@@ -44,6 +44,11 @@
         color: #e2e8f0;
         font-size: 0.95rem;
         transition: all 0.3s ease;
+        box-sizing: border-box;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        white-space: normal;
+        word-break: break-all;
 
         &:focus {
           border-color: #4361ee;
@@ -143,6 +148,11 @@
           color: #e2e8f0;
           font-size: 0.95rem;
           transition: all 0.3s ease;
+          box-sizing: border-box;
+          word-wrap: break-word;
+          overflow-wrap: break-word;
+          white-space: normal;
+          word-break: break-all;
 
           &:focus {
             border-color: #4361ee;
@@ -256,6 +266,11 @@
         color: #e2e8f0;
         font-size: 0.95rem;
         transition: all 0.3s ease;
+        box-sizing: border-box;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        white-space: normal;
+        word-break: break-all;
 
         &:focus {
           border-color: #4361ee;
@@ -373,6 +388,11 @@
         color: #e2e8f0;
         font-size: 0.95rem;
         transition: all 0.3s ease;
+        box-sizing: border-box;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        white-space: normal;
+        word-break: break-all;
 
         &:focus {
           border-color: #4361ee;
@@ -417,6 +437,73 @@
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
   font-family: 'Segoe UI', sans-serif;
   color: #333;
+  line-height: 1.6;
+  width: 100%;
+  box-sizing: border-box;
+
+  .report-section, .vulnerability-details, .finding-card {
+    word-break: break-all;
+    overflow-wrap: anywhere;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .report-details {
+    width: 100%;
+    max-width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    table-layout: fixed;
+
+    td, th {
+      padding: 12px;
+      border: 1px solid #ddd;
+      word-break: break-all !important;
+      overflow-wrap: anywhere !important;
+      white-space: normal !important;
+      max-width: 1px;
+      box-sizing: border-box;
+    }
+
+    th {
+      background-color: #f5f5f5;
+      font-weight: bold;
+      text-align: left;
+    }
+  }
+
+  .finding-card {
+    background: rgba(67, 97, 238, 0.08);
+    padding: 20px;
+    border-left: 4px solid #4361ee;
+    margin-bottom: 20px;
+    border-radius: 10px;
+    word-break: break-all;
+    overflow-wrap: anywhere;
+    max-width: 100%;
+    box-sizing: border-box;
+
+    h4 {
+      margin-bottom: 15px;
+      color: #e2e8f0;
+    }
+
+    p, div {
+      word-break: break-all;
+      overflow-wrap: anywhere;
+      white-space: normal;
+      max-width: 100%;
+      box-sizing: border-box;
+    }
+  }
+}
+
+.vulnerability-details, .vuln-details, .impact, .finding-card, .report-section {
+  word-break: break-all !important;
+  overflow-wrap: anywhere !important;
+  white-space: normal !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
 }
 
 /* Form Input Styles */
@@ -434,13 +521,18 @@ select,
 textarea {
   width: 100%;
   padding: 0.75rem 1rem;
-  margin-bottom: 20px;
+  margin-top: 0.5rem;
+  background: rgba(255, 255, 255, 0.05);
   border: 1px solid #2d3748;
-  border-radius: 10px;
-  font-size: 1rem;
-  background-color: rgba(255,255,255,0.05);
+  border-radius: 8px;
   color: #e2e8f0;
-  transition: background-color 0.3s, border-color 0.3s, box-shadow 0.3s;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+  word-break: break-all;
 
   &::placeholder {
     color: #a0aec0;
@@ -456,21 +548,9 @@ textarea {
 }
 
 textarea {
-  resize: vertical;
   min-height: 100px;
-}
-
-.finding-card {
-  background: rgba(67, 97, 238, 0.08);
-  padding: 20px;
-  border-left: 4px solid #4361ee;
-  margin-bottom: 20px;
-  border-radius: 10px;
-
-  h4 {
-    margin-bottom: 15px;
-    color: #e2e8f0;
-  }
+  resize: vertical;
+  overflow-y: auto;
 }
 
 button {
@@ -709,6 +789,31 @@ button {
 
     .status-not-fixed {
       color: #d32f2f;
+    }
+
+    th {
+      white-space: nowrap !important;
+      word-break: normal !important;
+      overflow-wrap: normal !important;
+    }
+    td {
+      word-break: break-all !important;
+      overflow-wrap: anywhere !important;
+      white-space: normal !important;
+      max-width: 1px;
+      box-sizing: border-box;
+    }
+
+    .findings-table th:nth-child(2), .findings-table td:nth-child(2) {
+      width: 60% !important;
+      max-width: 60% !important;
+    }
+    .findings-table th:nth-child(3), .findings-table th:nth-child(4),
+    .findings-table td:nth-child(3), .findings-table td:nth-child(4) {
+      width: 80px !important;
+      max-width: 80px !important;
+      min-width: 60px !important;
+      text-align: center;
     }
   }
 
@@ -959,4 +1064,28 @@ button {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+// For .form-section, .scan-form, .finding-card input fields
+.form-section input,
+.form-section textarea,
+.form-section select,
+.scan-form input,
+.scan-form textarea,
+.scan-form select,
+.finding-card input,
+.finding-card textarea,
+.finding-card select {
+  word-break: break-all;
+  overflow-wrap: break-word;
+  white-space: normal;
+  box-sizing: border-box;
+}
+
+.detailed-vuln-section, .detailed-vuln-section *, .detailed-vuln-section a {
+  word-break: break-all !important;
+  overflow-wrap: anywhere !important;
+  white-space: normal !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
 }
