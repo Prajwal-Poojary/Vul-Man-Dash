@@ -49,6 +49,7 @@ export class PasswordVerifyComponent {
   verifyPassword() {
     if (!this.password.trim()) {
       this.errorMsg = 'Please enter a password';
+      setTimeout(() => this.errorMsg = '', 3000);
       return;
     }
 
@@ -59,6 +60,7 @@ export class PasswordVerifyComponent {
     setTimeout(() => {
       if (this.password === this.report?.password) {
         this.successMsg = 'Password verified! Redirecting to dashboard...';
+        setTimeout(() => this.successMsg = '', 3000);
 
         // Check if dashboard data exists
         this.reportService.getDashboardData(this.reportId!).subscribe({
@@ -92,6 +94,7 @@ export class PasswordVerifyComponent {
         });
       } else {
         this.errorMsg = 'Incorrect password. Please try again.';
+        setTimeout(() => this.errorMsg = '', 3000);
       }
       this.isLoading = false;
     }, 800);

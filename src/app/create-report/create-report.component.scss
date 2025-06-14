@@ -46,10 +46,10 @@
     margin-bottom: 1.2rem;
 
     .toggle-password {
-      position: absolute;
+          position: absolute;
       top: 50%;
       right: 0.75rem;
-      transform: translateY(-50%);
+    transform: translateY(-50%);
       color: #a0aec0;
       padding: 0.3rem 0.7rem;
       border-radius: 5px;
@@ -60,7 +60,7 @@
       background: none;
       border: none;
       transition: background 0.2s, color 0.2s;
-
+      
       &:hover {
         background: #292929;
         color: #fff;
@@ -148,7 +148,7 @@
   border-left-color: #f44336;
   background: #2d3748;
   color: #fff;
-}
+    }
 
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(-10px); }

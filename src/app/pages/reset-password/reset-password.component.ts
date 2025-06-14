@@ -13,101 +13,6 @@ import { passwordStrengthValidator } from '../../shared/validators';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterLink, InputComponent, PasswordStrengthComponent],
   template: `
-    <style>
-      .container {
-        min-height: 100vh;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        padding: 3rem 1rem;
-        background-color: #f9fafb;
-        font-family: Arial, sans-serif;
-      }
-      .card {
-        max-width: 400px;
-        width: 100%;
-        background: white;
-        padding: 2rem;
-        border-radius: 0.5rem;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        box-sizing: border-box;
-      }
-      .header h2 {
-        margin: 0 0 0.5rem;
-        font-size: 1.875rem;
-        font-weight: 800;
-        color: #111827;
-        text-align: center;
-      }
-      .header p {
-        margin: 0 0 1.5rem;
-        font-size: 0.875rem;
-        color: #6b7280;
-        text-align: center;
-      }
-      .form {
-        display: flex;
-        flex-direction: column;
-        gap: 1.5rem;
-      }
-      .input-group {
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-      }
-      .password-field {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-      }
-      .btn-submit {
-        position: relative;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 100%;
-        padding: 0.5rem 1rem;
-        background-color: #2563eb; /* blue-600 */
-        border: none;
-        border-radius: 0.375rem;
-        color: white;
-        font-size: 0.875rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: background-color 0.3s ease;
-      }
-      .btn-submit:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
-      .btn-submit:hover:not(:disabled) {
-        background-color: #1e40af; /* blue-700 */
-      }
-      .icon-lock {
-        position: absolute;
-        left: 1rem;
-        height: 1.25rem;
-        width: 1.25rem;
-        color: #3b82f6; /* blue-500 */
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      .back-to-login {
-        text-align: center;
-        font-size: 0.875rem;
-      }
-      .back-to-login a {
-        color: #2563eb; /* blue-600 */
-        font-weight: 600;
-        text-decoration: none;
-      }
-      .back-to-login a:hover {
-        color: #1e40af; /* blue-700 */
-        text-decoration: underline;
-      }
-    </style>
-
     <div class="container">
       <div class="card">
         <div class="header">
@@ -151,6 +56,107 @@ import { passwordStrengthValidator } from '../../shared/validators';
       </div>
     </div>
   `,
+  styles: [`
+    .container {
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 3rem 1rem;
+      background: #18191a;
+    }
+    .card {
+      max-width: 500px;
+      width: 100%;
+      background: #232323;
+      border: 1.5px solid #292929;
+      border-radius: 18px;
+      box-shadow: 0 4px 24px 0 rgba(0,0,0,0.18);
+      color: #e2e8f0;
+      font-family: 'Inter', sans-serif;
+      padding: 2.5rem 2rem 2rem 2rem;
+    }
+    .header h2 {
+      font-size: 1.75rem;
+      font-weight: 600;
+      color: #e2e8f0;
+      margin-bottom: 0.5rem;
+      text-align: center;
+      font-family: 'Inter', sans-serif;
+    }
+    .header p {
+      margin: 0 0 1.5rem;
+      font-size: 0.98rem;
+      color: #a0aec0;
+      text-align: center;
+    }
+    .form {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .password-field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .btn-submit {
+      width: 100%;
+      padding: 0.875rem 1.5rem;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #fff;
+      background: #4361ee;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s, color 0.3s, border-color 0.3s, box-shadow 0.3s, transform 0.2s, border-radius 0.3s;
+      margin-top: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .btn-submit:hover:not(:disabled) {
+      background: #2746b2;
+      border-radius: 24px;
+      box-shadow: 0 2px 8px 0 rgba(67, 97, 238, 0.18);
+      transform: translateY(-2px);
+    }
+    .btn-submit:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .icon-lock {
+      position: absolute;
+      left: 1rem;
+      height: 1.25rem;
+      width: 1.25rem;
+      color: #3b82f6; /* blue-500 */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .back-to-login {
+      text-align: center;
+      font-size: 0.98rem;
+      color: #a0aec0;
+    }
+    .back-to-login a {
+      color: #4cc9f0;
+      font-weight: 600;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .back-to-login a:hover {
+      color: #4895ef;
+      text-decoration: underline;
+    }
+  `],
 })
 export class ResetPasswordComponent implements OnInit {
   resetPasswordForm: FormGroup;

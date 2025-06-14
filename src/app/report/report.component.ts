@@ -129,8 +129,8 @@ export class ReportComponent {
   selectedManifestType = '';
 
   findings = [
-    { slno: 1, vuln: 'SQL Injection', scope: 'Login Page', severity: 'High', status: 'Fixed', vulnUrl: '', pocDataURL: '', threatDetails: '' },
-    { slno: 2, vuln: 'XSS', scope: 'Dashboard', severity: 'Medium', status: 'Not Fixed', vulnUrl: '', pocDataURL: '', threatDetails: '' }
+    { slno: 1, vuln: 'SQL Injection', vulnUrl: '', threat: '', threatDetails: '', impact: '', stepsToReproduce: '', pocDataURL: '', retestingPocDataURL: '', pocType: 'poc', mitigation: '', references: '', severity: 'High', status: 'Fixed' },
+    { slno: 2, vuln: 'XSS', vulnUrl: '', threat: '', threatDetails: '', impact: '', stepsToReproduce: '', pocDataURL: '', retestingPocDataURL: '', pocType: 'poc', mitigation: '', references: '', severity: 'Medium', status: 'Not Fixed' }
   ];
 
   form = {
@@ -223,22 +223,32 @@ export class ReportComponent {
     this.findings.push({
       slno: newSlno,
       vuln: '',
-      scope: '',
-      severity: 'Medium',
-      status: 'Not Fixed',
       vulnUrl: '',
+      threat: '',
+      threatDetails: '',
+      impact: '',
+      stepsToReproduce: '',
       pocDataURL: '',
-      threatDetails: ''
+      retestingPocDataURL: '',
+      pocType: 'poc',
+      mitigation: '',
+      references: '',
+      severity: 'Medium',
+      status: 'Not Fixed'
     });
   }
 
-  handlePocUpload(event: Event, index: number) {
+  handlePocUpload(event: Event, index: number, type: 'poc' | 'retesting' = 'poc') {
     const input = event.target as HTMLInputElement;
     const file = input?.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onload = () => {
-        this.findings[index].pocDataURL = reader.result as string;
+        if (type === 'poc') {
+          this.findings[index].pocDataURL = reader.result as string;
+        } else if (type === 'retesting') {
+          this.findings[index].retestingPocDataURL = reader.result as string;
+        }
       };
       reader.readAsDataURL(file);
     }
@@ -563,8 +573,15 @@ export class ReportComponent {
           new TableRow({
             children: [
               new TableCell({ children: [new Paragraph("ID")] }),
+              new TableCell({ children: [new Paragraph("Threat")] }),
+              new TableCell({ children: [new Paragraph("Threat Details")] }),
               new TableCell({ children: [new Paragraph("Vulnerability")] }),
-              new TableCell({ children: [new Paragraph("Scope")] }),
+              new TableCell({ children: [new Paragraph("Vulnerable URL")] }),
+              new TableCell({ children: [new Paragraph("Impact")] }),
+              new TableCell({ children: [new Paragraph("Steps to Reproduce")] }),
+              new TableCell({ children: [new Paragraph("Proof Of Concept")] }),
+              new TableCell({ children: [new Paragraph("Mitigation")] }),
+              new TableCell({ children: [new Paragraph("References")] }),
               new TableCell({ children: [new Paragraph("Severity")] }),
               new TableCell({ children: [new Paragraph("Status")] })
             ]
@@ -576,8 +593,15 @@ export class ReportComponent {
             return new TableRow({
               children: [
                 new TableCell({ children: [new Paragraph(finding.slno.toString())] }),
-                new TableCell({ children: [new Paragraph(finding.vuln)] }),
-                new TableCell({ children: [new Paragraph(finding.scope)] }),
+                new TableCell({ children: [new Paragraph(finding.threat || 'N/A')] }),
+                new TableCell({ children: [new Paragraph(finding.threatDetails || 'N/A')] }),
+                new TableCell({ children: [new Paragraph(finding.vuln || 'N/A')] }),
+                new TableCell({ children: [new Paragraph(finding.vulnUrl || 'N/A')] }),
+                new TableCell({ children: [new Paragraph(finding.impact || 'N/A')] }),
+                new TableCell({ children: [new Paragraph(finding.stepsToReproduce || 'N/A')] }),
+                new TableCell({ children: [new Paragraph(finding.pocDataURL ? 'Available' : 'N/A')] }),
+                new TableCell({ children: [new Paragraph(finding.mitigation || 'N/A')] }),
+                new TableCell({ children: [new Paragraph(finding.references || 'N/A')] }),
                 new TableCell({
                   children: [new Paragraph({
                     children: [
@@ -748,7 +772,7 @@ export class ReportComponent {
                 console.log('Header cell text:', text);
                 return text;
               })
-            : ['ID', 'Vulnerability', 'Scope', 'Severity', 'Status'];
+            : ['ID', 'Vulnerability', 'Severity', 'Status'];
 
           console.log('Final table headers:', tableHeaders);
 
@@ -1140,7 +1164,11 @@ export class ReportComponent {
               spacing: { after: 100 }
             }),
             new Paragraph({
-              text: `Details: ${finding.threatDetails || 'N/A'}`,
+              text: `Threat: ${finding.threat || 'N/A'}`,
+              spacing: { after: 100 }
+            }),
+            new Paragraph({
+              text: `Threat Details: ${finding.threatDetails || 'N/A'}`,
               spacing: { after: 100 }
             }),
             new Paragraph({
@@ -1148,7 +1176,35 @@ export class ReportComponent {
               spacing: { after: 100 }
             }),
             new Paragraph({
-              text: `URL: ${finding.vulnUrl || 'N/A'}`,
+              text: `Vulnerable URL: ${finding.vulnUrl || 'N/A'}`,
+              spacing: { after: 100 }
+            }),
+            new Paragraph({
+              text: `Impact: ${finding.impact || 'N/A'}`,
+              spacing: { after: 100 }
+            }),
+            new Paragraph({
+              text: `Steps to Reproduce: ${finding.stepsToReproduce || 'N/A'}`,
+              spacing: { after: 100 }
+            }),
+            new Paragraph({
+              text: `Proof Of Concept: ${finding.pocDataURL ? 'Available' : 'N/A'}`,
+              spacing: { after: 100 }
+            }),
+            new Paragraph({
+              text: `Mitigation: ${finding.mitigation || 'N/A'}`,
+              spacing: { after: 100 }
+            }),
+            new Paragraph({
+              text: `References: ${finding.references || 'N/A'}`,
+              spacing: { after: 100 }
+            }),
+            new Paragraph({
+              text: `Severity: ${finding.severity}`,
+              spacing: { after: 100 }
+            }),
+            new Paragraph({
+              text: `Status: ${finding.status}`,
               spacing: { after: 100 }
             })
           );
@@ -1264,5 +1320,18 @@ export class ReportComponent {
     return `This security assessment has identified ${totalFindings} vulnerabilities across the evaluated systems. 
             ${fixedCount} findings have been successfully remediated. Based on the remaining findings, 
             the overall security posture is assessed as ${posture}.`;
+  }
+
+  removePoc(finding: any, input: HTMLInputElement) {
+    finding.pocDataURL = '';
+    input.value = '';
+  }
+  removeRetestingPoc(finding: any, input: HTMLInputElement) {
+    finding.retestingPocDataURL = '';
+    input.value = '';
+  }
+  removeLogo(input: HTMLInputElement) {
+    this.logoDataURL = '';
+    input.value = '';
   }
 }

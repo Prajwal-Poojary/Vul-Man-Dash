@@ -74,105 +74,84 @@ import { InputComponent } from '../../shared/components/input/input.component';
     </div>
   `,
   styles: [`
-    @import url('https://fonts.googleapis.com/css2?family=Pacifico&display=swap');
-    @import url('https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap');
-
-    * {
-      font-family: 'Lato', sans-serif;
-    }
-
-    a {
-      text-decoration: none;
-      font-size: 13px;
-    }
-
-    .two-div {
-      display: flex;
-      gap: 20px;
-      justify-content: flex-end;
-    }
-
     .container {
       min-height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
       padding: 3rem 1rem;
-      background-color: #f9fafb;
+      background: #18191a;
     }
-
     .card {
+      max-width: 500px;
       width: 100%;
-      max-width: 400px;
-      background: #fff;
-      padding: 2rem;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      border-radius: 0.5rem;
+      background: #232323;
+      border: 1.5px solid #292929;
+      border-radius: 18px;
+      box-shadow: 0 4px 24px 0 rgba(0,0,0,0.18);
+      color: #e2e8f0;
+      font-family: 'Inter', sans-serif;
+      padding: 2.5rem 2rem 2rem 2rem;
     }
-
     .header h2 {
-      font-size: 1.875rem;
-      font-weight: 800;
-      color: #111827;
+      font-size: 1.75rem;
+      font-weight: 600;
+      color: #e2e8f0;
       margin-bottom: 0.5rem;
       text-align: center;
-      font-family: 'Pacifico', cursive;
+      font-family: 'Inter', sans-serif;
     }
-
     .form {
       display: flex;
       flex-direction: column;
       gap: 1.5rem;
       padding-left: 0;
     }
-
     .input-group {
       display: flex;
       flex-direction: column;
       gap: 1rem;
     }
-
     .btn-submit {
-      position: relative;
       width: 100%;
+      padding: 0.875rem 1.5rem;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #fff;
+      background: #4361ee;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s, color 0.3s, border-color 0.3s, box-shadow 0.3s, transform 0.2s, border-radius 0.3s;
+      margin-top: 1rem;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 0.5rem 1rem;
-      background-color: #2563eb;
-      color: white;
-      font-weight: 600;
-      font-size: 1rem;
-      border: none;
-      border-radius: 0.375rem;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
     }
-
     .btn-submit:hover:not(:disabled) {
-      background-color: #1d4ed8;
+      background: #2746b2;
+      border-radius: 24px;
+      box-shadow: 0 2px 8px 0 rgba(67, 97, 238, 0.18);
+      transform: translateY(-2px);
     }
-
     .btn-submit:disabled {
       opacity: 0.5;
       cursor: not-allowed;
     }
-
-    .btn-icon {
-      position: absolute;
-      left: 1rem;
-      height: 1.25rem;
-      width: 1.25rem;
-      color: #3b82f6;
+    .two-div {
       display: flex;
-      align-items: center;
-      justify-content: center;
+      gap: 20px;
+      justify-content: flex-end;
     }
-
-    .btn-submit:hover .btn-icon {
-      color: #60a5fa;
+    a {
+      text-decoration: none;
+      font-size: 13px;
+      color: #4cc9f0;
+      transition: color 0.2s;
     }
-
+    a:hover {
+      color: #4895ef;
+    }
     .popup {
       position: fixed;
       top: 0;
@@ -186,71 +165,33 @@ import { InputComponent } from '../../shared/components/input/input.component';
       justify-content: center;
       z-index: 999;
     }
-
     .popup-content {
-      background: #1f2937;
+      background: #232323;
+      color: #fff;
       padding: 2rem;
-      border-radius: 10px;
+      border-radius: 12px;
       box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
       text-align: center;
       max-width: 400px;
     }
-
     .popup-content h3 {
       margin-bottom: 0.5rem;
-      color: white;
+      color: #f44336;
     }
-
-    .popup-content p {
-      margin-bottom: 1rem;
-      color: red;
-    }
-
     .popup-close {
-      padding: 0.5rem 1rem;
-      background-color: rgb(46, 59, 78);
-      color: white;
+      margin-top: 1rem;
+      background: #4361ee;
+      color: #fff;
       border: none;
-      border-radius: 6px;
-      font-weight: bold;
+      border-radius: 8px;
+      padding: 0.5rem 1.5rem;
+      font-size: 1rem;
+      font-weight: 600;
       cursor: pointer;
+      transition: background 0.2s;
     }
-
     .popup-close:hover {
-      background-color: rgb(59, 75, 97);
-    }
-
-    /* Responsive Styles */
-    @media (max-width: 600px) {
-      .card {
-        padding: 1.5rem 1rem;
-        margin: 0 1rem;
-        max-width: 100%;
-        box-shadow: none;
-        border-radius: 0;
-      }
-
-      .header h2 {
-        font-size: 1.5rem;
-      }
-
-      .two-div {
-        flex-direction: column;
-        gap: 10px;
-        justify-content: center;
-        text-align: center;
-      }
-
-      .btn-submit {
-        font-size: 0.9rem;
-        padding: 0.5rem;
-      }
-
-      .btn-icon {
-        left: 0.75rem;
-        height: 1rem;
-        width: 1rem;
-      }
+      background: #2746b2;
     }
   `]
 })

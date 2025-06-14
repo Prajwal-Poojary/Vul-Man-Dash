@@ -12,7 +12,11 @@
   </div>
 
   <div class="form-section">
-    <label>Logo Upload: <input type="file" (change)="handleLogoUpload($event)" /></label>
+    <label>Logo Upload: <input #logoFileInput type="file" (change)="handleLogoUpload($event)" /></label>
+    <div *ngIf="logoDataURL" style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+      <img [src]="logoDataURL" alt="Logo Preview" style="max-width: 120px; max-height: 60px; border: 1px solid #888; border-radius: 4px;" />
+      <button type="button" (click)="removeLogo(logoFileInput)" style="background: #d32f2f; color: #fff; border: none; border-radius: 4px; padding: 6px 12px; cursor: pointer;">Remove</button>
+    </div>
     <label>Logo Title: <input type="text" [(ngModel)]="form.logoName" /></label>
     <label>Client Name: <input type="text" [(ngModel)]="form.client" /></label>
     <label>Report Date: <input type="date" [(ngModel)]="form.reportDate" /></label>
@@ -38,13 +42,34 @@
       <h3>Findings</h3>
       <div *ngFor="let finding of findings; index as i" class="finding-card">
         <h4>Finding #{{ i + 1 }}</h4>
-        <label>Vulnerability: <input type="text" [(ngModel)]="finding.vuln" /></label>
-        <label>Vulnerability URL: <input type="text" [(ngModel)]="finding.vulnUrl" /></label>
+        <label>Threat: <input type="text" [(ngModel)]="finding.threat" /></label>
         <label>Threat Details: <textarea rows="2" [(ngModel)]="finding.threatDetails"></textarea></label>
-        <label>Retesting POC: <input type="file" (change)="handlePocUpload($event, i)" accept="image/*" /></label>
-        <div *ngIf="finding.pocDataURL" class="poc-preview">
-          <img [src]="finding.pocDataURL" alt="POC Preview" style="max-width: 200px; margin-top: 10px;" />
-        </div>
+        <label>Vulnerability: <input type="text" [(ngModel)]="finding.vuln" /></label>
+        <label>Vulnerable URL: <input type="text" [(ngModel)]="finding.vulnUrl" /></label>
+        <label>Impact: <textarea rows="2" [(ngModel)]="finding.impact"></textarea></label>
+        <label>Steps to Reproduce: <textarea rows="2" [(ngModel)]="finding.stepsToReproduce"></textarea></label>
+        <label>POC Type:
+          <select [(ngModel)]="finding.pocType">
+            <option value="poc">POC</option>
+            <option value="retesting">Retesting POC</option>
+          </select>
+        </label>
+        <label *ngIf="finding.pocType === 'poc'">
+          POC: <input #pocFileInput type="file" (change)="handlePocUpload($event, i, 'poc')" accept="image/*" />
+          <ng-container *ngIf="finding.pocDataURL">
+            <img [src]="finding.pocDataURL" alt="POC Preview" style="max-width: 200px; margin-top: 10px;" />
+            <button type="button" (click)="removePoc(finding, pocFileInput)" style="margin-left: 10px; background: #d32f2f; color: #fff; border: none; border-radius: 4px; padding: 6px 12px; cursor: pointer;">Remove</button>
+          </ng-container>
+        </label>
+        <label *ngIf="finding.pocType === 'retesting'">
+          Retesting POC: <input #retestingPocFileInput type="file" (change)="handlePocUpload($event, i, 'retesting')" accept="image/*" />
+          <ng-container *ngIf="finding.retestingPocDataURL">
+            <img [src]="finding.retestingPocDataURL" alt="Retesting POC Preview" style="max-width: 200px; margin-top: 10px;" />
+            <button type="button" (click)="removeRetestingPoc(finding, retestingPocFileInput)" style="margin-left: 10px; background: #d32f2f; color: #fff; border: none; border-radius: 4px; padding: 6px 12px; cursor: pointer;">Remove</button>
+          </ng-container>
+        </label>
+        <label>Mitigation: <textarea rows="2" [(ngModel)]="finding.mitigation"></textarea></label>
+        <label>References: <input type="text" [(ngModel)]="finding.references" /></label>
         <label>Severity:
           <select [(ngModel)]="finding.severity">
             <option value="Critical">Critical</option>
@@ -144,43 +169,50 @@
     <div *ngIf="selectedManifestType" class="report-section">
       <h2>2. Scan Manifest</h2>
       <table class="manifest-table">
-        <tr>
+        <tr *ngIf="selectedManifestType">
           <th>Type</th>
           <td>{{ selectedManifestType }}</td>
         </tr>
-        <tr>
+        <tr *ngIf="form.manifest.appName">
           <th>Application</th>
           <td>{{ form.manifest.appName }}</td>
         </tr>
-        <tr>
+        <tr *ngIf="form.manifest.testerName">
           <th>Tester</th>
           <td>{{ form.manifest.testerName }}</td>
         </tr>
-        <tr>
+        <tr *ngIf="form.manifest.docVersion">
           <th>Version</th>
           <td>{{ form.manifest.docVersion }}</td>
         </tr>
-        <tr>
+        <tr *ngIf="form.manifest.initDate">
           <th>Initial Assessment Date</th>
           <td>{{ form.manifest.initDate | date:'mediumDate' }}</td>
         </tr>
-        <tr>
+        <tr *ngIf="form.manifest.reDate">
           <th>Re-assessment Date</th>
           <td>{{ form.manifest.reDate ? (form.manifest.reDate | date:'mediumDate') : 'N/A' }}</td>
         </tr>
-        <tr>
+        <tr *ngIf="form.manifest.toolsUsed">
           <th>Tools Used</th>
           <td>{{ form.manifest.toolsUsed }}</td>
         </tr>
-        <tr>
+        <tr *ngIf="form.manifest.scope">
           <th>Scope</th>
           <td>{{ form.manifest.scope }}</td>
         </tr>
-        <tr>
+        <tr *ngIf="form.manifest.description">
           <th>Description</th>
           <td>{{ form.manifest.description }}</td>
         </tr>
       </table>
+    </div>
+    <div class="signature-block" style="margin: 32px 0 0 0; padding-left: 8px;">
+      <p style="margin-bottom: 80px; font-size: 1.1em;">Yours sincerely,<br>
+      From, EyeQ Dot Net Private Limited. (CIN: U80900KA2022PTC169528)<br><br><br><br></p>
+      <p style="margin-bottom: 4px; font-weight: bold; font-size: 1.1em;">Mr. Mohammed Sheik Nihal</p>
+      <p style="margin-bottom: 2px;">CEO &amp; VP, EyeQ Dot Net Pvt Ltd.</p>
+      <p style="margin-bottom: 2px;">Place: Mangalore, Karnataka.</p>
     </div>
 
     <div class="report-section">
@@ -280,43 +312,55 @@
     <ng-container *ngFor="let finding of findings; let i = index">
       <div class="detailed-vuln-section"
         style="position: relative; border: 1px solid #bdbdbd; margin: 30px 0; padding: 24px; border-radius: 8px; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
-        <!-- CONFIDENTIAL in top-right corner -->
         <span
           style="position: absolute; top: 18px; right: 32px; color: #1976d2; font-weight: bold; font-size: 1em; text-align: right;">CONFIDENTIAL</span>
-        <!-- Heading only for first finding, centered -->
         <div *ngIf="i === 0"
           style="display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 12px;">
           <h3 style="margin: 0; font-size: 1.3em; color: #1a237e; font-weight: bold; text-align: center;">{{
             selectedManifestType }} vulnerabilities reports</h3>
         </div>
         <hr *ngIf="i === 0" style="margin: 12px 0 18px 0; border: none; border-top: 1px solid #e0e0e0;" />
-        <div style="font-size: 1.2em; font-weight: bold; margin-bottom: 8px;">{{ i + 1 }}.</div>
-        <div style="font-size: 1.1em; font-weight: bold; margin-bottom: 10px;">
-          Threat: <span
-            [ngStyle]="{ color: finding.severity === 'Critical' ? '#d32f2f' : finding.severity === 'High' ? '#f57c00' : finding.severity === 'Medium' ? '#ffa000' : finding.severity === 'Low' ? '#689f38' : '#1976d2', fontWeight: 'bold' }">({{
-            finding.severity }})</span>
+        <div style="font-size: 1.2em; font-weight: bold; margin-bottom: 16px;">
+          <span style="color: #294a6d;">{{ i + 1 }}<ng-container *ngIf="finding.threat">. {{ finding.threat }}</ng-container></span>
+          <span> Threat: </span>
+          <span [ngStyle]="{ color: finding.severity === 'Critical' ? '#d32f2f' : finding.severity === 'High' ? '#f57c00' : finding.severity === 'Medium' ? '#ffa000' : finding.severity === 'Low' ? '#689f38' : '#1976d2', fontWeight: 'bold' }">({{ finding.severity }})</span>
         </div>
-        <div *ngIf="finding.threatDetails"
-          style="margin-bottom: 12px; color: #333; font-size: 1em; max-width: 100%; word-break: break-word; overflow-wrap: break-word; white-space: pre-line; padding: 8px 0;">
-          <div style="max-width: 100%; word-break: break-word; overflow-wrap: break-word; white-space: pre-line;">{{
-            finding.threatDetails }}</div>
+        <div *ngIf="finding.threatDetails" style="margin-bottom: 12px;">
+          <span style="font-weight: bold;">Threat Details:</span> {{ finding.threatDetails }}
         </div>
-        <div style="margin-bottom: 12px;">
+        <div *ngIf="finding.vuln" style="margin-bottom: 12px;">
           <span style="font-weight: bold;">Vulnerability:</span> {{ finding.vuln }}
         </div>
-        <div style="margin-bottom: 12px;">
-          <span style="font-weight: bold;">Vulnerable url:</span>
-          <a *ngIf="finding.vulnUrl" [href]="finding.vulnUrl" target="_blank"
-            style="color: #1976d2; text-decoration: underline;">{{ finding.vulnUrl }}</a>
-          <span *ngIf="!finding.vulnUrl">N/A</span>
+        <div *ngIf="finding.vulnUrl" style="margin-bottom: 12px;">
+          <span style="font-weight: bold;">Vulnerable URL:</span>
+          <a [href]="finding.vulnUrl" target="_blank" style="color: #1976d2; text-decoration: underline;">{{ finding.vulnUrl }}</a>
         </div>
-        <div style="margin-bottom: 8px; font-weight: bold;">Retesting POC:</div>
-        <div *ngIf="finding.pocDataURL"
-          style="display: flex; justify-content: center; align-items: center; width: 100%;">
-          <img [src]="finding.pocDataURL" alt="POC Image"
-            style="max-width: 100%; max-height: 260px; border: 1px solid #888; border-radius: 4px; display: block; margin: 0 auto;" />
+        <div *ngIf="finding.impact" style="margin-bottom: 12px;">
+          <span style="font-weight: bold;">Impact:</span> {{ finding.impact }}
         </div>
-        <div *ngIf="!finding.pocDataURL" style="color: #888;">N/A</div>
+        <div *ngIf="finding.stepsToReproduce" style="margin-bottom: 12px;">
+          <span style="font-weight: bold;">Steps to Reproduce:</span> {{ finding.stepsToReproduce }}
+        </div>
+        <div *ngIf="finding.pocType === 'poc' && finding.pocDataURL" style="margin-bottom: 8px; font-weight: bold;">
+          POC:
+          <div style="display: flex; justify-content: center; align-items: center; width: 100%;">
+            <img [src]="finding.pocDataURL" alt="POC Image"
+              style="max-width: 100%; max-height: 260px; border: 1px solid #888; border-radius: 4px; display: block; margin: 0 auto;" />
+          </div>
+        </div>
+        <div *ngIf="finding.pocType === 'retesting' && finding.retestingPocDataURL" style="margin-bottom: 8px; font-weight: bold;">
+          Retesting POC:
+          <div style="display: flex; justify-content: center; align-items: center; width: 100%;">
+            <img [src]="finding.retestingPocDataURL" alt="Retesting POC Image"
+              style="max-width: 100%; max-height: 260px; border: 1px solid #888; border-radius: 4px; display: block; margin: 0 auto;" />
+          </div>
+        </div>
+        <div *ngIf="finding.mitigation" style="margin-bottom: 12px;">
+          <span style="font-weight: bold;">Mitigation:</span> {{ finding.mitigation }}
+        </div>
+        <div *ngIf="finding.references" style="margin-bottom: 12px;">
+          <span style="font-weight: bold;">References:</span> {{ finding.references }}
+        </div>
       </div>
     </ng-container>
     <!-- End 6th section -->

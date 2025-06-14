@@ -17,16 +17,16 @@
   />
 
   <label for="password">Password</label>
-  <input
-    id="password"
+    <input
+      id="password"
     type="password"
-    [(ngModel)]="report.password"
-    name="password"
-    required
-    minlength="5"
-    placeholder="Enter password"
-    (input)="checkStrength()"
-  />
+      [(ngModel)]="report.password"
+      name="password"
+      required
+      minlength="5"
+      placeholder="Enter password"
+      (input)="checkStrength()"
+    />
 
   <div class="strength-bar" [ngClass]="passwordStrength"></div>
   <div class="strength-label" *ngIf="report.password">
@@ -36,14 +36,14 @@
   </div>
 
   <label for="confirmPassword">Confirm Password</label>
-  <input
-    id="confirmPassword"
+    <input
+      id="confirmPassword"
     type="password"
-    [(ngModel)]="report.confirmPassword"
-    name="confirmPassword"
-    required
-    placeholder="Confirm password"
-  />
+      [(ngModel)]="report.confirmPassword"
+      name="confirmPassword"
+      required
+      placeholder="Confirm password"
+    />
 
   <button type="submit" class="btn-save">Save</button>
 </form>
