@@ -171,11 +171,6 @@ export class ReportComponent implements AfterViewInit {
       description: ''
     }
   };
-
-  trackByScope(index: number, item: string): number {
-    return index;
-  }
-
   onReAssessmentChange() {
     if (this.reAssessmentOption === 'na') {
       // Clear the date value or set it to null/empty
@@ -1276,10 +1271,12 @@ export class ReportComponent implements AfterViewInit {
     if (type === 'main') {
       if (this.form.scopes.length > 1) {
         this.form.scopes.splice(index, 1);
+        this.scopesToAdd = this.form.scopes.length;
       }
     } else {
       if (this.form.manifest.scopes.length > 1) {
         this.form.manifest.scopes.splice(index, 1);
+        this.manifestScopesToAdd = this.form.manifest.scopes.length;
       }
     }
   }
@@ -1317,20 +1314,22 @@ export class ReportComponent implements AfterViewInit {
       if (count < 1 || count > 50) {
         return;
       }
-      for (let i = 0; i < count; i++) {
-        this.form.scopes.push('');
-      }
-      this.scopesToAdd = 1;
+      // Set total number of scopes instead of adding
+      this.form.scopes = Array(count).fill('');
+      this.scopesToAdd = this.form.scopes.length;
     } else if (type === 'manifest') {
       const count = this.manifestScopesToAdd;
       if (count < 1 || count > 50) {
         return;
       }
-      for (let i = 0; i < count; i++) {
-        this.form.manifest.scopes.push('');
-      }
-      this.manifestScopesToAdd = 1;
+      // Set total number of scopes instead of adding
+      this.form.manifest.scopes = Array(count).fill('');
+      this.manifestScopesToAdd = this.form.manifest.scopes.length;
     }
+  }
+
+  trackByScope(index: number, item: string): number {
+    return index;
   }
 
   ngAfterViewInit() {
@@ -1339,3 +1338,4 @@ export class ReportComponent implements AfterViewInit {
     }
   }
 }
+

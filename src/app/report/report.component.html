@@ -115,6 +115,22 @@
       </div>
     </div>
 
+    <!-- Move manifest scopes outside the form -->
+    <div *ngIf="selectedManifestType" class="scope-fields">
+      <div *ngFor="let scope of form.manifest.scopes; let i = index; trackBy: trackByScope" class="scope-field">
+        <label>Scope {{i + 1}}: <input type="text" [(ngModel)]="form.manifest.scopes[i]" name="manifestScope" /></label>
+        <button type="button" class="remove-scope" (click)="removeScope(i, 'manifest')" *ngIf="form.manifest.scopes.length > 1">
+          <span class="remove-icon">×</span>
+        </button>
+      </div>
+      <div class="add-scope-controls">
+        <div class="add-multiple-scopes">
+          <input type="number" min="1" max="50" [(ngModel)]="manifestScopesToAdd" placeholder="Number of scopes" class="scopes-number-input" />
+          <button type="button" (click)="addMultipleScopes('manifest')" class="add-multiple-scopes-btn">Add Scopes</button>
+        </div>
+      </div>
+    </div>
+
     <form *ngIf="selectedManifestType" class="scan-form" (ngSubmit)="generateReport()">
       <div class="form-field">
         <label>Application Name:</label>
@@ -143,22 +159,6 @@
       <div class="form-field">
         <label>Tools Used:</label>
         <input type="text" [(ngModel)]="form.manifest.toolsUsed" name="toolsUsed" />
-      </div>
-      <div class="form-field">
-        <div class="scope-fields">
-          <div *ngFor="let scope of form.manifest.scopes; let i = index; trackBy: trackByScope" class="scope-field">
-            <label>Scope {{i + 1}}: <input type="text" [(ngModel)]="form.manifest.scopes[i]" name="manifestScope" /></label>
-            <button type="button" class="remove-scope" (click)="removeScope(i, 'manifest')" *ngIf="form.manifest.scopes.length > 1">
-              <span class="remove-icon">×</span>
-            </button>
-          </div>
-          <div class="add-scope-controls">
-            <div class="add-multiple-scopes">
-              <input type="number" min="1" max="50" [(ngModel)]="manifestScopesToAdd" placeholder="Number of scopes" class="scopes-number-input" />
-              <button type="button" (click)="addMultipleScopes('manifest')" class="add-multiple-scopes-btn">Add Scopes</button>
-            </div>
-          </div>
-        </div>
       </div>
       <div class="form-field">
         <label>Description:</label>
