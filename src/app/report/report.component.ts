@@ -119,6 +119,7 @@ export class ReportComponent implements AfterViewInit {
   private reportSeverityChart?: Chart;
   private reportTrendChart?: Chart;
   private reportRemediationChart?: Chart;
+  private reportCVSSScoreChart?: Chart;
 
   manifestTypes = [
     'Web Application',
@@ -349,25 +350,29 @@ export class ReportComponent implements AfterViewInit {
     if (this.reportRemediationChart) {
       this.reportRemediationChart.destroy();
     }
+    if (this.reportCVSSScoreChart) {
+      this.reportCVSSScoreChart.destroy();
+    }
 
     // Create new charts
     setTimeout(() => {
       this.createReportSeverityChart();
+      this.createReportCVSSScoreChart();
       this.createReportTrendChart();
       this.createReportRemediationChart();
     }, 100);
   }
 
   private createReportSeverityChart() {
-    const ctx = document.getElementById('reportSeverityChart') as HTMLCanvasElement;
-    if (!ctx || !this.dashboardData?.dashboardData?.severityDistribution) {
+    const canvas = document.getElementById('reportSeverityChart') as HTMLCanvasElement;
+    if (!canvas || !this.dashboardData?.dashboardData?.severityDistribution) {
       console.warn('Severity chart data is not available');
       return;
     }
 
     const data = this.dashboardData.dashboardData;
-    this.reportSeverityChart = new Chart(ctx, {
-      type: 'doughnut',
+    this.reportSeverityChart = new Chart(canvas, {
+      type: 'pie',
       data: {
         labels: ['Critical', 'High', 'Medium', 'Low', 'Informative'],
         datasets: [{
@@ -379,42 +384,70 @@ export class ReportComponent implements AfterViewInit {
             data.severityDistribution.informative || 0
           ],
           backgroundColor: [
-            'rgba(220, 53, 69, 0.8)',    // Critical
-            'rgba(253, 126, 20, 0.8)',    // High
-            'rgba(255, 193, 7, 0.8)',     // Medium
-            'rgba(25, 135, 84, 0.8)',     // Low
-            'rgba(13, 202, 240, 0.8)'     // Informative
+            'rgba(220, 53, 69, 0.85)',    // Critical
+            'rgba(253, 126, 20, 0.85)',   // High
+            'rgba(255, 193, 7, 0.85)',    // Medium
+            'rgba(25, 135, 84, 0.85)',    // Low
+            'rgba(13, 202, 240, 0.85)'    // Informative
           ],
-          borderWidth: 1
+          borderColor: '#ffffff',
+          borderWidth: 2,
+          hoverOffset: 4
         }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
+          title: {
+            display: true,
+            text: 'Vulnerability Severity',
+            font: {
+              size: 18,
+              weight: 'bold',
+              family: "'Inter', sans-serif"
+            },
+            padding: {
+              top: 10,
+              bottom: 20
+            }
+          },
           legend: {
-            position: 'bottom'
+            position: 'right',
+            labels: {
+              padding: 20,
+              font: {
+                size: 12,
+                family: "'Inter', sans-serif"
+              },
+              usePointStyle: true,
+              pointStyle: 'circle'
+            }
+          },
+          tooltip: {
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            titleFont: {
+              size: 14,
+              family: "'Inter', sans-serif"
+            },
+            bodyFont: {
+              size: 13,
+              family: "'Inter', sans-serif"
+            },
+            padding: 12,
+            cornerRadius: 4,
+            callbacks: {
+              label: function(context) {
+                const label = context.label || '';
+                const value = context.raw as number;
+                const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0);
+                const percentage = ((value / total) * 100).toFixed(1);
+                return `${label}: ${value} (${percentage}%)`;
+              }
+            }
           }
-        },
-        cutout: '60%'
-      },
-      plugins: [{
-        id: 'centerText',
-        afterDraw: (chart) => {
-          const { ctx, width, height } = chart;
-          ctx.save();
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.font = 'bold 24px Inter';
-          ctx.fillStyle = 'black';
-          ctx.fillText(
-            (this.dashboardData?.dashboardData?.cvssScore?.baseScore?.toString() || '0'),
-            width / 2,
-            height / 2.2
-          );
-          ctx.restore();
         }
-      }]
+      }
     });
   }
 
@@ -506,181 +539,96 @@ export class ReportComponent implements AfterViewInit {
     });
   }
 
-  private validatePassword(password: string | null, confirmPassword: string | null): password is string {
-    if (!password || password.length < 6) {
-      alert('Password must be at least 6 characters');
-      return false;
-    }
-    if (password !== confirmPassword) {
-      alert('Passwords do not match');
-      return false;
-    }
-    return true;
+  private getSeverityColor(score: number): string {
+    if (score === 0) return '#000000';
+    else if (score <= 3.9) return '#198754';
+    else if (score <= 6.9) return '#ffc107';
+    else if (score <= 8.9) return '#fd7e14';
+    else return '#dc3545';
   }
 
-  private createDocxDocument() {
-    const severityStyles: Record<string, { color: string, bold?: boolean }> = {
-      'Critical': { color: 'd32f2f', bold: true },
-      'High': { color: 'f57c00', bold: true },
-      'Medium': { color: 'ffa000', bold: true },
-      'Low': { color: '689f38', bold: true }
-    };
+  private getSeverityLevel(score: number): string {
+    if (score === 0) return 'None';
+    else if (score <= 3.9) return 'Low';
+    else if (score <= 6.9) return 'Medium';
+    else if (score <= 8.9) return 'High';
+    else return 'Critical';
+  }
 
-    const children = [
-      new Paragraph({
-        children: [
-          new TextRun({
-            text: this.form.logoName,
-            bold: true,
-            size: 28,
-            color: '2c3e50'
-          })
-        ],
-        heading: HeadingLevel.HEADING_1,
-        spacing: { after: 400 },
-        alignment: 'center'
-      }),
-      new Paragraph({
-        children: [
-          new TextRun({
-            text: `Prepared for: ${this.form.client}`,
-            size: 22
-          })
-        ],
-        spacing: { after: 100 }
-      }),
-      new Paragraph({
-        children: [
-          new TextRun({
-            text: `Report Date: ${new Date(this.form.reportDate).toLocaleDateString()}`,
-            size: 22
-          })
-        ],
-        spacing: { after: 200 }
-      }),
-      new Paragraph({
-        children: [new TextRun({ text: "1. Report Details", bold: true })],
-        heading: HeadingLevel.HEADING_2,
-        spacing: { before: 400, after: 200 }
-      }),
-      new Table({
-        rows: [
-          new TableRow({
-            children: [
-              new TableCell({ children: [new Paragraph("Report Type")], width: { size: 2500, type: WidthType.DXA } }),
-              new TableCell({ children: [new Paragraph(this.form.reportType)] })
-            ]
-          }),
-          new TableRow({
-            children: [
-              new TableCell({ children: [new Paragraph("Audit Type")] }),
-              new TableCell({ children: [new Paragraph(this.form.auditType)] })
-            ]
-          }),
-          new TableRow({
-            children: [
-              new TableCell({ children: [new Paragraph("Assessment Period")] }),
-              new TableCell({ children: [new Paragraph(this.form.periodStart + ' - ' + this.form.periodEnd)] })
-            ]
-          }),
-          new TableRow({
-            children: [
-              new TableCell({ children: [new Paragraph("Scope")] }),
-              new TableCell({ children: [new Paragraph(this.form.scopes.join(', '))] })
-            ]
-          })
-        ],
-        width: { size: 100, type: WidthType.PERCENTAGE }
-      }),
-      new Paragraph({
-        children: [new TextRun({ text: "2. Findings", bold: true })],
-        heading: HeadingLevel.HEADING_2,
-        spacing: { before: 400, after: 200 }
-      }),
-      new Table({
-        rows: [
-          new TableRow({
-            children: [
-              new TableCell({ children: [new Paragraph("ID")] }),
-              new TableCell({ children: [new Paragraph("Threat")] }),
-              new TableCell({ children: [new Paragraph("Threat Details")] }),
-              new TableCell({ children: [new Paragraph("Vulnerability")] }),
-              new TableCell({ children: [new Paragraph("Vulnerable URL")] }),
-              new TableCell({ children: [new Paragraph("Impact")] }),
-              new TableCell({ children: [new Paragraph("Steps to Reproduce")] }),
-              new TableCell({ children: [new Paragraph("Proof Of Concept")] }),
-              new TableCell({ children: [new Paragraph("Mitigation")] }),
-              new TableCell({ children: [new Paragraph("References")] }),
-              new TableCell({ children: [new Paragraph("Severity")] }),
-              new TableCell({ children: [new Paragraph("Status")] })
-            ]
-          }),
-          ...this.findings.map(finding => {
-            const severityStyle = severityStyles[finding.severity] || {};
-            const statusColor = finding.status === 'Fixed' ? '388e3c' : 'd32f2f';
+  private createReportCVSSScoreChart() {
+    const canvas = document.getElementById('reportCVSSScoreChart') as HTMLCanvasElement;
+    if (!canvas || !this.dashboardData?.dashboardData?.cvssScore?.baseScore) {
+      console.warn('CVSS Score chart data is not available');
+      return;
+    }
 
-            return new TableRow({
-              children: [
-                new TableCell({ children: [new Paragraph(finding.slno.toString())] }),
-                new TableCell({ children: [new Paragraph(finding.threat || 'N/A')] }),
-                new TableCell({ children: [new Paragraph(finding.threatDetails || 'N/A')] }),
-                new TableCell({ children: [new Paragraph(finding.vuln || 'N/A')] }),
-                new TableCell({ children: [new Paragraph(finding.vulnUrl || 'N/A')] }),
-                new TableCell({ children: [new Paragraph(finding.impact || 'N/A')] }),
-                new TableCell({ children: [new Paragraph(finding.stepsToReproduce || 'N/A')] }),
-                new TableCell({ children: [new Paragraph(finding.pocDataURL.length > 0 ? 'Available' : 'N/A')] }),
-                new TableCell({ children: [new Paragraph(finding.mitigation || 'N/A')] }),
-                new TableCell({ children: [new Paragraph(finding.references || 'N/A')] }),
-                new TableCell({
-                  children: [new Paragraph({
-                    children: [
-                      new TextRun({
-                        text: finding.severity,
-                        color: severityStyle.color,
-                        bold: severityStyle.bold
-                      })
-                    ]
-                  })]
-                }),
-                new TableCell({
-                  children: [new Paragraph({
-                    children: [
-                      new TextRun({
-                        text: finding.status,
-                        color: statusColor
-                      })
-                    ]
-                  })]
-                })
-              ]
-            });
-          })
-        ],
-        width: { size: 100, type: WidthType.PERCENTAGE }
-      }),
-      new Paragraph({
-        children: [new TextRun({ text: "3. Executive Summary", bold: true })],
-        heading: HeadingLevel.HEADING_2,
-        spacing: { before: 400, after: 200 }
-      }),
-      new Paragraph({
-        children: [new TextRun(this.form.summary)],
-        spacing: { after: 200 }
-      }),
-      new Paragraph({
-        children: [new TextRun({ text: "4. Conclusion", bold: true })],
-        heading: HeadingLevel.HEADING_2,
-        spacing: { before: 400, after: 200 }
-      }),
-      new Paragraph({
-        children: [new TextRun(this.getConclusionText())]
-      })
-    ];
+    const score = this.dashboardData.dashboardData.cvssScore.baseScore;
+    const scoreColor = this.getSeverityColor(score);
 
-    return new Document({
-      sections: [{
-        properties: {},
-        children: children
+    this.reportCVSSScoreChart = new Chart(canvas, {
+      type: 'doughnut',
+      data: {
+        labels: ['CVSS Score'],
+        datasets: [{
+          data: [100],
+          backgroundColor: [scoreColor],
+          borderColor: '#ffffff',
+          borderWidth: 3,
+          hoverOffset: 4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          title: {
+            display: true,
+            text: 'CVSS Score Distribution',
+            font: {
+              size: 18,
+              weight: 'bold',
+              family: "'Inter', sans-serif"
+            },
+            padding: {
+              top: 10,
+              bottom: 20
+            }
+          },
+          legend: {
+            display: false
+          },
+          tooltip: {
+            enabled: false
+          }
+        },
+        cutout: '75%'
+      },
+      plugins: [{
+        id: 'centerText',
+        afterDraw: (chart) => {
+          const { ctx, width, height } = chart;
+          ctx.save();
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          
+          // Draw CVSS score in center
+          ctx.font = 'bold 32px Inter';
+          ctx.fillStyle = scoreColor;
+          ctx.fillText(score.toFixed(1), width / 2, height / 2 - 10);
+          
+          // Draw "CVSS" label below score
+          ctx.font = '16px Inter';
+          ctx.fillStyle = '#666666';
+          ctx.fillText('CVSS', width / 2, height / 2 + 25);
+          
+          // Draw severity level
+          const severityLevel = this.getSeverityLevel(score);
+          ctx.font = '14px Inter';
+          ctx.fillStyle = scoreColor;
+          ctx.fillText(severityLevel, width / 2, height / 2 + 45);
+          
+          ctx.restore();
+        }
       }]
     });
   }

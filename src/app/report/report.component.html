@@ -263,9 +263,17 @@
       <div *ngIf="dashboardData" class="report-charts">
         <!-- Severity Chart -->
         <div class="chart-container">
-          <h3 class="chart-title">Vulnerability Severity Distribution</h3>
+          <h3 class="chart-title"></h3>
           <div class="chart-wrapper">
             <canvas id="reportSeverityChart"></canvas>
+          </div>
+        </div>
+
+        <!-- CVSS Score Chart -->
+        <div class="chart-container">
+          <h3 class="chart-title"></h3>
+          <div class="chart-wrapper">
+            <canvas id="reportCVSSScoreChart"></canvas>
           </div>
         </div>
       </div>

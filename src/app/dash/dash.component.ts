@@ -82,6 +82,7 @@ export class DashComponent implements AfterViewInit {
   }
 
   private severityChart?: Chart;
+  private cvssScoreChart?: Chart;
   private remediationChart?: Chart;
 
   constructor(
@@ -393,59 +394,58 @@ export class DashComponent implements AfterViewInit {
   private createCharts() {
     console.log('Starting chart creation');
     this.createSeverityChart();
+    this.createCVSSScoreChart();
     this.createRemediationChart();
   }
 
   private createSeverityChart() {
-    const ctx = document.getElementById('severityChart') as HTMLCanvasElement;
-    if (!ctx) {
+    const canvas = document.getElementById('severityChart') as HTMLCanvasElement;
+    if (!canvas) {
       console.error('Severity chart canvas not found');
       return;
     }
 
+    // Destroy existing chart if it exists
     if (this.severityChart) {
       this.severityChart.destroy();
     }
 
-    const data = [
-      this.severityDistribution.critical,
-      this.severityDistribution.high,
-      this.severityDistribution.medium,
-      this.severityDistribution.low,
-      this.severityDistribution.informative
-    ];
-
-    console.log('Creating severity chart with data:', data);
-
-    this.severityChart = new Chart(ctx, {
-      type: 'doughnut',
+    // Create new chart
+    this.severityChart = new Chart(canvas, {
+      type: 'pie',
       data: {
         labels: ['Critical', 'High', 'Medium', 'Low', 'Informative'],
         datasets: [{
-          data: data,
-          backgroundColor: [
-            'rgba(220, 53, 69, 0.8)',    // Critical
-            'rgba(253, 126, 20, 0.8)',    // High
-            'rgba(255, 193, 7, 0.8)',     // Medium
-            'rgba(25, 135, 84, 0.8)',     // Low
-            'rgba(13, 202, 240, 0.8)'     // Informative
+          data: [
+            this.severityDistribution.critical,
+            this.severityDistribution.high,
+            this.severityDistribution.medium,
+            this.severityDistribution.low,
+            this.severityDistribution.informative
           ],
-          borderWidth: 1
+          backgroundColor: [
+            'rgba(220, 53, 69, 0.85)',    // Critical
+            'rgba(253, 126, 20, 0.85)',    // High
+            'rgba(255, 193, 7, 0.85)',     // Medium
+            'rgba(25, 135, 84, 0.85)',     // Low
+            'rgba(13, 202, 240, 0.85)'     // Informative
+          ],
+          borderColor: '#ffffff',
+          borderWidth: 2,
+          hoverOffset: 4
         }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        cutout: '60%', // Make the center hole larger
         plugins: {
           title: {
             display: true,
-            text: 'Vulnerability Severity Distribution',
-            color: '#e0e0e0',
+            text: 'Vulnerability Severity',
             font: {
-              size: 16,
-              family: "'Inter', sans-serif",
-              weight: 500 as const
+              size: 18,
+              weight: 'bold',
+              family: "'Inter', sans-serif"
             },
             padding: {
               top: 10,
@@ -456,23 +456,104 @@ export class DashComponent implements AfterViewInit {
             position: 'right',
             labels: {
               padding: 20,
-              color: '#e0e0e0',
               font: {
                 size: 12,
                 family: "'Inter', sans-serif"
-              }
+              },
+              usePointStyle: true,
+              pointStyle: 'circle'
             }
           },
           tooltip: {
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            titleFont: {
+              size: 14,
+              family: "'Inter', sans-serif"
+            },
+            bodyFont: {
+              size: 13,
+              family: "'Inter', sans-serif"
+            },
+            padding: 12,
+            cornerRadius: 4,
             callbacks: {
               label: function(context) {
                 const label = context.label || '';
                 const value = context.raw as number;
-                return `${label}: ${value}`;
+                const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0);
+                const percentage = ((value / total) * 100).toFixed(1);
+                return `${label}: ${value} (${percentage}%)`;
               }
             }
           }
         }
+      }
+    });
+  }
+
+  private calculateCVSSDistribution() {
+    return {
+      critical: this.severityDistribution.critical,  // 9.0-10.0
+      high: this.severityDistribution.high,          // 7.0-8.9
+      medium: this.severityDistribution.medium,      // 4.0-6.9
+      low: this.severityDistribution.low,            // 0.1-3.9
+      none: this.severityDistribution.informative    // 0.0
+    };
+  }
+
+  private createCVSSScoreChart() {
+    const canvas = document.getElementById('cvssScoreChart') as HTMLCanvasElement;
+    if (!canvas) {
+      console.error('CVSS Score chart canvas not found');
+      return;
+    }
+
+    // Destroy existing chart if it exists
+    if (this.cvssScoreChart) {
+      this.cvssScoreChart.destroy();
+    }
+
+    // Get the color based on CVSS score
+    const scoreColor = this.getSeverityColor(this.cvssBaseScore || 0);
+
+    // Create new chart
+    this.cvssScoreChart = new Chart(canvas, {
+      type: 'doughnut',
+      data: {
+        labels: ['CVSS Score'],
+        datasets: [{
+          data: [100],
+          backgroundColor: [scoreColor],
+          borderColor: '#ffffff',
+          borderWidth: 3,
+          hoverOffset: 4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          title: {
+            display: true,
+            text: 'CVSS Score Distribution',
+            font: {
+              size: 18,
+              weight: 'bold',
+              family: "'Inter', sans-serif"
+            },
+            padding: {
+              top: 10,
+              bottom: 20
+            }
+          },
+          legend: {
+            display: false
+          },
+          tooltip: {
+            enabled: false
+          }
+        },
+        cutout: '75%'
       },
       plugins: [{
         id: 'centerText',
@@ -482,21 +563,34 @@ export class DashComponent implements AfterViewInit {
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           
-          // Draw CVSS Score exactly in the middle
-          ctx.font = 'bold 24px Inter';
-          ctx.fillStyle = '#e0e0e0';
-          ctx.fillText(
-            this.cvssBaseScore?.toString() || '0',
-            width / 2.28,
-            height / 1.7
-          );
+          // Draw CVSS score in center
+          ctx.font = 'bold 32px Inter';
+          ctx.fillStyle = scoreColor;
+          ctx.fillText(this.cvssBaseScore?.toFixed(1) || '0.0', width / 2, height / 2 - 10);
           
-         
+          // Draw "CVSS" label below score
+          ctx.font = '16px Inter';
+          ctx.fillStyle = '#666666';
+          ctx.fillText('CVSS', width / 2, height / 2 + 25);
+          
+          // Draw severity level
+          const severityLevel = this.getSeverityLevel(this.cvssBaseScore || 0);
+          ctx.font = '14px Inter';
+          ctx.fillStyle = scoreColor;
+          ctx.fillText(severityLevel, width / 2, height / 2 + 45);
           
           ctx.restore();
         }
       }]
     });
+  }
+
+  private getSeverityLevel(score: number): string {
+    if (score === 0) return 'None';
+    else if (score <= 3.9) return 'Low';
+    else if (score <= 6.9) return 'Medium';
+    else if (score <= 8.9) return 'High';
+    else return 'Critical';
   }
 
   private createRemediationChart() {
@@ -762,5 +856,13 @@ export class DashComponent implements AfterViewInit {
         this.fetchDashboardData(this.reportId);
       }
     }
+  }
+
+  getSeverityColor(score: number): string {
+    if (score === 0) return '#000000';
+    else if (score <= 3.9) return '#198754';
+    else if (score <= 6.9) return '#ffc107';
+    else if (score <= 8.9) return '#fd7e14';
+    else return '#dc3545';
   }
 }
