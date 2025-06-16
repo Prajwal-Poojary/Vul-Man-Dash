@@ -58,6 +58,9 @@
       <h3>Findings</h3>
       <div *ngFor="let finding of findings; index as i" class="finding-card">
         <h4>Finding #{{ i + 1 }}</h4>
+        <button type="button" class="remove-finding" (click)="removeFinding(i)" *ngIf="findings.length > 1">
+          <span class="remove-icon">×</span>
+        </button>
         <label>Threat: <input type="text" [(ngModel)]="finding.threat" /></label>
         <label>Threat Details: <textarea rows="2" [(ngModel)]="finding.threatDetails"></textarea></label>
         <label>Vulnerability: <input type="text" [(ngModel)]="finding.vuln" /></label>

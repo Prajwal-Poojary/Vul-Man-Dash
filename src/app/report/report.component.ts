@@ -1350,10 +1350,11 @@ export class ReportComponent implements AfterViewInit {
       return;
     }
 
+    // Add new findings to existing ones
+    const currentLength = this.findings.length;
     for (let i = 0; i < this.findingsToAdd; i++) {
-      const newSlno = this.findings.length + 1;
       this.findings.push({
-        slno: newSlno,
+        slno: currentLength + i + 1,
         vuln: '',
         vulnUrl: '',
         threat: '',
@@ -1400,6 +1401,14 @@ export class ReportComponent implements AfterViewInit {
     if (this.dashboardData) {
       this.createReportCharts();
     }
+  }
+
+  removeFinding(index: number) {
+    this.findings.splice(index, 1);
+    // Update slno for remaining findings
+    this.findings.forEach((finding, i) => {
+      finding.slno = i + 1;
+    });
   }
 }
 
