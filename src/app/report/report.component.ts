@@ -111,6 +111,9 @@ export class ReportComponent implements AfterViewInit {
   dashboardData: any;
   private readonly apiUrl = 'http://localhost:5002/api/report';
   chartImageURLs: string[] = [];
+  findingsToAdd: number = 1;
+  scopesToAdd: number = 1;
+  manifestScopesToAdd: number = 1;
 
   // Chart instances for report
   private reportSeverityChart?: Chart;
@@ -144,8 +147,7 @@ export class ReportComponent implements AfterViewInit {
     severity: string;
     status: string;
   }> = [
-    { slno: 1, vuln: 'SQL Injection', vulnUrl: '', threat: '', threatDetails: '', impact: '', stepsToReproduce: '', pocDataURL: [], retestingPocDataURL: [], pocType: 'poc', mitigation: '', references: '', severity: 'High', status: 'Fixed' },
-    { slno: 2, vuln: 'XSS', vulnUrl: '', threat: '', threatDetails: '', impact: '', stepsToReproduce: '', pocDataURL: [], retestingPocDataURL: [], pocType: 'poc', mitigation: '', references: '', severity: 'Medium', status: 'Not Fixed' }
+    { slno: 1, vuln: 'SQL Injection', vulnUrl: '', threat: '', threatDetails: '', impact: '', stepsToReproduce: '', pocDataURL: [], retestingPocDataURL: [], pocType: 'poc', mitigation: '', references: '', severity: 'High', status: 'Fixed' }
   ];
 
   form = {
@@ -154,7 +156,7 @@ export class ReportComponent implements AfterViewInit {
     reportDate: new Date().toISOString().split('T')[0],
     auditType: '',
     reportType: '',
-    scopes: ['', ''],
+    scopes: [''],
     periodStart: '',
     periodEnd: '',
     summary: '',
@@ -165,7 +167,7 @@ export class ReportComponent implements AfterViewInit {
       initDate: '',
       reDate: '',
       toolsUsed: '',
-      scopes: ['', ''],
+      scopes: [''],
       description: ''
     }
   };
@@ -194,7 +196,6 @@ export class ReportComponent implements AfterViewInit {
       if (this.dashboardData?.dashboardData?.findings) {
         this.findings = this.dashboardData.dashboardData.findings;
       }
-      // Get report ID if it exists
       if (this.dashboardData?.reportId) {
         this.reportId = this.dashboardData.reportId;
         console.log('Loaded existing report ID:', this.reportId);
@@ -220,17 +221,9 @@ export class ReportComponent implements AfterViewInit {
   }
 
   onManifestSelect() {
-    if (!this.selectedManifestType) {
-      this.form.manifest = {
-        appName: '',
-        testerName: '',
-        docVersion: '',
-        initDate: '',
-        reDate: '',
-        toolsUsed: '',
-        scopes: ['', ''],
-        description: ''
-      };
+    // Initialize manifest scopes if not already initialized
+    if (!this.form.manifest.scopes || this.form.manifest.scopes.length === 0) {
+      this.form.manifest.scopes = [''];
     }
   }
 
@@ -1371,18 +1364,60 @@ export class ReportComponent implements AfterViewInit {
 
   // Add methods for managing scope fields
   addScope(type: 'main' | 'manifest') {
-    if (type === 'main') {
-      this.form.scopes.push('');
-    } else {
+    if (type === 'manifest') {
       this.form.manifest.scopes.push('');
     }
   }
 
   removeScope(index: number, type: 'main' | 'manifest') {
-    if (type === 'main' && this.form.scopes.length > 1) {
-      this.form.scopes.splice(index, 1);
-    } else if (type === 'manifest' && this.form.manifest.scopes.length > 1) {
-      this.form.manifest.scopes.splice(index, 1);
+    if (type === 'main') {
+      if (this.form.scopes.length > 1) {
+        this.form.scopes.splice(index, 1);
+      }
+    } else {
+      if (this.form.manifest.scopes.length > 1) {
+        this.form.manifest.scopes.splice(index, 1);
+      }
+    }
+  }
+
+  addMultipleFindings() {
+    if (this.findingsToAdd < 1 || this.findingsToAdd > 50) {
+      return;
+    }
+
+    for (let i = 0; i < this.findingsToAdd; i++) {
+      const newSlno = this.findings.length + 1;
+      this.findings.push({
+        slno: newSlno,
+        vuln: '',
+        vulnUrl: '',
+        threat: '',
+        threatDetails: '',
+        impact: '',
+        stepsToReproduce: '',
+        pocDataURL: [],
+        retestingPocDataURL: [],
+        pocType: 'poc',
+        mitigation: '',
+        references: '',
+        severity: 'Medium',
+        status: 'Not Fixed'
+      });
+    }
+    this.findingsToAdd = 1; // Reset the input after adding findings
+  }
+
+  addMultipleScopes(type: 'main' | 'manifest') {
+    if (type === 'main') {
+      const count = this.scopesToAdd;
+      if (count < 1 || count > 50) {
+        return;
+      }
+      for (let i = 0; i < count; i++) {
+        this.form.scopes.push('');
+      }
+      this.scopesToAdd = 1;
     }
   }
 

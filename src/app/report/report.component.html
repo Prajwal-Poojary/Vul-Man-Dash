@@ -29,9 +29,12 @@
           <span class="remove-icon">×</span>
         </button>
       </div>
-      <button type="button" class="add-scope" (click)="addScope('main')">
-        <span class="add-icon">+</span> Add Scope
-      </button>
+      <div class="add-scope-controls">
+        <div class="add-multiple-scopes">
+          <input type="number" min="1" max="50" [(ngModel)]="scopesToAdd" placeholder="Number of scopes" class="scopes-number-input" />
+          <button type="button" (click)="addMultipleScopes('main')" class="add-multiple-scopes-btn">Add Scopes</button>
+        </div>
+      </div>
     </div>
     <div class="period-fields">
       <label>Period:</label>
@@ -104,7 +107,12 @@
           </select>
         </label>
       </div>
-      <button (click)="addFinding()" class="add-finding-btn">Add Another Finding</button>
+      <div class="add-findings-controls">
+        <div class="add-multiple-findings">
+          <input type="number" min="1" max="50" [(ngModel)]="findingsToAdd" placeholder="Number of findings" class="findings-number-input" />
+          <button (click)="addMultipleFindings()" class="add-multiple-findings-btn">Add Findings</button>
+        </div>
+      </div>
     </div>
 
     <form *ngIf="selectedManifestType" class="scan-form" (ngSubmit)="generateReport()">
@@ -144,9 +152,7 @@
               <span class="remove-icon">×</span>
             </button>
           </div>
-          <button type="button" class="add-scope" (click)="addScope('manifest')">
-            <span class="add-icon">+</span> Add Scope
-          </button>
+          <button type="button" (click)="addScope('manifest')" class="add-scope-btn">Add Scope</button>
         </div>
       </div>
       <div class="form-field">
