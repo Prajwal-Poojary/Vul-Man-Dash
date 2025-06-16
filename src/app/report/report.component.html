@@ -207,6 +207,25 @@
       </div>
     </div>
 
+    <!-- Content Table -->
+    <div class="report-section content-table-section">
+      <h2>Table of Contents</h2>
+      <table class="content-table">
+        <thead>
+          <tr>
+            <th>Section</th>
+            <th>Page</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of contentTable">
+            <td>{{ item.title }}</td>
+            <td>{{ item.page }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
     <div *ngIf="selectedManifestType" class="report-section">
       <h2> Scan Manifest</h2>
       <table class="manifest-table">

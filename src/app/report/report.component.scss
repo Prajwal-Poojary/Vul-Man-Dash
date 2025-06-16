@@ -1572,3 +1572,86 @@ button {
     }
   }
 }
+
+.content-table-section {
+  margin: 40px 0;
+  page-break-after: always;
+  background: #ffffff;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+
+  h2 {
+    color: #1a237e;
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #e0e0e0;
+  }
+}
+
+.content-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin: 20px 0;
+  
+  th, td {
+    padding: 15px 20px;
+    text-align: left;
+    border-bottom: 1px solid #e0e0e0;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    color: #1a237e;
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+  }
+
+  td {
+    color: #333;
+    
+    &:first-child {
+      font-weight: 500;
+      color: #2c3e50;
+    }
+
+    &:last-child {
+      text-align: center;
+      width: 80px;
+      font-weight: 600;
+      color: #1a237e;
+    }
+  }
+
+  tbody tr {
+    transition: background-color 0.2s ease;
+    
+    &:hover {
+      background-color: #f8f9fa;
+    }
+  }
+
+  // Add dots between title and page number
+  td:first-child {
+    position: relative;
+    
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 8px;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(to right, transparent, transparent 50%, #e0e0e0 50%, #e0e0e0);
+      background-size: 4px 1px;
+      opacity: 0.5;
+    }
+  }
+}

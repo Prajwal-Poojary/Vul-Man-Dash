@@ -184,6 +184,9 @@ export class ReportComponent implements AfterViewInit {
   errorMessage = '';
   reportId: string | null = null;
 
+  contentTable: Array<{title: string, page: number}> = [];
+  currentPage = 1;
+
   constructor(
     private router: Router, 
     private http: HttpClient,
@@ -268,7 +271,67 @@ export class ReportComponent implements AfterViewInit {
   async generateReport() {
     this.reportVisible = true;
     this.dropdownOpen = false;
-    
+
+    const manifest = this.selectedManifestType;
+    const findingsCount = this.findings.length;
+    let page = 1;
+    this.contentTable = [];
+
+    // 1. Scan Manifest [selected manifest]
+    this.contentTable.push({
+      title: `Scan Manifest ${manifest}`,
+      page: page++
+    });
+
+    // 2. Executive Summary (2 pages)
+    this.contentTable.push({
+      title: 'Executive Summary',
+      page: page++
+    });
+    this.contentTable.push({
+      title: 'Executive Summary (continued)',
+      page: page++
+    });
+
+    // 3. Findings [selected manifest] (1 page per 25 findings)
+    const findingsPerPage = 25;
+    const findingsPages = Math.ceil(findingsCount / findingsPerPage);
+    for (let i = 0; i < findingsPages; i++) {
+      const start = i * findingsPerPage + 1;
+      const end = Math.min((i + 1) * findingsPerPage, findingsCount);
+      this.contentTable.push({
+        title: `Findings ${manifest} (${start}-${end} of ${findingsCount})`,
+        page: page++
+      });
+    }
+
+    // 4. Risk Matrix [selected manifest]
+    this.contentTable.push({
+      title: `Risk Matrix ${manifest}`,
+      page: page++
+    });
+
+    // 5. [selected manifest] vulnerabilities reports
+    this.contentTable.push({
+      title: `${manifest} vulnerabilities reports`,
+      page: page
+    });
+
+    //    - Each threat (first threat shares the same page, others increment)
+    this.findings.forEach((finding, idx) => {
+      this.contentTable.push({
+        title: `${finding.threat || 'Threat'}: (${finding.severity || 'N/A'})`,
+        page: page + (idx === 0 ? 0 : idx)
+      });
+    });
+    // Add Conclusion on a new page after the last threat
+    const conclusionPage = page + Math.max(1, this.findings.length);
+    this.contentTable.push({
+      title: 'Conclusion',
+      page: conclusionPage
+    });
+    page += Math.max(1, this.findings.length); // increment page for next section if needed
+
     // Prepare report data for MongoDB
     const reportData = {
       title: this.form.client,
@@ -279,7 +342,8 @@ export class ReportComponent implements AfterViewInit {
         form: this.form,
         findings: this.findings,
         dashboardData: this.dashboardData,
-        manifest: this.form.manifest
+        manifest: this.form.manifest,
+        contentTable: this.contentTable
       }
     };
 
