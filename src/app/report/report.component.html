@@ -23,8 +23,8 @@
     <label>Audit Type: <input type="text" [(ngModel)]="form.auditType" /></label>
     <label>Report Type: <input type="text" [(ngModel)]="form.reportType" /></label>
     <div class="scope-fields">
-      <div *ngFor="let scope of form.scopes; let i = index" class="scope-field">
-        <label>Scope {{i + 1}}: <input type="text" [(ngModel)]="form.scopes[i]" /></label>
+      <div *ngFor="let scope of form.scopes; let i = index; trackBy: trackByScope" class="scope-field">
+        <label>Scope {{i + 1}}: <input type="text" [(ngModel)]="form.scopes[i]" autocomplete="off" /> <!-- No maxlength, unlimited input --></label>
         <button type="button" class="remove-scope" (click)="removeScope(i, 'main')" *ngIf="form.scopes.length > 1">
           <span class="remove-icon">×</span>
         </button>
@@ -146,7 +146,7 @@
       </div>
       <div class="form-field">
         <div class="scope-fields">
-          <div *ngFor="let scope of form.manifest.scopes; let i = index" class="scope-field">
+          <div *ngFor="let scope of form.manifest.scopes; let i = index; trackBy: trackByScope" class="scope-field">
             <label>Scope {{i + 1}}: <input type="text" [(ngModel)]="form.manifest.scopes[i]" name="manifestScope" /></label>
             <button type="button" class="remove-scope" (click)="removeScope(i, 'manifest')" *ngIf="form.manifest.scopes.length > 1">
               <span class="remove-icon">×</span>

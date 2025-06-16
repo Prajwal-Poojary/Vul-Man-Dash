@@ -171,6 +171,11 @@ export class ReportComponent implements AfterViewInit {
       description: ''
     }
   };
+
+  trackByScope(index: number, item: string): number {
+    return index;
+  }
+
   onReAssessmentChange() {
     if (this.reAssessmentOption === 'na') {
       // Clear the date value or set it to null/empty
