@@ -172,7 +172,7 @@
         </div>
       </div>
       <div style="padding-top: 90px;">
-        <h2>1. Report Details</h2>
+        <h2> Report Details</h2>
         <table class="report-details">
           <tr class="row" class="row">
             <th class="border" class="row">Report Type</th>
@@ -197,7 +197,7 @@
     </div>
 
     <div *ngIf="selectedManifestType" class="report-section">
-      <h2>2. Scan Manifest</h2>
+      <h2> Scan Manifest</h2>
       <table class="manifest-table">
         <tr *ngIf="selectedManifestType">
           <th>Type</th>
@@ -248,7 +248,7 @@
     </div>
 
     <div class="report-section">
-      <h2>3. Executive Summary</h2>
+      <h2>1. Executive Summary</h2>
       <div *ngIf="dashboardData" class="report-charts">
         <!-- Severity Chart -->
         <div class="chart-container">
@@ -260,7 +260,7 @@
       </div>
     </div>
     <div class="report-section">
-      <h2>3. Executive Summary</h2>
+      <h2> </h2>
       <div *ngIf="dashboardData" class="report-charts">
         <!-- Remediation Chart -->
         <div class="chart-container">
@@ -273,7 +273,7 @@
     </div>
 
     <div class="report-section">
-      <h2>4. Findings</h2>
+      <h2>2. Findings</h2>
       <table class="findings-table">
         <thead>
           <tr>
@@ -295,7 +295,7 @@
     </div>
 
     <div class="report-section">
-      <h2>5. Risk Matrix</h2>
+      <h2>3. Risk Matrix</h2>
       <table class="risk-matrix">
         <thead>
           <tr>
@@ -334,7 +334,7 @@
       </table>
     </div>
 
-    <h2>6. Vulnerability Details</h2>
+    <h2>4. Vulnerability Details</h2>
     <ng-container *ngFor="let finding of findings; let i = index">
       <div class="detailed-vuln-section"
         style="position: relative; border: 1px solid #bdbdbd; margin: 30px 0; padding: 24px; border-radius: 8px; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
@@ -394,7 +394,7 @@
     <!-- End 6th section -->
 
     <div class="report-section">
-      <h2>7. Conclusion</h2>
+      <h2>5. Conclusion</h2>
       <p>{{ getConclusionText() }}</p>
     </div>
 
