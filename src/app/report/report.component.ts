@@ -1418,6 +1418,15 @@ export class ReportComponent implements AfterViewInit {
         this.form.scopes.push('');
       }
       this.scopesToAdd = 1;
+    } else if (type === 'manifest') {
+      const count = this.manifestScopesToAdd;
+      if (count < 1 || count > 50) {
+        return;
+      }
+      for (let i = 0; i < count; i++) {
+        this.form.manifest.scopes.push('');
+      }
+      this.manifestScopesToAdd = 1;
     }
   }
 

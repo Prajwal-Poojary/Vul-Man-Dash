@@ -152,7 +152,12 @@
               <span class="remove-icon">×</span>
             </button>
           </div>
-          <button type="button" (click)="addScope('manifest')" class="add-scope-btn">Add Scope</button>
+          <div class="add-scope-controls">
+            <div class="add-multiple-scopes">
+              <input type="number" min="1" max="50" [(ngModel)]="manifestScopesToAdd" placeholder="Number of scopes" class="scopes-number-input" />
+              <button type="button" (click)="addMultipleScopes('manifest')" class="add-multiple-scopes-btn">Add Scopes</button>
+            </div>
+          </div>
         </div>
       </div>
       <div class="form-field">
