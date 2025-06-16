@@ -117,7 +117,6 @@ export class ReportComponent implements AfterViewInit {
 
   // Chart instances for report
   private reportSeverityChart?: Chart;
-  private reportTrendChart?: Chart;
   private reportRemediationChart?: Chart;
   private reportCVSSScoreChart?: Chart;
 
@@ -344,9 +343,6 @@ export class ReportComponent implements AfterViewInit {
     if (this.reportSeverityChart) {
       this.reportSeverityChart.destroy();
     }
-    if (this.reportTrendChart) {
-      this.reportTrendChart.destroy();
-    }
     if (this.reportRemediationChart) {
       this.reportRemediationChart.destroy();
     }
@@ -358,7 +354,6 @@ export class ReportComponent implements AfterViewInit {
     setTimeout(() => {
       this.createReportSeverityChart();
       this.createReportCVSSScoreChart();
-      this.createReportTrendChart();
       this.createReportRemediationChart();
     }, 100);
   }
@@ -444,51 +439,6 @@ export class ReportComponent implements AfterViewInit {
                 const percentage = ((value / total) * 100).toFixed(1);
                 return `${label}: ${value} (${percentage}%)`;
               }
-            }
-          }
-        }
-      }
-    });
-  }
-
-  private createReportTrendChart() {
-    const ctx = document.getElementById('reportTrendChart') as HTMLCanvasElement;
-    if (!ctx || !this.dashboardData?.dashboardData?.trendData) {
-      console.warn('Trend chart data is not available');
-      return;
-    }
-
-    const data = this.dashboardData.dashboardData;
-    const months = data.trendData.months.split(',');
-    const counts = data.trendData.counts.split(',').map(Number);
-
-    this.reportTrendChart = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: months,
-        datasets: [{
-          label: 'Vulnerabilities',
-          data: counts,
-          borderColor: 'rgba(67, 97, 238, 0.8)',
-          backgroundColor: 'rgba(67, 97, 238, 0.1)',
-          borderWidth: 2,
-          fill: true,
-          tension: 0.4
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            position: 'bottom'
-          }
-        },
-        scales: {
-          y: {
-            beginAtZero: true,
-            ticks: {
-              stepSize: 1
             }
           }
         }
