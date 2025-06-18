@@ -3,9 +3,45 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { DashboardData } from './report-api.service';
 
-export type { DashboardData } from './report-api.service';
+export interface DashboardData {
+  _id?: string;
+  cvssScore: {
+    baseScore: number;
+    riskLevel: string;
+  };
+  severityDistribution: {
+    critical: number;
+    high: number;
+    medium: number;
+    low: number;
+    informative: number;
+  };
+  trendData: {
+    months: string;
+    counts: string;
+  };
+  cvssMetrics: {
+    attackVector: string;
+    attackComplexity: string;
+    privilegesRequired: string;
+    userInteraction: string;
+    scope: string;
+    confidentiality: string;
+    integrity: string;
+    availability: string;
+    trendMonths: string;
+  };
+  vulnerabilityFindings: {
+    areas: string;
+    areaVulnerabilities: Array<{
+      name: string;
+      count: number;
+    }>;
+    totalVulnerabilities: number;
+  };
+  timestamp: Date;
+}
 
 export interface Report {
   _id?: string;

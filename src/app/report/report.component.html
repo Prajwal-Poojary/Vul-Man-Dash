@@ -167,6 +167,10 @@
         <label>Description:</label>
         <textarea rows="4" [(ngModel)]="form.manifest.description" name="manifestDescription"></textarea>
       </div>
+      <div class="form-field">
+        <label>Summary:</label>
+        <textarea rows="4" [(ngModel)]="form.summary" name="summary"></textarea>
+      </div>
       <div class="form-actions">
         <button type="submit" class="generate-btn">Generate Report</button>
       </div>
@@ -272,6 +276,10 @@
         </tr>
       </table>
     </div>
+    <div *ngIf="form.summary" class="report-section">
+      <h2>1. Executive Summary</h2>
+      <p>{{ form.summary }}</p>
+    </div>
     <div class="signature-block" style="margin: 32px 0 0 0; padding-left: 8px;">
       <p style="margin-bottom: 80px; font-size: 1.1em;">Yours sincerely,<br>
       From, EyeQ Dot Net Private Limited. (CIN: U80900KA2022PTC169528)<br><br><br><br></p>
@@ -281,7 +289,7 @@
     </div>
 
     <div class="report-section">
-      <h2>1. Executive Summary</h2>
+      <h2>2.Risk Matrix</h2>
       <div *ngIf="dashboardData" class="report-charts">
         <!-- Severity Chart -->
         <div class="chart-container">
@@ -314,29 +322,27 @@
     </div>
 
     <div class="report-section">
-      <h2>2. Findings</h2>
-      <table class="findings-table">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Vulnerability</th>
-            <th>Severity</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let finding of findings; let i = index">
-            <td>{{ i + 1 }}</td>
-            <td>{{ finding.vuln }}</td>
-            <td [class]="'severity-' + finding.severity.toLowerCase()">{{ finding.severity }}</td>
-            <td [class]="'status-' + finding.status.toLowerCase().replace(' ', '-')">{{ finding.status }}</td>
-          </tr>
-        </tbody>
-      </table>
+      <h2>3. Findings</h2>
+      <div class="findings-table-container">
+        <!-- Header -->
+        <div class="findings-row findings-header">
+          <div class="findings-cell id-cell">ID</div>
+          <div class="findings-cell vuln-cell">Vulnerability</div>
+          <div class="findings-cell severity-cell">Severity</div>
+          <div class="findings-cell status-cell">Status</div>
+        </div>
+        <!-- Body -->
+        <div class="findings-row" *ngFor="let finding of findings; let i = index">
+          <div class="findings-cell id-cell">{{ i + 1 }}</div>
+          <div class="findings-cell vuln-cell">{{ finding.vuln }}</div>
+          <div class="findings-cell severity-cell" [class]="'severity-' + finding.severity.toLowerCase()">{{ finding.severity }}</div>
+          <div class="findings-cell status-cell" [class]="'status-' + finding.status.toLowerCase().replace(' ', '-')">{{ finding.status }}</div>
+        </div>
+      </div>
     </div>
 
     <div class="report-section">
-      <h2>3. Risk Matrix</h2>
+      <h2>4.Vulnerability Rating Table: </h2>
       <table class="risk-matrix">
         <thead>
           <tr>
@@ -375,21 +381,22 @@
       </table>
     </div>
 
-    <h2>4. Vulnerability Details</h2>
+    <h2>5. Vulnerability Details</h2>
     <ng-container *ngFor="let finding of findings; let i = index">
       <div class="detailed-vuln-section"
         style="position: relative; border: 1px solid #bdbdbd; margin: 30px 0; padding: 24px; border-radius: 8px; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
-        <span
-          style="position: absolute; top: 18px; right: 32px; color: #1976d2; font-weight: bold; font-size: 1em; text-align: right;">CONFIDENTIAL</span>
-        <div *ngIf="i === 0"
-          style="display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 12px;">
-          <h3 style="margin: 0; font-size: 1.3em; color: #1a237e; font-weight: bold; text-align: center;">{{
-            selectedManifestType }} vulnerabilities reports</h3>
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%;">
+          <div *ngIf="i === 0" style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 12px;">
+            <h3 style="margin: 0; font-size: 1.3em; color: #1a237e; font-weight: bold; text-align: center;">{{ selectedManifestType }} vulnerabilities reports</h3>
+          </div>
+          <span style="color: #1976d2; font-weight: bold; font-size: 1em; text-align: right; margin-left: auto;">CONFIDENTIAL</span>
         </div>
         <hr *ngIf="i === 0" style="margin: 12px 0 18px 0; border: none; border-top: 1px solid #e0e0e0;" />
         <div style="font-size: 1.2em; font-weight: bold; margin-bottom: 16px;">
-          <span style="color: #294a6d;">{{ i + 1 }}<ng-container *ngIf="finding.threat">. {{ finding.threat }}</ng-container></span>
-          <span> Threat: </span>
+          <span [attr.data-index]="i + 1" class="threat-number">
+            {{ i + 1 }})
+          </span>
+          <span *ngIf="finding.threat" class="threat-label"> {{ finding.threat }} Threat: </span>
           <span [ngStyle]="{ color: finding.severity === 'Critical' ? '#d32f2f' : finding.severity === 'High' ? '#f57c00' : finding.severity === 'Medium' ? '#ffa000' : finding.severity === 'Low' ? '#689f38' : '#1976d2', fontWeight: 'bold' }">({{ finding.severity }})</span>
         </div>
         <div *ngIf="finding.threatDetails" style="margin-bottom: 12px;">
