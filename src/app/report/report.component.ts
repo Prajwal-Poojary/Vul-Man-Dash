@@ -771,6 +771,7 @@ export class ReportComponent implements AfterViewInit {
             // Table column widths (2 columns)
             const colCount = tableHeaders.length;
             const colWidth = pdfWidth / colCount;
+            const colWidths = Array(colCount).fill(colWidth);
 
             pdf.setFontSize(16);
             pdf.text('Table of Contents', margin + pdfWidth / 2, margin + 20, { align: 'center' });
@@ -845,10 +846,14 @@ export class ReportComponent implements AfterViewInit {
 
         // Handle findings table
         const findingsTableContainer = element.querySelector('.findings-table-container');
+        console.log('Checking for findings table in element:', element.className, element.tagName);
+        console.log('Findings table container found:', !!findingsTableContainer);
+        
         if (findingsTableContainer) {
-          console.log('Processing findings table...');
+          console.log('Processing findings table with custom drawing logic...');
           const rows: any[] = [];
           const tableHeading = element.querySelector('h2')?.textContent || 'Findings';
+          console.log('Table heading:', tableHeading);
           
           // Get headers from the findings-header div
           const headerRow = findingsTableContainer.querySelector('.findings-header');
@@ -881,8 +886,9 @@ export class ReportComponent implements AfterViewInit {
           }
           
           // Table configuration
-          const startX = margin;
-          const colWidths = [15, 60, 50, 30, 25]; // Widths for each column
+          const colCount = tableHeaders.length;
+          const colWidth = pdfWidth / colCount;
+          const colWidths = Array(colCount).fill(colWidth);
           const rowHeight = 12; // Increased row height for better spacing
           const headerHeight = 15;
           const titleHeight = 20;
@@ -913,37 +919,41 @@ export class ReportComponent implements AfterViewInit {
               pdf.setFont("helvetica", "bold");
               pdf.setFontSize(14);
               pdf.setTextColor(0, 0, 0);
-              pdf.text(tableHeading, startX, startY);
+              pdf.text(tableHeading, margin, startY);
               startY += titleHeight;
               console.log('Drew table heading:', tableHeading);
             }
 
             // Draw header row - ALWAYS draw header on every page
-            console.log('Drawing header row on page', pageIndex + 1);
+            console.log('Drawing header row on page', pageIndex + 1, 'with white background and black text');
             // Set up header row styles
-pdf.setFillColor(255, 255, 255); // Ensure background is white
-pdf.setTextColor(0, 0, 0);       // Set text color to black
-pdf.setFont("helvetica", "bold");
-pdf.setFontSize(10);
+            pdf.setFillColor(255, 255, 255); // White background
+            pdf.setDrawColor(0); // Black border
+            pdf.setFont("helvetica", "bold");
+            pdf.setFontSize(12); // Font size for header
 
-let currentX = startX;
+            let currentX = margin;
 
-// Draw all header cells
-tableHeaders.forEach((header, index) => {
-  // Draw filled rectangle for background
-  pdf.rect(currentX, startY, colWidths[index], headerHeight, 'F'); // White fill
-  // Draw border around cell
-  pdf.setDrawColor(0); // Black border
-  pdf.rect(currentX, startY, colWidths[index], headerHeight, 'D'); // Border only
-  // Add centered header text
-  const textWidth = pdf.getTextWidth(header);
-  const x = currentX + (colWidths[index] - textWidth) / 2;
-  const y = startY + headerHeight / 2 + 3;
-  pdf.text(header, x, y);
-  currentX += colWidths[index];
-});
+            // Draw all header cells
+            tableHeaders.forEach((header, index) => {
+              // Draw filled rectangle for dark blue background
+              pdf.setFillColor(44, 62, 80); // Dark blue
+              pdf.rect(currentX, startY, colWidths[index], headerHeight, 'F');
+              // Draw border around cell
+              pdf.setDrawColor(0);
+              pdf.rect(currentX, startY, colWidths[index], headerHeight, 'D');
+              // Set text color to white, bold, centered
+              pdf.setTextColor(255, 255, 255);
+              pdf.setFont("helvetica", "bold");
+              pdf.setFontSize(12);
+              const headerText = (header || '').trim() || `Header${index+1}`;
+              const textWidth = pdf.getTextWidth(headerText);
+              const x = currentX + (colWidths[index] - textWidth) / 2;
+              const y = startY + headerHeight / 2 + 4;
+              pdf.text(headerText, x, y, { baseline: 'middle' });
+              currentX += colWidths[index];
+            });
 
-            
             console.log('Drew header row');
             
             // Reset styles for data rows
@@ -962,27 +972,24 @@ tableHeaders.forEach((header, index) => {
 
             // Draw data rows for this page
             pageRows.forEach((row, rowIndex) => {
-              // Draw row with borders
-              currentX = startX;
+              currentX = margin;
+              // Ensure row has the same number of columns as headers
+              while (row.length < colWidths.length) {
+                row.push('');
+              }
               row.forEach((cell: string, colIndex: number) => {
-                // Draw cell border
                 pdf.rect(currentX, startY, colWidths[colIndex], rowHeight);
-                
-                // Add cell text
-                const text = cell.toString();
-                let x = currentX + 3; // Default left padding
-                let y = startY + rowHeight / 2 + 3; // Center vertically
-                
-                // Center text for ID, Severity, and Status columns
-                if (colIndex === 0 || colIndex === 2 || colIndex === 3) {
-                  const textWidth = pdf.getTextWidth(text);
-                  x = currentX + (colWidths[colIndex] - textWidth) / 2;
-                }
-                
-                pdf.text(text, x, y);
+                pdf.setTextColor(0, 0, 0);
+                pdf.setFont('times', 'normal');
+                pdf.setFontSize(11);
+                const text = (cell || '').trim();
+                const textWidth = pdf.getTextWidth(text);
+                let x = currentX + (colWidths[colIndex] - textWidth) / 2;
+                let y = startY + rowHeight / 2 + 3;
+                // Center text for all columns
+                pdf.text(text, x, y, { baseline: 'middle' });
                 currentX += colWidths[colIndex];
               });
-              
               startY += rowHeight;
             });
 
@@ -996,8 +1003,10 @@ tableHeaders.forEach((header, index) => {
           }
           
           isFirstPage = false;
-          console.log('Finished processing findings table');
+          console.log('Finished processing findings table with custom drawing logic');
           continue;
+        } else {
+          console.log('No findings table found, element:', element.className, element.tagName);
         }
 
         // Handle other content
@@ -1019,10 +1028,19 @@ tableHeaders.forEach((header, index) => {
           }
         }
 
+        // Temporarily hide findings table from html2canvas processing
+        const findingsTableElement = element.querySelector('.findings-table-container');
+        const findingsTable = findingsTableElement as HTMLElement | null;
+        const originalDisplay = findingsTable?.style.display;
+        if (findingsTable) {
+          findingsTable.style.display = 'none';
+        }
+
         // Wait for images to load
         await new Promise(resolve => setTimeout(resolve, 500));
 
         try {
+          console.log('Processing element with html2canvas:', element.className, element.tagName);
           const canvas = await html2canvas(element as HTMLElement, {
             scale: 2,
             useCORS: true,
@@ -1035,6 +1053,11 @@ tableHeaders.forEach((header, index) => {
             canvas.style.display = 'block';
             canvasImages[i]?.remove();
           });
+
+          // Restore findings table display
+          if (findingsTable) {
+            findingsTable.style.display = originalDisplay || '';
+          }
 
           const imgData = canvas.toDataURL('image/png');
           const imgWidth = pdfWidth;
