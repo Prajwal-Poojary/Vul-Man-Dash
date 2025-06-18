@@ -22,7 +22,7 @@ import {
 } from 'docx';
 import { Chart, registerables } from 'chart.js';
 import { DownloadProgressComponent } from '../shared/download-progress/download-progress.component';
-import { ReportApi2Service } from '../services/report-api2.service';
+import { ReportService } from '../services/report.service';
 
 // Add helper function for table drawing
 function drawTable(pdf: jsPDF, headers: string[], rows: any[][], startY: number, margin: number): number {
@@ -152,6 +152,7 @@ export class ReportComponent implements AfterViewInit {
 
   form = {
     logoName: '',
+    logoDataURL: '',
     client: '',
     reportDate: new Date().toISOString().split('T')[0],
     auditType: '',
@@ -168,7 +169,8 @@ export class ReportComponent implements AfterViewInit {
       reDate: '',
       toolsUsed: '',
       scopes: [''],
-      description: ''
+      description: '',
+      manifestType: ''
     }
   };
   onReAssessmentChange() {
@@ -190,7 +192,7 @@ export class ReportComponent implements AfterViewInit {
   constructor(
     private router: Router, 
     private http: HttpClient,
-    private reportApi2Service: ReportApi2Service
+    private reportService: ReportService
   ) {
     Chart.register(...registerables);
     const navigation = this.router.getCurrentNavigation();
@@ -202,6 +204,8 @@ export class ReportComponent implements AfterViewInit {
       if (this.dashboardData?.reportId) {
         this.reportId = this.dashboardData.reportId;
         console.log('Loaded existing report ID:', this.reportId);
+        // Load report data if we have a report ID
+        this.loadReportData();
       }
     }
   }
@@ -228,6 +232,8 @@ export class ReportComponent implements AfterViewInit {
     if (!this.form.manifest.scopes || this.form.manifest.scopes.length === 0) {
       this.form.manifest.scopes = [''];
     }
+    // Update the manifest type in the form
+    this.form.manifest.manifestType = this.selectedManifestType;
   }
 
   addFinding() {
@@ -332,54 +338,56 @@ export class ReportComponent implements AfterViewInit {
     });
     page += Math.max(1, this.findings.length); // increment page for next section if needed
 
-    // Prepare report data for MongoDB
+    // Prepare report data
     const reportData = {
-      title: this.form.client,
-      description: this.form.summary,
-      date: new Date(),
-      status: 'Generated',
-      data: {
-        form: this.form,
-        findings: this.findings,
-        dashboardData: this.dashboardData,
-        manifest: this.form.manifest,
-        contentTable: this.contentTable
-      }
+      logoName: this.form.logoName,
+      logoDataURL: this.logoDataURL,
+      client: this.form.client,
+      reportDate: new Date(this.form.reportDate),
+      auditType: this.form.auditType,
+      reportType: this.form.reportType,
+      scopes: this.form.scopes,
+      periodStart: new Date(this.form.periodStart || new Date().toISOString()),
+      periodEnd: new Date(this.form.periodEnd || new Date().toISOString()),
+      summary: this.form.summary,
+      manifest: {
+        appName: this.form.manifest.appName,
+        testerName: this.form.manifest.testerName,
+        docVersion: this.form.manifest.docVersion,
+        initDate: new Date(this.form.manifest.initDate || new Date().toISOString()),
+        reDate: new Date(this.form.manifest.reDate || new Date().toISOString()),
+        toolsUsed: this.form.manifest.toolsUsed,
+        scopes: this.form.manifest.scopes,
+        description: this.form.manifest.description,
+        manifestType: this.selectedManifestType
+      },
+      findings: this.findings,
+      chartImageURLs: this.chartImageURLs,
+      timestamp: new Date()
     };
 
-    console.log('Starting to save report...');
-    console.log('Report data:', reportData);
-
-    try {
-      // Save to MongoDB
-      console.log('Sending data to MongoDB...');
-      let result;
-      
-      if (this.reportId) {
-        // Update existing report
-        console.log('Updating existing report:', this.reportId);
-        result = await this.reportApi2Service.updateReport(this.reportId, reportData).toPromise();
-        console.log('Report updated successfully:', result);
-      } else {
-        // Create new report
-        console.log('Creating new report');
-        result = await this.reportApi2Service.saveReport(reportData).toPromise();
-        this.reportId = result._id;
-        console.log('New report created with ID:', this.reportId);
-      }
-
-      this.saveSuccess = true;
-      setTimeout(() => {
-        this.saveSuccess = false;
-      }, 3000);
-    } catch (error) {
-      console.error('Failed to save report:', error);
-      this.saveError = true;
-      this.errorMessage = 'Failed to save report to database';
-      setTimeout(() => {
-        this.saveError = false;
-        this.errorMessage = '';
-      }, 3000);
+    // Save report data
+    if (this.reportId) {
+      this.reportService.updateReportData(this.reportId, reportData).subscribe({
+        next: (response) => {
+          console.log('Report data updated successfully:', response);
+          this.reportVisible = true;
+        },
+        error: (error) => {
+          console.error('Error updating report data:', error);
+        }
+      });
+    } else {
+      this.reportService.saveReportData(this.reportId || '', reportData).subscribe({
+        next: (response) => {
+          console.log('Report data saved successfully:', response);
+          this.reportId = response.report._id;
+          this.reportVisible = true;
+        },
+        error: (error) => {
+          console.error('Error saving report data:', error);
+        }
+      });
     }
 
     // Create charts after a short delay
@@ -1409,6 +1417,48 @@ export class ReportComponent implements AfterViewInit {
     this.findings.forEach((finding, i) => {
       finding.slno = i + 1;
     });
+  }
+
+  // Add method to load report data
+  loadReportData() {
+    if (this.reportId) {
+      this.reportService.getReportData(this.reportId).subscribe({
+        next: (data) => {
+          if (data) {
+            // Populate form with report data
+            this.form = {
+              logoName: data.logoName || '',
+              logoDataURL: data.logoDataURL || '',
+              client: data.client || '',
+              reportDate: data.reportDate ? new Date(data.reportDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+              auditType: data.auditType || '',
+              reportType: data.reportType || '',
+              scopes: data.scopes || [''],
+              periodStart: data.periodStart ? new Date(data.periodStart).toISOString().split('T')[0] : '',
+              periodEnd: data.periodEnd ? new Date(data.periodEnd).toISOString().split('T')[0] : '',
+              summary: data.summary || '',
+              manifest: {
+                appName: data.manifest?.appName || '',
+                testerName: data.manifest?.testerName || '',
+                docVersion: data.manifest?.docVersion || '',
+                initDate: data.manifest?.initDate ? new Date(data.manifest.initDate).toISOString().split('T')[0] : '',
+                reDate: data.manifest?.reDate ? new Date(data.manifest.reDate).toISOString().split('T')[0] : '',
+                toolsUsed: data.manifest?.toolsUsed || '',
+                scopes: data.manifest?.scopes || [''],
+                description: data.manifest?.description || '',
+                manifestType: data.manifest?.manifestType || ''
+              }
+            };
+            this.findings = data.findings || [];
+            this.chartImageURLs = data.chartImageURLs || [];
+            this.logoDataURL = data.logoDataURL || '';
+          }
+        },
+        error: (error) => {
+          console.error('Error loading report data:', error);
+        }
+      });
+    }
   }
 }
 
