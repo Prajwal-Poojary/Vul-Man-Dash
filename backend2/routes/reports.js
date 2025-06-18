@@ -118,4 +118,84 @@ router.put('/dashboard/:id', async (req, res) => {
   }
 });
 
+// Get report data by ID
+router.get('/report/:id', async (req, res) => {
+  try {
+    const report = await Report.findById(req.params.id);
+    if (!report) {
+      return res.status(404).json({ error: 'Report not found' });
+    }
+    
+    // Return the report data if it exists
+    if (report.reportData) {
+      res.json(report.reportData);
+    } else {
+      res.status(404).json({ error: 'Report data not found' });
+    }
+  } catch (err) {
+    console.error('Error fetching report data:', err);
+    res.status(500).json({ error: 'Failed to fetch report data', details: err.message });
+  }
+});
+
+// Save report data
+router.post('/report/:id', async (req, res) => {
+  try {
+    const reportId = req.params.id;
+    const reportData = req.body;
+    
+    console.log('Saving report data for report:', reportId);
+    
+    const report = await Report.findByIdAndUpdate(
+      reportId,
+      { reportData: reportData },
+      { new: true, runValidators: true }
+    );
+    
+    if (!report) {
+      return res.status(404).json({ error: 'Report not found' });
+    }
+    
+    console.log('Report data saved successfully');
+    res.status(200).json({ 
+      message: 'Report data saved', 
+      report: report,
+      reportData: report.reportData
+    });
+  } catch (err) {
+    console.error('Error saving report data:', err);
+    res.status(500).json({ error: 'Failed to save report data', details: err.message });
+  }
+});
+
+// Update report data
+router.put('/report/:id', async (req, res) => {
+  try {
+    const reportId = req.params.id;
+    const reportData = req.body;
+    
+    console.log('Updating report data for report:', reportId);
+    
+    const report = await Report.findByIdAndUpdate(
+      reportId,
+      { reportData: reportData },
+      { new: true, runValidators: true }
+    );
+    
+    if (!report) {
+      return res.status(404).json({ error: 'Report not found' });
+    }
+    
+    console.log('Report data updated successfully');
+    res.json({ 
+      message: 'Report data updated', 
+      report: report,
+      reportData: report.reportData
+    });
+  } catch (err) {
+    console.error('Error updating report data:', err);
+    res.status(500).json({ error: 'Failed to update report data', details: err.message });
+  }
+});
+
 export default router;
