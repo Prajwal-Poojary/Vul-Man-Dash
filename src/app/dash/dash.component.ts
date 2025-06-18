@@ -714,6 +714,12 @@ export class DashComponent implements AfterViewInit {
     // Load severity distribution
     if (data.severityDistribution) {
       this.severityDistribution = { ...data.severityDistribution };
+      // Also update form fields so the UI reflects the loaded values
+      this.formData.critical = data.severityDistribution.critical;
+      this.formData.high = data.severityDistribution.high;
+      this.formData.medium = data.severityDistribution.medium;
+      this.formData.low = data.severityDistribution.low;
+      this.formData.informative = data.severityDistribution.informative;
     }
 
     // Load CVSS metrics
@@ -830,6 +836,12 @@ export class DashComponent implements AfterViewInit {
     // Populate severity distribution
     if (data.severityDistribution) {
       this.severityDistribution = { ...data.severityDistribution };
+      // Also update form fields so the UI reflects the loaded values
+      this.formData.critical = data.severityDistribution.critical;
+      this.formData.high = data.severityDistribution.high;
+      this.formData.medium = data.severityDistribution.medium;
+      this.formData.low = data.severityDistribution.low;
+      this.formData.informative = data.severityDistribution.informative;
     }
 
     // Populate CVSS score
