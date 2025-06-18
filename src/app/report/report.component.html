@@ -234,7 +234,7 @@
     </div>
 
     <div *ngIf="selectedManifestType" class="report-section">
-      <h2> Scan Manifest</h2>
+      <h2>1.Scan Manifest</h2>
       <table class="manifest-table">
         <tr *ngIf="selectedManifestType">
           <th>Type</th>
@@ -275,21 +275,20 @@
           <td>{{ form.manifest.description }}</td>
         </tr>
       </table>
+      <div class="signature-block" style="margin: 32px 0 0 0; padding-left: 8px;">
+        <p style="margin-bottom: 80px; font-size: 1.1em;">Yours sincerely,<br>
+        From, EyeQ Dot Net Private Limited. (CIN: U80900KA2022PTC169528)<br><br><br><br></p>
+        <p style="margin-bottom: 4px; font-weight: bold; font-size: 1.1em;">Mr. Mohammed Sheik Nihal</p>
+        <p style="margin-bottom: 2px;">CEO &amp; VP, EyeQ Dot Net Pvt Ltd.</p>
+        <p style="margin-bottom: 2px;">Place: Mangalore, Karnataka.</p>
+      </div>
     </div>
     <div *ngIf="form.summary" class="report-section">
-      <h2>1. Executive Summary</h2>
+      <h2></h2>
       <p>{{ form.summary }}</p>
     </div>
-    <div class="signature-block" style="margin: 32px 0 0 0; padding-left: 8px;">
-      <p style="margin-bottom: 80px; font-size: 1.1em;">Yours sincerely,<br>
-      From, EyeQ Dot Net Private Limited. (CIN: U80900KA2022PTC169528)<br><br><br><br></p>
-      <p style="margin-bottom: 4px; font-weight: bold; font-size: 1.1em;">Mr. Mohammed Sheik Nihal</p>
-      <p style="margin-bottom: 2px;">CEO &amp; VP, EyeQ Dot Net Pvt Ltd.</p>
-      <p style="margin-bottom: 2px;">Place: Mangalore, Karnataka.</p>
-    </div>
-
     <div class="report-section">
-      <h2>2.Risk Matrix</h2>
+      <h2>2.Executive Summary</h2>
       <div *ngIf="dashboardData" class="report-charts">
         <!-- Severity Chart -->
         <div class="chart-container">
