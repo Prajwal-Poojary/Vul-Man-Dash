@@ -14,6 +14,47 @@ export interface Report {
   password?: string;
   createdTime?: Date;
   dashboardData?: DashboardData;
+  reportData?: {
+    logoName: string;
+    logoDataURL: string;
+    client: string;
+    reportDate: Date;
+    auditType: string;
+    reportType: string;
+    scopes: string[];
+    periodStart: Date;
+    periodEnd: Date;
+    summary: string;
+    manifest: {
+      appName: string;
+      testerName: string;
+      docVersion: string;
+      initDate: Date;
+      reDate: Date;
+      toolsUsed: string;
+      scopes: string[];
+      description: string;
+      manifestType: string;
+    };
+    findings: Array<{
+      slno: number;
+      vuln: string;
+      vulnUrl: string;
+      threat: string;
+      threatDetails: string;
+      impact: string;
+      stepsToReproduce: string;
+      pocDataURL: string[];
+      retestingPocDataURL: string[];
+      pocType: string;
+      mitigation: string;
+      references: string;
+      severity: string;
+      status: string;
+    }>;
+    chartImageURLs: string[];
+    timestamp: Date;
+  };
 }
 
 @Injectable({
@@ -57,5 +98,20 @@ export class ReportService {
   // Update dashboard data for a report
   updateDashboardData(reportId: string, dashboardData: DashboardData): Observable<any> {
     return this.http.put(`${this.apiUrl}/dashboard/${reportId}`, dashboardData);
+  }
+
+  // Get report data by ID
+  getReportData(reportId: string): Observable<Report['reportData']> {
+    return this.http.get<Report['reportData']>(`${this.apiUrl}/report/${reportId}`);
+  }
+
+  // Save report data
+  saveReportData(reportId: string, reportData: Report['reportData']): Observable<any> {
+    return this.http.post(`${this.apiUrl}/report/${reportId}`, reportData);
+  }
+
+  // Update report data
+  updateReportData(reportId: string, reportData: Report['reportData']): Observable<any> {
+    return this.http.put(`${this.apiUrl}/report/${reportId}`, reportData);
   }
 }
