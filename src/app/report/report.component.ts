@@ -748,161 +748,255 @@ export class ReportComponent implements AfterViewInit {
         currentStep++;
         this.updateProgress(20 + (currentStep / totalSteps * 60), 100);
 
+        if (element.classList.contains('content-table-section')) {
+          const table = element.querySelector('.content-table');
+          if (table) {
+            pdf.addPage();
+            pdf.setDrawColor(0);
+            pdf.setLineWidth(0.5);
+            pdf.rect(5, 5, 200, 287);
+
+            const rows = Array.from(table.querySelectorAll('tbody tr'));
+            const headerRow = table.querySelector('thead tr');
+            const headerCells = headerRow?.querySelectorAll('th');
+            const tableHeaders = headerCells 
+              ? Array.from(headerCells).map((th: Element) => th.textContent?.trim() || '')
+              : ['Section', 'Page'];
+
+            const rowHeight = 12;
+            const headerHeight = 20;
+            const availableHeight = pdfHeight - headerHeight - 40;
+            const rowsPerPage = Math.floor(availableHeight / rowHeight);
+
+            // Table column widths (2 columns)
+            const colCount = tableHeaders.length;
+            const colWidth = pdfWidth / colCount;
+
+            pdf.setFontSize(16);
+            pdf.text('Table of Contents', margin + pdfWidth / 2, margin + 20, { align: 'center' });
+            pdf.setFontSize(12);
+
+            // Draw table header background and border
+            pdf.setFillColor(240, 240, 240);
+            pdf.rect(margin, margin + 30, pdfWidth, headerHeight, 'F');
+            pdf.setDrawColor(0);
+            pdf.setLineWidth(0.5);
+            pdf.rect(margin, margin + 30, pdfWidth, headerHeight);
+            // Draw vertical lines for columns in header
+            for (let c = 1; c < colCount; c++) {
+              pdf.line(margin + c * colWidth, margin + 30, margin + c * colWidth, margin + 30 + headerHeight);
+            }
+
+            // Center header text
+            pdf.setFont('helvetica', 'bold');
+            tableHeaders.forEach((header: string, index: number) => {
+              const x = margin + (index + 0.5) * colWidth;
+              pdf.text(header, x, margin + 42, { align: 'center' });
+            });
+            pdf.setFont('helvetica', 'normal');
+
+            // Draw rows for this page with vertical lines and centered text
+            const pageRows = rows.slice(0, rowsPerPage);
+            pageRows.forEach((row: Element, rowIndex: number) => {
+              const cells = Array.from(row.querySelectorAll('td'));
+              const y = margin + headerHeight + 35 + (rowIndex * rowHeight);
+              // Draw row border
+              pdf.rect(margin, y - 5, pdfWidth, rowHeight);
+              // Draw vertical lines for columns
+              for (let c = 1; c < colCount; c++) {
+                pdf.line(margin + c * colWidth, y - 5, margin + c * colWidth, y - 5 + rowHeight);
+              }
+              // Center cell text vertically and horizontally
+              const textY = y - 5 + rowHeight / 2 + 2; // 2 is a tweak for font size 12
+              cells.forEach((cell: Element, cellIndex: number) => {
+                const x = margin + (cellIndex + 0.5) * colWidth;
+                const cellText = String(cell.textContent || '').trim();
+                pdf.text(cellText, x, textY, { align: 'center', baseline: 'middle' });
+              });
+            });
+
+            // If there are more rows, add them to new pages
+            if (rows.length > rowsPerPage) {
+              for (let i = rowsPerPage; i < rows.length; i += rowsPerPage) {
+                pdf.addPage();
+                pdf.setDrawColor(0);
+                pdf.setLineWidth(0.5);
+                pdf.rect(5, 5, 200, 287);
+                const pageRows = rows.slice(i, i + rowsPerPage);
+                pageRows.forEach((row: Element, rowIndex: number) => {
+                  const cells = Array.from(row.querySelectorAll('td'));
+                  const y = margin + 15 + (rowIndex * rowHeight);
+                  pdf.rect(margin, y - 5, pdfWidth, rowHeight);
+                  for (let c = 1; c < colCount; c++) {
+                    pdf.line(margin + c * colWidth, y - 5, margin + c * colWidth, y - 5 + rowHeight);
+                  }
+                  const textY = y - 5 + rowHeight / 2 + 2;
+                  cells.forEach((cell: Element, cellIndex: number) => {
+                    const x = margin + (cellIndex + 0.5) * colWidth;
+                    const cellText = String(cell.textContent || '').trim();
+                    pdf.text(cellText, x, textY, { align: 'center', baseline: 'middle' });
+                  });
+                });
+              }
+            }
+            continue;
+          }
+        }
+
         // Handle findings table
-        const findingsTable = element.querySelector('.findings-table');
-        if (findingsTable) {
+        const findingsTableContainer = element.querySelector('.findings-table-container');
+        if (findingsTableContainer) {
+          console.log('Processing findings table...');
           const rows: any[] = [];
           const tableHeading = element.querySelector('h2')?.textContent || 'Findings';
           
-          // Get headers directly from the first row of thead
-          const thead = findingsTable.querySelector('thead');
-          const headerRow = thead?.querySelector('tr');
-          const headerCells = headerRow?.querySelectorAll('th');
+          // Get headers from the findings-header div
+          const headerRow = findingsTableContainer.querySelector('.findings-header');
+          console.log('Header row found:', !!headerRow);
           
-          console.log('Found thead:', !!thead);
-          console.log('Found header row:', !!headerRow);
-          console.log('Number of header cells:', headerCells?.length);
+          const headerCells = headerRow?.querySelectorAll('.findings-cell');
+          console.log('Header cells found:', headerCells?.length);
           
           // Extract header texts
           const tableHeaders = headerCells 
-            ? Array.from(headerCells).map(th => {
-                const text = th.textContent?.trim() || '';
-                console.log('Header cell text:', text);
-                return text;
-              })
+            ? Array.from(headerCells).map(th => th.textContent?.trim() || '')
             : ['ID', 'Vulnerability', 'Severity', 'Status'];
 
-          console.log('Final table headers:', tableHeaders);
+          console.log('Table headers:', tableHeaders);
 
-          // Get table body rows
-          const tbodyRows = findingsTable.querySelectorAll('tbody tr');
-          tbodyRows.forEach((row) => {
-            const cells = Array.from(row.querySelectorAll('td')).map(td => td.textContent?.trim() || '');
+          // Get table body rows (all findings-row except the header)
+          const bodyRows = findingsTableContainer.querySelectorAll('.findings-row:not(.findings-header)');
+          console.log('Number of body rows:', bodyRows.length);
+          
+          bodyRows.forEach((row) => {
+            const cells = Array.from(row.querySelectorAll('.findings-cell')).map(td => td.textContent?.trim() || '');
             rows.push(cells);
           });
 
-          if (!isFirstPage) pdf.addPage();
-          
-          // Always draw the border for the current page
-          pdf.setDrawColor(0);
-          pdf.setLineWidth(0.5);
-          pdf.rect(5, 5, 200, 287);
+          console.log('Processed rows:', rows);
+
+          if (!isFirstPage) {
+            pdf.addPage();
+            console.log('Added new page for findings table');
+          }
           
           // Table configuration
           const startX = margin;
-          let startY = margin + 10;
           const colWidths = [15, 60, 50, 30, 25]; // Widths for each column
-          const rowHeight = 10;
-          const pageHeight = 287;
-          const maxY = pageHeight - margin;
+          const rowHeight = 12; // Increased row height for better spacing
+          const headerHeight = 15;
+          const titleHeight = 20;
+          const availableHeight = pdfHeight - titleHeight - headerHeight - 40; // Space for title, header, and margins
+          const rowsPerPage = Math.floor(availableHeight / rowHeight);
 
-          // Draw table heading (h2)
-          pdf.setFont("helvetica", "bold");
-          pdf.setFontSize(12);
-          pdf.setTextColor(0, 0, 0);
-          pdf.text(tableHeading, startX, startY);
-          startY += 15; // Add space after heading
+          console.log('Available height:', availableHeight, 'Rows per page:', rowsPerPage);
 
-          // Draw header row
-          pdf.setFillColor(41, 128, 185); // Blue background
-          pdf.setTextColor(255, 255, 255); // White text
-          pdf.setFont("helvetica", "bold");
-          pdf.setFontSize(10);
-          
-          let currentX = startX;
-          
-          // Draw all header cells
-          console.log('Drawing headers:', tableHeaders);
-          tableHeaders.forEach((header, index) => {
-            console.log(`Drawing header ${index}:`, header, 'at x:', currentX);
-            
-            // Draw header cell background with border
-            pdf.setDrawColor(0); // Black border
-            pdf.setLineWidth(0.5);
-            pdf.setFillColor(44, 62, 80); // Darker blue background
-            pdf.rect(currentX, startY, colWidths[index], rowHeight, 'FD'); // 'FD' means fill and draw
-            
-            // Draw header text
-            pdf.setTextColor(255, 255, 255); // Ensure text is white
-            const textWidth = pdf.getTextWidth(header);
-            const x = currentX + (colWidths[index] - textWidth) / 2;
-            pdf.text(header, x, startY + 7);
-            
-            currentX += colWidths[index];
-          });
-          
-          // Reset styles for data rows
-          pdf.setTextColor(0, 0, 0);
-          pdf.setFont("helvetica", "normal");
-          pdf.setDrawColor(0);
-          pdf.setLineWidth(0.1);
-          startY += rowHeight;
+          // Calculate total pages needed
+          const totalPages = Math.ceil(rows.length / rowsPerPage);
+          console.log('Total pages needed:', totalPages);
 
-          // Draw data rows
-          rows.forEach((row, rowIndex) => {
-            // Check if we need a new page
-            if (startY + rowHeight > maxY) {
+          for (let pageIndex = 0; pageIndex < totalPages; pageIndex++) {
+            if (pageIndex > 0) {
               pdf.addPage();
-              pdf.setDrawColor(0);
-              pdf.setLineWidth(0.5);
-              pdf.rect(5, 5, 200, 287);
-              
-              // Reset Y position and redraw header on new page
-              startY = margin + 10;
-              
-              // Draw header on new page
-              pdf.setFillColor(44, 62, 80); // Darker blue background
-              pdf.setTextColor(255, 255, 255); // White text
+              console.log('Added page', pageIndex + 1);
+            }
+            
+            // Always draw the border for the current page
+            pdf.setDrawColor(0);
+            pdf.setLineWidth(0.5);
+            pdf.rect(5, 5, 200, 287);
+            
+            let startY = margin + 10;
+
+            // Draw table heading (h2) only on first page
+            if (pageIndex === 0) {
               pdf.setFont("helvetica", "bold");
-              pdf.setFontSize(10);
-              
-              currentX = startX;
-              tableHeaders.forEach((header, index) => {
-                // Draw header cell background with border
-                pdf.setDrawColor(0); // Black border
-                pdf.setLineWidth(0.5);
-                pdf.rect(currentX, startY, colWidths[index], rowHeight, 'FD');
-                
-                // Draw header text
-                pdf.setTextColor(255, 255, 255); // Ensure text is white
-                const textWidth = pdf.getTextWidth(header);
-                const x = currentX + (colWidths[index] - textWidth) / 2;
-                pdf.text(header, x, startY + 7);
-                currentX += colWidths[index];
-              });
-              
-              // Reset styles for data rows
+              pdf.setFontSize(14);
               pdf.setTextColor(0, 0, 0);
-              pdf.setFont("helvetica", "normal");
-              pdf.setDrawColor(0);
-              pdf.setLineWidth(0.1);
-              startY += rowHeight;
+              pdf.text(tableHeading, startX, startY);
+              startY += titleHeight;
+              console.log('Drew table heading:', tableHeading);
             }
 
-            // Draw row
-            currentX = startX;
-            row.forEach((cell: string, colIndex: number) => {
-              // Draw cell border
-              pdf.rect(currentX, startY, colWidths[colIndex], rowHeight);
-              
-              // Add cell text
-              const text = cell.toString();
-              let x = currentX + 3; // Default left padding
-              
-              // Center text for ID, Severity, and Status columns
-              if (colIndex === 0 || colIndex === 3 || colIndex === 4) {
-                const textWidth = pdf.getTextWidth(text);
-                x = currentX + (colWidths[colIndex] - textWidth) / 2;
-              }
-              
-              pdf.text(text, x, startY + 7);
-              currentX += colWidths[colIndex];
-            });
-            
-            startY += rowHeight;
-          });
+            // Draw header row - ALWAYS draw header on every page
+            console.log('Drawing header row on page', pageIndex + 1);
+            // Set up header row styles
+pdf.setFillColor(255, 255, 255); // Ensure background is white
+pdf.setTextColor(0, 0, 0);       // Set text color to black
+pdf.setFont("helvetica", "bold");
+pdf.setFontSize(10);
 
+let currentX = startX;
+
+// Draw all header cells
+tableHeaders.forEach((header, index) => {
+  // Draw filled rectangle for background
+  pdf.rect(currentX, startY, colWidths[index], headerHeight, 'F'); // White fill
+  // Draw border around cell
+  pdf.setDrawColor(0); // Black border
+  pdf.rect(currentX, startY, colWidths[index], headerHeight, 'D'); // Border only
+  // Add centered header text
+  const textWidth = pdf.getTextWidth(header);
+  const x = currentX + (colWidths[index] - textWidth) / 2;
+  const y = startY + headerHeight / 2 + 3;
+  pdf.text(header, x, y);
+  currentX += colWidths[index];
+});
+
+            
+            console.log('Drew header row');
+            
+            // Reset styles for data rows
+            pdf.setTextColor(0, 0, 0);
+            pdf.setFont("helvetica", "normal");
+            pdf.setDrawColor(0);
+            pdf.setLineWidth(0.1);
+            startY += headerHeight;
+
+            // Get rows for this page
+            const startRowIndex = pageIndex * rowsPerPage;
+            const endRowIndex = Math.min(startRowIndex + rowsPerPage, rows.length);
+            const pageRows = rows.slice(startRowIndex, endRowIndex);
+
+            console.log(`Page ${pageIndex + 1}: Drawing ${pageRows.length} rows (${startRowIndex} to ${endRowIndex - 1})`);
+
+            // Draw data rows for this page
+            pageRows.forEach((row, rowIndex) => {
+              // Draw row with borders
+              currentX = startX;
+              row.forEach((cell: string, colIndex: number) => {
+                // Draw cell border
+                pdf.rect(currentX, startY, colWidths[colIndex], rowHeight);
+                
+                // Add cell text
+                const text = cell.toString();
+                let x = currentX + 3; // Default left padding
+                let y = startY + rowHeight / 2 + 3; // Center vertically
+                
+                // Center text for ID, Severity, and Status columns
+                if (colIndex === 0 || colIndex === 2 || colIndex === 3) {
+                  const textWidth = pdf.getTextWidth(text);
+                  x = currentX + (colWidths[colIndex] - textWidth) / 2;
+                }
+                
+                pdf.text(text, x, y);
+                currentX += colWidths[colIndex];
+              });
+              
+              startY += rowHeight;
+            });
+
+            // Add page number if there are multiple pages
+            if (totalPages > 1) {
+              pdf.setFont("helvetica", "normal");
+              pdf.setFontSize(8);
+              pdf.setTextColor(100, 100, 100);
+              pdf.text(`Page ${pageIndex + 1} of ${totalPages}`, margin + pdfWidth - 30, pdfHeight - 10);
+            }
+          }
+          
           isFirstPage = false;
+          console.log('Finished processing findings table');
           continue;
         }
 
