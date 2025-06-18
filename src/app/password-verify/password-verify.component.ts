@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ReportService } from '../services/report.service';
-import { DashboardData } from '../services/report-api.service';
+import { DashboardData } from '../services/report.service';
 
 @Component({
   selector: 'app-password-verify',
