@@ -311,9 +311,9 @@ export class ReportComponent implements AfterViewInit {
       });
     }
 
-    // 4. Risk Matrix [selected manifest]
+    // 4. Vulnerability Rating Table
     this.contentTable.push({
-      title: `Risk Matrix ${manifest}`,
+      title: 'Vulnerability Rating Table',
       page: page++
     });
 
