@@ -832,9 +832,39 @@ export class ReportComponent implements AfterViewInit {
       let currentY = margin; // Track current Y position for proper page breaks
       let tocStarted = false; // Track if Table of Contents has been rendered
 
+      // Map section titles to contentTable entries for quick lookup
+      const tocTitleToIndex: Record<string, number> = {};
+      this.contentTable.forEach((entry, idx) => {
+        tocTitleToIndex[entry.title] = idx;
+      });
+      let tocSectionIdx = 0;
+      let logicalPage = 3; // Start logical page numbering from 3
+
       // Process each section
       for (const element of allRenderTargets) {
         if (!element) continue;
+
+        // Try to match the section to a contentTable entry by title
+        let sectionTitle = '';
+        if (element.classList.contains('content-table-section')) {
+          sectionTitle = 'Table of Contents';
+        } else {
+          // Try to get the section title from h2 or h3
+          const h2 = element.querySelector('h2');
+          if (h2 && h2.textContent) {
+            sectionTitle = h2.textContent.trim();
+          }
+        }
+        // Only update contentTable for report sections (not cover or TOC)
+        if (sectionTitle && tocTitleToIndex[sectionTitle] !== undefined && sectionTitle !== 'Table of Contents' && sectionTitle !== 'Report Details') {
+          this.contentTable[tocTitleToIndex[sectionTitle]].page = logicalPage;
+          logicalPage++;
+        } else if (this.contentTable[tocSectionIdx] && sectionTitle !== 'Table of Contents' && sectionTitle !== '' && sectionTitle !== 'Report Details') {
+          // Fallback: update in order if no title match, but skip TOC and cover
+          this.contentTable[tocSectionIdx].page = logicalPage;
+          logicalPage++;
+        }
+        tocSectionIdx++;
 
         // Update progress
         currentStep++;
@@ -890,9 +920,6 @@ export class ReportComponent implements AfterViewInit {
             const rowHeight = 12;
             const headerHeight = 20;
             const availableHeight = pdfHeight - headerHeight - 40;
-            const rowsPerPage = Math.floor(availableHeight / rowHeight);
-
-            // Table column widths (2 columns)
             const colCount = tableHeaders.length;
             const colWidth = pdfWidth / colCount;
             const colWidths = Array(colCount).fill(colWidth);
@@ -907,7 +934,6 @@ export class ReportComponent implements AfterViewInit {
             pdf.setDrawColor(0);
             pdf.setLineWidth(0.5);
             pdf.rect(margin, currentY + 30, pdfWidth, headerHeight);
-            // Draw vertical lines for columns in header
             for (let c = 1; c < colCount; c++) {
               pdf.line(margin + c * colWidth, currentY + 30, margin + c * colWidth, currentY + 30 + headerHeight);
             }
@@ -921,52 +947,35 @@ export class ReportComponent implements AfterViewInit {
             pdf.setFont('helvetica', 'normal');
 
             // Draw rows for this page with vertical lines and centered text
-            const pageRows = rows.slice(0, rowsPerPage);
-            pageRows.forEach((row: Element, rowIndex: number) => {
+            let y = currentY + headerHeight + 35;
+            for (const row of rows) {
               const cells = Array.from(row.querySelectorAll('td'));
-              const y = currentY + headerHeight + 35 + (rowIndex * rowHeight);
+              // Wrap section title
+              const sectionText = String(cells[0]?.textContent || '').trim();
+              const sectionLines = pdf.splitTextToSize(sectionText, colWidth - 8); // 8px padding
+              const pageText = String(cells[1]?.textContent || '').trim();
+              const rowLines = Math.max(sectionLines.length, 1);
+              const thisRowHeight = rowLines * rowHeight;
+
               // Draw row border
-              pdf.rect(margin, y - 5, pdfWidth, rowHeight);
+              pdf.rect(margin, y - 5, pdfWidth, thisRowHeight);
               // Draw vertical lines for columns
               for (let c = 1; c < colCount; c++) {
-                pdf.line(margin + c * colWidth, y - 5, margin + c * colWidth, y - 5 + rowHeight);
+                pdf.line(margin + c * colWidth, y - 5, margin + c * colWidth, y - 5 + thisRowHeight);
               }
-              // Center cell text vertically and horizontally
-              const textY = y - 5 + rowHeight / 2 + 2; // 2 is a tweak for font size 12
-              cells.forEach((cell: Element, cellIndex: number) => {
-                const x = margin + (cellIndex + 0.5) * colWidth;
-                const cellText = String(cell.textContent || '').trim();
-                pdf.text(cellText, x, textY, { align: 'center', baseline: 'middle' });
-              });
-            });
 
-            // If there are more rows, add them to new pages
-            if (rows.length > rowsPerPage) {
-              for (let i = rowsPerPage; i < rows.length; i += rowsPerPage) {
-                pdf.addPage();
-                pdf.setDrawColor(0);
-                pdf.setLineWidth(0.5);
-                pdf.rect(5, 5, 200, 287);
-                const pageRows = rows.slice(i, i + rowsPerPage);
-                pageRows.forEach((row: Element, rowIndex: number) => {
-                  const cells = Array.from(row.querySelectorAll('td'));
-                  const y = margin + 15 + (rowIndex * rowHeight);
-                  pdf.rect(margin, y - 5, pdfWidth, rowHeight);
-                  for (let c = 1; c < colCount; c++) {
-                    pdf.line(margin + c * colWidth, y - 5, margin + c * colWidth, y - 5 + rowHeight);
-                  }
-                  const textY = y - 5 + rowHeight / 2 + 2;
-                  cells.forEach((cell: Element, cellIndex: number) => {
-                    const x = margin + (cellIndex + 0.5) * colWidth;
-                    const cellText = String(cell.textContent || '').trim();
-                    pdf.text(cellText, x, textY, { align: 'center', baseline: 'middle' });
-                  });
-                });
-              }
+              // Draw section title (wrapped)
+              sectionLines.forEach(function(line: string, idx: number) {
+                const textY = y - 5 + rowHeight / 2 + 2 + idx * rowHeight;
+                pdf.text(line, margin + colWidth / 2, textY, { align: 'center', baseline: 'middle' });
+              });
+              // Draw page number (centered vertically for all lines)
+              pdf.text(pageText, margin + colWidth + colWidth / 2, y - 5 + (thisRowHeight / 2) + 2, { align: 'center', baseline: 'middle' });
+
+              y += thisRowHeight;
             }
-            
             // Update currentY for next content
-            currentY = currentY + headerHeight + 35 + (Math.min(rows.length, rowsPerPage) * rowHeight) + 20;
+            currentY = y + 20;
             continue;
           }
         }
@@ -1064,8 +1073,6 @@ export class ReportComponent implements AfterViewInit {
             }
 
             // Draw header row - ALWAYS draw header on every page
-            console.log('Drawing header row on page', pageIndex + 1, 'with white background and black text');
-            // Set up header row styles
             pdf.setFillColor(255, 255, 255); // White background
             pdf.setDrawColor(0); // Black border
             pdf.setFont("helvetica", "bold");
@@ -1075,13 +1082,10 @@ export class ReportComponent implements AfterViewInit {
 
             // Draw all header cells
             tableHeaders.forEach((header, index) => {
-              // Draw filled rectangle for dark blue background
               pdf.setFillColor(44, 62, 80); // Dark blue
               pdf.rect(currentX, startY, colWidths[index], headerHeight, 'F');
-              // Draw border around cell
               pdf.setDrawColor(0);
               pdf.rect(currentX, startY, colWidths[index], headerHeight, 'D');
-              // Set text color to white, bold, centered
               pdf.setTextColor(255, 255, 255);
               pdf.setFont("helvetica", "bold");
               pdf.setFontSize(12);
@@ -1093,8 +1097,6 @@ export class ReportComponent implements AfterViewInit {
               currentX += colWidths[index];
             });
 
-            console.log('Drew header row');
-            
             // Reset styles for data rows
             pdf.setTextColor(0, 0, 0);
             pdf.setFont("helvetica", "normal");
@@ -1107,29 +1109,37 @@ export class ReportComponent implements AfterViewInit {
             const endRowIndex = Math.min(startRowIndex + rowsPerPage, rows.length);
             const pageRows = rows.slice(startRowIndex, endRowIndex);
 
-            console.log(`Page ${pageIndex + 1}: Drawing ${pageRows.length} rows (${startRowIndex} to ${endRowIndex - 1})`);
-
             // Draw data rows for this page
             pageRows.forEach((row, rowIndex) => {
-              currentX = margin;
+              let currentX = margin;
               // Ensure row has the same number of columns as headers
               while (row.length < colWidths.length) {
                 row.push('');
               }
+              // Calculate the number of lines for each cell
+              const cellLines = row.map((cell: string, colIndex: number) => {
+                const text = (cell || '').trim();
+                return pdf.splitTextToSize(text, colWidths[colIndex] - 6); // 6px padding
+              });
+              const maxLines = Math.max(...cellLines.map((lines: string[]) => lines.length));
+              const thisRowHeight = maxLines * rowHeight;
+
+              // Draw each cell
               row.forEach((cell: string, colIndex: number) => {
-                pdf.rect(currentX, startY, colWidths[colIndex], rowHeight);
+                pdf.rect(currentX, startY, colWidths[colIndex], thisRowHeight);
                 pdf.setTextColor(0, 0, 0);
                 pdf.setFont('times', 'normal');
                 pdf.setFontSize(11);
-                const text = (cell || '').trim();
-                const textWidth = pdf.getTextWidth(text);
-                let x = currentX + (colWidths[colIndex] - textWidth) / 2;
-                let y = startY + rowHeight / 2 + 3;
-                // Center text for all columns
-                pdf.text(text, x, y, { baseline: 'middle' });
+                const lines = cellLines[colIndex];
+                lines.forEach(function(line: string, idx: number) {
+                  const textWidth = pdf.getTextWidth(line);
+                  let x = currentX + (colWidths[colIndex] - textWidth) / 2;
+                  let y = startY + rowHeight / 2 + 3 + idx * rowHeight;
+                  pdf.text(line, x, y, { baseline: 'middle' });
+                });
                 currentX += colWidths[colIndex];
               });
-              startY += rowHeight;
+              startY += thisRowHeight;
             });
 
             // Add page number if there are multiple pages
@@ -1247,6 +1257,25 @@ export class ReportComponent implements AfterViewInit {
 
       // Update progress
       this.updateProgress(90, 100);
+
+      // After all content is rendered, add page numbers to each page
+      const totalPages = pdf.getNumberOfPages();
+      for (let i = 1; i <= totalPages; i++) {
+        pdf.setPage(i);
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(10);
+        pdf.setTextColor(80, 80, 80);
+        // Find the logical page number from contentTable if possible, else use i
+        let logicalPage = i;
+        if (this.contentTable && this.contentTable.length > 0) {
+          // Try to find a contentTable entry with page === i
+          const entry = this.contentTable.find(e => e.page === i);
+          if (entry) {
+            logicalPage = entry.page;
+          }
+        }
+        pdf.text(`Page ${logicalPage}`, pdf.internal.pageSize.getWidth() / 2, pdf.internal.pageSize.getHeight() - 10, { align: 'center' });
+      }
 
       // Generate PDF blob
       const pdfBlob = pdf.output('blob');
