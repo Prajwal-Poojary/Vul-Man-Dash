@@ -840,6 +840,8 @@ export class ReportComponent implements AfterViewInit {
       let tocSectionIdx = 0;
       let logicalPage = 3; // Start logical page numbering from 3
 
+      const bottomMargin = 20; // mm reserved for page number
+
       // Process each section
       for (const element of allRenderTargets) {
         if (!element) continue;
@@ -956,6 +958,15 @@ export class ReportComponent implements AfterViewInit {
               const pageText = String(cells[1]?.textContent || '').trim();
               const rowLines = Math.max(sectionLines.length, 1);
               const thisRowHeight = rowLines * rowHeight;
+
+              // Check if the row fits on the current page
+              if (y + thisRowHeight > pdfHeight - bottomMargin) {
+                pdf.addPage();
+                pdf.setDrawColor(0);
+                pdf.setLineWidth(0.5);
+                pdf.rect(5, 5, 200, 287);
+                y = margin + headerHeight + 35;
+              }
 
               // Draw row border
               pdf.rect(margin, y - 5, pdfWidth, thisRowHeight);
@@ -1123,6 +1134,15 @@ export class ReportComponent implements AfterViewInit {
               });
               const maxLines = Math.max(...cellLines.map((lines: string[]) => lines.length));
               const thisRowHeight = maxLines * rowHeight;
+
+              // Check if the row fits on the current page
+              if (startY + thisRowHeight > pdfHeight - bottomMargin) {
+                pdf.addPage();
+                pdf.setDrawColor(0);
+                pdf.setLineWidth(0.5);
+                pdf.rect(5, 5, 200, 287);
+                startY = margin + headerHeight + 10;
+              }
 
               // Draw each cell
               row.forEach((cell: string, colIndex: number) => {
