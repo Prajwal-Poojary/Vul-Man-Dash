@@ -226,8 +226,8 @@
         </thead>
         <tbody>
           <tr *ngFor="let item of contentTable">
-            <td>{{ item.title }}</td>
-            <td>{{ item.page }}</td>
+            <td style="white-space: normal; word-break: break-word;">{{ item.title }}</td>
+            <td>{{ item.page + 2 }}</td>
           </tr>
         </tbody>
       </table>
@@ -342,7 +342,7 @@
 
     <div class="report-section">
       <h2>4.Vulnerability Rating Table: </h2>
-      <table class="risk-matrix">
+      <table class="risk-matrix" style="width: 100%; min-width: 900px;">
         <thead>
           <tr>
             <th>Risk Level</th>
