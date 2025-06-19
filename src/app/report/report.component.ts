@@ -677,6 +677,96 @@ export class ReportComponent implements AfterViewInit {
     this.downloadProgress = Math.round(scaledProgress);
   }
 
+  // Add helper function for processing POC images with page breaks
+  private async processPocImages(pdf: jsPDF, images: string[], margin: number, pdfWidth: number, pdfHeight: number, currentY: number): Promise<number> {
+    const maxImageHeight = 150; // Maximum height for each image
+    const imageSpacing = 10; // Space between images
+    
+    for (let i = 0; i < images.length; i++) {
+      const imgData = images[i];
+      
+      // Create a temporary image to get dimensions
+      const img = new Image();
+      await new Promise((resolve) => {
+        img.onload = resolve;
+        img.src = imgData;
+      });
+      
+      // Calculate image dimensions to fit within page width
+      const imgWidth = pdfWidth;
+      const imgHeight = Math.min((img.height * imgWidth) / img.width, maxImageHeight);
+      
+      // Check if we need a new page
+      if (currentY + imgHeight > pdfHeight - margin) {
+        pdf.addPage();
+        pdf.setDrawColor(0);
+        pdf.setLineWidth(0.5);
+        pdf.rect(5, 5, 200, 287);
+        currentY = margin;
+      }
+      
+      // Add image to PDF
+      pdf.addImage(imgData, 'PNG', margin, currentY, imgWidth, imgHeight);
+      currentY += imgHeight + imageSpacing;
+    }
+    
+    return currentY;
+  }
+
+  // Add helper function to process detailed vulnerability sections
+  private async processDetailedVulnSection(pdf: jsPDF, element: HTMLElement, margin: number, pdfWidth: number, pdfHeight: number, currentY: number): Promise<number> {
+    // 1. Render the vulnerability details (text, labels, etc.) as an image using html2canvas (as before)
+    // Hide POC images temporarily so only the text/labels render in the canvas
+    const pocImages = Array.from(element.querySelectorAll('img[src*="data:image"]'));
+    const originalDisplays: string[] = [];
+    pocImages.forEach(img => {
+      const imgEl = img as HTMLImageElement;
+      originalDisplays.push(imgEl.style.display);
+      imgEl.style.display = 'none';
+    });
+
+    // Wait for DOM update
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    // Render the text part as an image
+    const canvas = await html2canvas(element as HTMLElement, {
+      scale: 2,
+      useCORS: true,
+      logging: false,
+      allowTaint: true
+    });
+
+    // Restore POC images
+    pocImages.forEach((img, idx) => {
+      const imgEl = img as HTMLImageElement;
+      imgEl.style.display = originalDisplays[idx] || '';
+    });
+
+    const imgData = canvas.toDataURL('image/png');
+    const imgWidth = pdfWidth;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+    // Check if we need a new page
+    if (currentY + imgHeight > pdfHeight - margin) {
+      pdf.addPage();
+      pdf.setDrawColor(0);
+      pdf.setLineWidth(0.5);
+      pdf.rect(5, 5, 200, 287);
+      currentY = margin;
+    }
+    pdf.addImage(imgData, 'PNG', margin, currentY, imgWidth, imgHeight);
+    currentY += imgHeight + 10;
+
+    // 2. Now add POC images one by one, paginating as needed
+    if (pocImages.length > 0) {
+      currentY = await this.processPocImages(pdf, pocImages.map(img => (img as HTMLImageElement).src), margin, pdfWidth, pdfHeight, currentY);
+    }
+
+    // Add spacing after the section
+    currentY += 20;
+    return currentY;
+  }
+
   async downloadAsPDF(): Promise<void> {
     this.showDownloadProgress = true;
     this.downloadFileType = 'PDF';
@@ -739,6 +829,8 @@ export class ReportComponent implements AfterViewInit {
       let isFirstPage = true;
       const totalSteps = allRenderTargets.length;
       let currentStep = 0;
+      let currentY = margin; // Track current Y position for proper page breaks
+      let tocStarted = false; // Track if Table of Contents has been rendered
 
       // Process each section
       for (const element of allRenderTargets) {
@@ -748,13 +840,45 @@ export class ReportComponent implements AfterViewInit {
         currentStep++;
         this.updateProgress(20 + (currentStep / totalSteps * 60), 100);
 
+        // Handle detailed vulnerability sections separately
+        if (element.classList.contains('detailed-vuln-section')) {
+          currentY = await this.processDetailedVulnSection(pdf, element as HTMLElement, margin, pdfWidth, pdfHeight, currentY);
+          isFirstPage = false;
+          continue;
+        }
+
+        // Force a new page with border before Table of Contents
+        if (element.classList.contains('content-table-section') && !tocStarted) {
+          if (!isFirstPage) {
+            pdf.addPage();
+          }
+          pdf.setDrawColor(0);
+          pdf.setLineWidth(0.5);
+          pdf.rect(5, 5, 200, 287);
+          currentY = margin;
+          isFirstPage = false;
+          tocStarted = true;
+        }
+
         if (element.classList.contains('content-table-section')) {
           const table = element.querySelector('.content-table');
           if (table) {
-            pdf.addPage();
-            pdf.setDrawColor(0);
-            pdf.setLineWidth(0.5);
-            pdf.rect(5, 5, 200, 287);
+            // Check if we need a new page
+            if (currentY + 100 > pdfHeight - margin) {
+              pdf.addPage();
+              pdf.setDrawColor(0);
+              pdf.setLineWidth(0.5);
+              pdf.rect(5, 5, 200, 287);
+              currentY = margin;
+              isFirstPage = false;
+            } else if (!isFirstPage) {
+              pdf.addPage();
+              pdf.setDrawColor(0);
+              pdf.setLineWidth(0.5);
+              pdf.rect(5, 5, 200, 287);
+              currentY = margin;
+              isFirstPage = false;
+            }
 
             const rows = Array.from(table.querySelectorAll('tbody tr'));
             const headerRow = table.querySelector('thead tr');
@@ -774,25 +898,25 @@ export class ReportComponent implements AfterViewInit {
             const colWidths = Array(colCount).fill(colWidth);
 
             pdf.setFontSize(16);
-            pdf.text('Table of Contents', margin + pdfWidth / 2, margin + 20, { align: 'center' });
+            pdf.text('Table of Contents', margin + pdfWidth / 2, currentY + 20, { align: 'center' });
             pdf.setFontSize(12);
 
             // Draw table header background and border
             pdf.setFillColor(240, 240, 240);
-            pdf.rect(margin, margin + 30, pdfWidth, headerHeight, 'F');
+            pdf.rect(margin, currentY + 30, pdfWidth, headerHeight, 'F');
             pdf.setDrawColor(0);
             pdf.setLineWidth(0.5);
-            pdf.rect(margin, margin + 30, pdfWidth, headerHeight);
+            pdf.rect(margin, currentY + 30, pdfWidth, headerHeight);
             // Draw vertical lines for columns in header
             for (let c = 1; c < colCount; c++) {
-              pdf.line(margin + c * colWidth, margin + 30, margin + c * colWidth, margin + 30 + headerHeight);
+              pdf.line(margin + c * colWidth, currentY + 30, margin + c * colWidth, currentY + 30 + headerHeight);
             }
 
             // Center header text
             pdf.setFont('helvetica', 'bold');
             tableHeaders.forEach((header: string, index: number) => {
               const x = margin + (index + 0.5) * colWidth;
-              pdf.text(header, x, margin + 42, { align: 'center' });
+              pdf.text(header, x, currentY + 42, { align: 'center' });
             });
             pdf.setFont('helvetica', 'normal');
 
@@ -800,7 +924,7 @@ export class ReportComponent implements AfterViewInit {
             const pageRows = rows.slice(0, rowsPerPage);
             pageRows.forEach((row: Element, rowIndex: number) => {
               const cells = Array.from(row.querySelectorAll('td'));
-              const y = margin + headerHeight + 35 + (rowIndex * rowHeight);
+              const y = currentY + headerHeight + 35 + (rowIndex * rowHeight);
               // Draw row border
               pdf.rect(margin, y - 5, pdfWidth, rowHeight);
               // Draw vertical lines for columns
@@ -840,6 +964,9 @@ export class ReportComponent implements AfterViewInit {
                 });
               }
             }
+            
+            // Update currentY for next content
+            currentY = currentY + headerHeight + 35 + (Math.min(rows.length, rowsPerPage) * rowHeight) + 20;
             continue;
           }
         }
@@ -880,9 +1007,21 @@ export class ReportComponent implements AfterViewInit {
 
           console.log('Processed rows:', rows);
 
-          if (!isFirstPage) {
+          // Check if we need a new page
+          if (currentY + 100 > pdfHeight - margin) {
             pdf.addPage();
-            console.log('Added new page for findings table');
+            pdf.setDrawColor(0);
+            pdf.setLineWidth(0.5);
+            pdf.rect(5, 5, 200, 287);
+            currentY = margin;
+            isFirstPage = false;
+          } else if (!isFirstPage) {
+            pdf.addPage();
+            pdf.setDrawColor(0);
+            pdf.setLineWidth(0.5);
+            pdf.rect(5, 5, 200, 287);
+            currentY = margin;
+            isFirstPage = false;
           }
           
           // Table configuration
@@ -912,7 +1051,7 @@ export class ReportComponent implements AfterViewInit {
             pdf.setLineWidth(0.5);
             pdf.rect(5, 5, 200, 287);
             
-            let startY = margin + 10;
+            let startY = currentY + 10;
 
             // Draw table heading (h2) only on first page
             if (pageIndex === 0) {
@@ -1000,6 +1139,11 @@ export class ReportComponent implements AfterViewInit {
               pdf.setTextColor(100, 100, 100);
               pdf.text(`Page ${pageIndex + 1} of ${totalPages}`, margin + pdfWidth - 30, pdfHeight - 10);
             }
+            
+            // Update currentY for next content
+            if (pageIndex === totalPages - 1) {
+              currentY = startY + 20; // Add some spacing after the table
+            }
           }
           
           isFirstPage = false;
@@ -1063,28 +1207,38 @@ export class ReportComponent implements AfterViewInit {
           const imgWidth = pdfWidth;
           const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-          if (!isFirstPage) pdf.addPage();
-          
-          // Add border to the page
-          pdf.setDrawColor(0);
-          pdf.setLineWidth(0.5);
-          pdf.rect(5, 5, 200, 287);
-          isFirstPage = false;
+          // Check if we need a new page
+          if (currentY + imgHeight > pdfHeight - margin) {
+            pdf.addPage();
+            pdf.setDrawColor(0);
+            pdf.setLineWidth(0.5);
+            pdf.rect(5, 5, 200, 287);
+            currentY = margin;
+            isFirstPage = false;
+          } else if (!isFirstPage) {
+            pdf.addPage();
+            pdf.setDrawColor(0);
+            pdf.setLineWidth(0.5);
+            pdf.rect(5, 5, 200, 287);
+            currentY = margin;
+            isFirstPage = false;
+          }
 
-          let position = margin;
-          let heightLeft = imgHeight;
+          // Add image to current page
+          pdf.addImage(imgData, 'PNG', margin, currentY, imgWidth, imgHeight);
+          currentY += imgHeight + 10; // Add some spacing after the image
 
-          pdf.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight);
-          heightLeft -= pdfHeight;
-
+          // If image is too tall for one page, add additional pages
+          let heightLeft = imgHeight - (pdfHeight - margin - currentY + imgHeight);
           while (heightLeft > 0) {
             pdf.addPage();
             pdf.setDrawColor(0);
             pdf.setLineWidth(0.5);
             pdf.rect(5, 5, 200, 287);
-            position = heightLeft - imgHeight + margin;
+            const position = heightLeft - imgHeight + margin;
             pdf.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight);
             heightLeft -= pdfHeight;
+            currentY = margin; // Reset currentY for next content
           }
         } catch (error) {
           console.error('Error processing section:', error);
