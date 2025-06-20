@@ -28,7 +28,7 @@ import { ReportService } from '../services/report.service';
 function drawTable(pdf: jsPDF, headers: string[], rows: any[][], startY: number, margin: number): number {
   // Table configuration
   const cellPadding = 3;
-  const colWidths = [15, 60, 50, 30, 25]; // Widths for each column
+  const colWidths = [20, 100, 30, 30]; // Widths for each column
   const rowHeight = 12;
   const startX = margin;
   let currentY = startY;
@@ -171,6 +171,16 @@ export class ReportComponent implements AfterViewInit {
       scopes: [''],
       description: '',
       manifestType: ''
+    },
+    auditee: {
+      name: '',
+      email: '',
+      phone: ''
+    },
+    signature: {
+      name: 'Mr. Mohammed Sheik Nihal',
+      title: 'CEO & VP, EyeQ Dot Net Pvt Ltd.',
+      place: 'Mangalore, Karnataka.'
     }
   };
   onReAssessmentChange() {
@@ -1774,36 +1784,41 @@ export class ReportComponent implements AfterViewInit {
         next: (data) => {
           if (data) {
             // Populate form with report data
+            const safeData = data as any;
             this.form = {
-              logoName: data.logoName || '',
-              logoDataURL: data.logoDataURL || '',
-              client: data.client || '',
-              reportDate: data.reportDate ? new Date(data.reportDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-              auditType: data.auditType || '',
-              reportType: data.reportType || '',
-              scopes: data.scopes || [''],
-              periodStart: data.periodStart ? new Date(data.periodStart).toISOString().split('T')[0] : '',
-              periodEnd: data.periodEnd ? new Date(data.periodEnd).toISOString().split('T')[0] : '',
-              summary: data.summary || '',
+              logoName: safeData.logoName || '',
+              logoDataURL: safeData.logoDataURL || '',
+              client: safeData.client || '',
+              reportDate: safeData.reportDate ? new Date(safeData.reportDate).toISOString().split('T')[0] : '',
+              auditType: safeData.auditType || '',
+              reportType: safeData.reportType || '',
+              scopes: safeData.scopes || [],
+              periodStart: safeData.periodStart ? new Date(safeData.periodStart).toISOString().split('T')[0] : '',
+              periodEnd: safeData.periodEnd ? new Date(safeData.periodEnd).toISOString().split('T')[0] : '',
+              summary: safeData.summary || '',
               manifest: {
-                appName: data.manifest?.appName || '',
-                testerName: data.manifest?.testerName || '',
-                docVersion: data.manifest?.docVersion || '',
-                initDate: data.manifest?.initDate ? new Date(data.manifest.initDate).toISOString().split('T')[0] : '',
-                reDate: data.manifest?.reDate ? new Date(data.manifest.reDate).toISOString().split('T')[0] : '',
-                toolsUsed: data.manifest?.toolsUsed || '',
-                scopes: data.manifest?.scopes || [''],
-                description: data.manifest?.description || '',
-                manifestType: data.manifest?.manifestType || ''
+                appName: safeData.manifest?.appName || '',
+                testerName: safeData.manifest?.testerName || '',
+                docVersion: safeData.manifest?.docVersion || '',
+                initDate: safeData.manifest?.initDate ? new Date(safeData.manifest.initDate).toISOString().split('T')[0] : '',
+                reDate: safeData.manifest?.reDate ? new Date(safeData.manifest.reDate).toISOString().split('T')[0] : '',
+                toolsUsed: safeData.manifest?.toolsUsed || '',
+                scopes: safeData.manifest?.scopes || [],
+                description: safeData.manifest?.description || '',
+                manifestType: safeData.manifest?.manifestType || ''
+              },
+              auditee: safeData.auditee ?? { name: '', email: '', phone: '' },
+              signature: safeData.signature ?? {
+                name: 'Mr. Mohammed Sheik Nihal',
+                title: 'CEO & VP, EyeQ Dot Net Pvt Ltd.',
+                place: 'Mangalore, Karnataka.'
               }
             };
-            this.findings = (data.findings || []).map((f: any) => ({
-              ...f,
-              pocDataURL: (f.pocDataURL || []).map((p: string | {url: string, caption: string}) => typeof p === 'string' ? { url: p, caption: '' } : p),
-              retestingPocDataURL: (f.retestingPocDataURL || []).map((p: string | {url: string, caption: string}) => typeof p === 'string' ? { url: p, caption: '' } : p)
-            }));
-            this.chartImageURLs = data.chartImageURLs || [];
-            this.logoDataURL = data.logoDataURL || '';
+            this.findings = safeData.findings || [];
+            this.contentTable = safeData.contentTable ?? [];
+            this.reportVisible = true;
+            this.chartImageURLs = safeData.chartImageURLs || [];
+            this.logoDataURL = safeData.logoDataURL || '';
           }
         },
         error: (error) => {

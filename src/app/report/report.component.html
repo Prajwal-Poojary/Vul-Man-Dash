@@ -177,6 +177,22 @@
         <label>Summary:</label>
         <textarea rows="4" [(ngModel)]="form.summary" name="summary"></textarea>
       </div> -->
+      <div class="form-section">
+        <h3 class="section-title">Signature Details</h3>
+        <div class="form-group">
+          <label for="signatureName">Name</label>
+          <input id="signatureName" type="text" [(ngModel)]="form.signature.name" name="signatureName">
+        </div>
+        <div class="form-group">
+          <label for="signatureTitle">Title</label>
+          <input id="signatureTitle" type="text" [(ngModel)]="form.signature.title" name="signatureTitle">
+        </div>
+        <div class="form-group">
+          <label for="signaturePlace">Place</label>
+          <input id="signaturePlace" type="text" [(ngModel)]="form.signature.place" name="signaturePlace">
+        </div>
+      </div>
+
       <div class="form-actions">
         <button type="submit" class="generate-btn">Generate Report</button>
       </div>
@@ -284,9 +300,9 @@
       <div class="signature-block" style="margin: 32px 0 0 0; padding-left: 8px;">
         <p style="margin-bottom: 80px; font-size: 1.1em;">Yours sincerely,<br>
         From, EyeQ Dot Net Private Limited. (CIN: U80900KA2022PTC169528)<br><br><br><br></p>
-        <p style="margin-bottom: 4px; font-weight: bold; font-size: 1.1em;">Mr. Mohammed Sheik Nihal</p>
-        <p style="margin-bottom: 2px;">CEO &amp; VP, EyeQ Dot Net Pvt Ltd.</p>
-        <p style="margin-bottom: 2px;">Place: Mangalore, Karnataka.</p>
+        <p style="margin-bottom: 4px; font-weight: bold; font-size: 1.1em;">{{ form.signature.name }}</p>
+        <p style="margin-bottom: 2px;">{{ form.signature.title }}</p>
+        <p style="margin-bottom: 2px;">Place: {{ form.signature.place }}</p>
       </div>
     </div>
    
