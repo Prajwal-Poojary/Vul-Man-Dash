@@ -139,8 +139,8 @@ export class ReportComponent implements AfterViewInit {
     threatDetails: string;
     impact: string;
     stepsToReproduce: string;
-    pocDataURL: string[];
-    retestingPocDataURL: string[];
+    pocDataURL: { url: string; caption: string }[];
+    retestingPocDataURL: { url: string; caption: string }[];
     pocType: string;
     mitigation: string;
     references: string;
@@ -264,9 +264,9 @@ export class ReportComponent implements AfterViewInit {
         const reader = new FileReader();
         reader.onload = () => {
           if (type === 'poc') {
-            this.findings[index].pocDataURL.push(reader.result as string);
+            this.findings[index].pocDataURL.push({ url: reader.result as string, caption: '' });
           } else if (type === 'retesting') {
-            this.findings[index].retestingPocDataURL.push(reader.result as string);
+            this.findings[index].retestingPocDataURL.push({ url: reader.result as string, caption: '' });
           }
         };
         reader.readAsDataURL(file);
@@ -361,7 +361,11 @@ export class ReportComponent implements AfterViewInit {
         description: this.form.manifest.description,
         manifestType: this.selectedManifestType
       },
-      findings: this.findings,
+      findings: this.findings.map(f => ({
+        ...f,
+        pocDataURL: f.pocDataURL.map(p => p.url),
+        retestingPocDataURL: f.retestingPocDataURL.map(p => p.url)
+      })),
       chartImageURLs: this.chartImageURLs,
       timestamp: new Date()
     };
@@ -678,12 +682,12 @@ export class ReportComponent implements AfterViewInit {
   }
 
   // Add helper function for processing POC images with page breaks
-  private async processPocImages(pdf: jsPDF, images: string[], margin: number, pdfWidth: number, pdfHeight: number, currentY: number): Promise<number> {
+  private async processPocImages(pdf: jsPDF, images: { url: string; caption: string }[], margin: number, pdfWidth: number, pdfHeight: number, currentY: number): Promise<number> {
     const maxImageHeight = 150; // Maximum height for each image
     const imageSpacing = 10; // Space between images
     
     for (let i = 0; i < images.length; i++) {
-      const imgData = images[i];
+      const imgData = images[i].url;
       
       // Create a temporary image to get dimensions
       const img = new Image();
@@ -759,7 +763,7 @@ export class ReportComponent implements AfterViewInit {
 
     // 2. Now add POC images one by one, paginating as needed
     if (pocImages.length > 0) {
-      currentY = await this.processPocImages(pdf, pocImages.map(img => (img as HTMLImageElement).src), margin, pdfWidth, pdfHeight, currentY);
+      currentY = await this.processPocImages(pdf, pocImages.map(img => ({ url: (img as HTMLImageElement).src, caption: '' })), margin, pdfWidth, pdfHeight, currentY);
     }
 
     // Add spacing after the section
@@ -1545,12 +1549,14 @@ export class ReportComponent implements AfterViewInit {
           );
 
           if (finding.pocDataURL.length > 0) {
-            finding.pocDataURL.forEach((pocUrl, i) => {
+            finding.pocDataURL.forEach(async (poc, i) => {
+              const response = await fetch(poc.url);
+              const imageBuffer = await response.arrayBuffer();
               children.push(
                 new Paragraph({
                   children: [
                     new ImageRun({
-                      data: pocUrl,
+                      data: imageBuffer,
                       transformation: {
                         width: 500,
                         height: 300
@@ -1559,6 +1565,11 @@ export class ReportComponent implements AfterViewInit {
                     })
                   ],
                   spacing: { after: 200 }
+                }),
+                new Paragraph({
+                  text: poc.caption || '',
+                  style: 'Caption',
+                  alignment: AlignmentType.CENTER
                 })
               );
             });
@@ -1786,7 +1797,11 @@ export class ReportComponent implements AfterViewInit {
                 manifestType: data.manifest?.manifestType || ''
               }
             };
-            this.findings = data.findings || [];
+            this.findings = (data.findings || []).map((f: any) => ({
+              ...f,
+              pocDataURL: (f.pocDataURL || []).map((p: string | {url: string, caption: string}) => typeof p === 'string' ? { url: p, caption: '' } : p),
+              retestingPocDataURL: (f.retestingPocDataURL || []).map((p: string | {url: string, caption: string}) => typeof p === 'string' ? { url: p, caption: '' } : p)
+            }));
             this.chartImageURLs = data.chartImageURLs || [];
             this.logoDataURL = data.logoDataURL || '';
           }
