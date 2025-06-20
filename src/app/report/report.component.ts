@@ -857,8 +857,21 @@ export class ReportComponent implements AfterViewInit {
       const bottomMargin = 20; // mm reserved for page number
 
       // Process each section
+      let isFirstSection = true;
       for (const element of allRenderTargets) {
         if (!element) continue;
+
+        // Handle the cover page (first section)
+        if (isFirstSection && element.classList.contains('report-header')) {
+          // ... existing cover page logic ...
+          // After rendering the cover page, always add a new page for the next section
+          pdf.addPage();
+          currentY = margin;
+          isFirstPage = false;
+          isFirstSection = false;
+          continue;
+        }
+        isFirstSection = false;
 
         // Try to match the section to a contentTable entry by title
         let sectionTitle = '';
@@ -907,144 +920,104 @@ export class ReportComponent implements AfterViewInit {
         }
 
         if (element.classList.contains('content-table-section')) {
-          const table = element.querySelector('.content-table');
-          if (table) {
-            // Check if we need a new page
-            if (currentY + 100 > pdfHeight - margin) {
-              pdf.addPage();
-              pdf.setDrawColor(0);
-              pdf.setLineWidth(0.5);
-              pdf.rect(5, 5, 200, 287);
-              currentY = margin;
-              isFirstPage = false;
-            } else if (!isFirstPage) {
-              pdf.addPage();
-              pdf.setDrawColor(0);
-              pdf.setLineWidth(0.5);
-              pdf.rect(5, 5, 200, 287);
-              currentY = margin;
-              isFirstPage = false;
-            }
-
-            const rows = Array.from(table.querySelectorAll('tbody tr'));
-            const headerRow = table.querySelector('thead tr');
-            const headerCells = headerRow?.querySelectorAll('th');
-            const tableHeaders = headerCells 
-              ? Array.from(headerCells).map((th: Element) => th.textContent?.trim() || '')
-              : ['Section', 'Page'];
-
-            const rowHeight = 12;
-            const headerHeight = 20;
-            const availableHeight = pdfHeight - headerHeight - 40;
-            // Table of Contents: use equal column widths
-            const colCount = tableHeaders.length;
-            const colWidth = pdfWidth / colCount;
-            const colWidths = Array(colCount).fill(colWidth);
-
-            pdf.setFontSize(16);
-            pdf.text('Table of Contents', margin + pdfWidth / 2, currentY + 20, { align: 'center' });
-            pdf.setFontSize(12);
-
-            // Draw table header background and border
-            pdf.setFillColor(240, 240, 240);
-            pdf.rect(margin, currentY + 30, pdfWidth, headerHeight, 'F');
+          // Always add a page break before rendering the ToC, unless it's the first page
+          if (!isFirstPage) {
+            pdf.addPage();
             pdf.setDrawColor(0);
             pdf.setLineWidth(0.5);
-            pdf.rect(margin, currentY + 30, pdfWidth, headerHeight);
-            for (let c = 1; c < colCount; c++) {
-              pdf.line(margin + c * colWidth, currentY + 30, margin + c * colWidth, currentY + 30 + headerHeight);
-            }
+            pdf.rect(5, 5, 200, 287);
+            currentY = margin;
+          }
+          const table = element.querySelector('.content-table');
+          if (table) {
+            // Custom ToC styling for PDF
+            const rows = Array.from(table.querySelectorAll('tbody tr'));
+            // No header row for ToC
+            const rowHeight = 10;
+            const tocTitleFontSize = 18;
+            const tocFontSize = 12;
+            const tocTitle = 'Tables of Contents:';
+            const sectionColWidth = pdfWidth * 0.82;
+            const pageColWidth = pdfWidth * 0.18;
+            let y = currentY + 10;
 
-            // Center header text
+            // Draw ToC title
             pdf.setFont('helvetica', 'bold');
-            tableHeaders.forEach((header: string, index: number) => {
-              const x = margin + (index + 0.5) * colWidth;
-              pdf.text(header, x, currentY + 42, { align: 'center' });
-            });
+            pdf.setFontSize(tocTitleFontSize);
+            pdf.setTextColor(34, 34, 34);
+            pdf.text(tocTitle, margin, y);
+            y += tocTitleFontSize + 4;
+            // Draw a line under the title
+            pdf.setDrawColor(180, 180, 180);
+            pdf.setLineWidth(0.5);
+            pdf.line(margin, y, margin + pdfWidth, y);
+            y += 4;
+
             pdf.setFont('helvetica', 'normal');
+            pdf.setFontSize(tocFontSize);
+            pdf.setTextColor(34, 34, 34);
 
-            // Draw rows for this page with vertical lines and centered text
-            let y = currentY + headerHeight + 35;
-            const rowsPerPage = 16; // Maximum number of ToC rows per page
-            let rowIndex = 0;
             for (const row of rows) {
-              // If we've reached the max rows per page, add a new page and redraw header
-              if (rowIndex > 0 && rowIndex % rowsPerPage === 0) {
-                pdf.addPage();
-                pdf.setDrawColor(0);
-                pdf.setLineWidth(0.5);
-                pdf.rect(5, 5, 200, 287);
-                y = margin + headerHeight + 35;
-                // Redraw table header background and border
-                pdf.setFillColor(240, 240, 240);
-                pdf.rect(margin, y - headerHeight - 5, pdfWidth, headerHeight, 'F');
-                pdf.setDrawColor(0);
-                pdf.setLineWidth(0.5);
-                pdf.rect(margin, y - headerHeight - 5, pdfWidth, headerHeight);
-                for (let c = 1; c < colCount; c++) {
-                  pdf.line(margin + c * colWidth, y - headerHeight - 5, margin + c * colWidth, y - 5);
-                }
-                // Center header text
-                pdf.setFont('helvetica', 'bold');
-                tableHeaders.forEach((header: string, index: number) => {
-                  const x = margin + (index + 0.5) * colWidth;
-                  pdf.text(header, x, y - headerHeight + 12, { align: 'center' });
-                });
-                pdf.setFont('helvetica', 'normal');
-              }
               const cells = Array.from(row.querySelectorAll('td'));
-              // Wrap section title
               const sectionText = String(cells[0]?.textContent || '').trim();
-              const sectionLines = pdf.splitTextToSize(sectionText, colWidth - 8); // 8px padding
               const pageText = String(cells[1]?.textContent || '').trim();
-              const rowLines = Math.max(sectionLines.length, 1);
-              const thisRowHeight = rowLines * rowHeight;
+              // Wrap section title if too long
+              const sectionLines = pdf.splitTextToSize(sectionText, sectionColWidth - 10);
+              const thisRowHeight = sectionLines.length * rowHeight;
 
-              // Check if the row fits on the current page (in case of very tall rows)
+              // Check if the row fits on the current page
               if (y + thisRowHeight > pdfHeight - bottomMargin) {
                 pdf.addPage();
                 pdf.setDrawColor(0);
                 pdf.setLineWidth(0.5);
                 pdf.rect(5, 5, 200, 287);
-                y = margin + headerHeight + 35;
-                // Redraw table header background and border
-                pdf.setFillColor(240, 240, 240);
-                pdf.rect(margin, y - headerHeight - 5, pdfWidth, headerHeight, 'F');
-                pdf.setDrawColor(0);
-                pdf.setLineWidth(0.5);
-                pdf.rect(margin, y - headerHeight - 5, pdfWidth, headerHeight);
-                for (let c = 1; c < colCount; c++) {
-                  pdf.line(margin + c * colWidth, y - headerHeight - 5, margin + c * colWidth, y - 5);
-                }
-                // Center header text
+                y = margin + 10;
+                // Redraw ToC title and line
                 pdf.setFont('helvetica', 'bold');
-                tableHeaders.forEach((header: string, index: number) => {
-                  const x = margin + (index + 0.5) * colWidth;
-                  pdf.text(header, x, y - headerHeight + 12, { align: 'center' });
-                });
+                pdf.setFontSize(tocTitleFontSize);
+                pdf.setTextColor(34, 34, 34);
+                pdf.text(tocTitle, margin, y);
+                y += tocTitleFontSize + 4;
+                pdf.setDrawColor(180, 180, 180);
+                pdf.setLineWidth(0.5);
+                pdf.line(margin, y, margin + pdfWidth, y);
+                y += 4;
                 pdf.setFont('helvetica', 'normal');
+                pdf.setFontSize(tocFontSize);
+                pdf.setTextColor(34, 34, 34);
               }
 
-              // Draw row border
-              pdf.rect(margin, y - 5, pdfWidth, thisRowHeight);
-              // Draw vertical lines for columns
-              for (let c = 1; c < colCount; c++) {
-                pdf.line(margin + c * colWidth, y - 5, margin + c * colWidth, y - 5 + thisRowHeight);
+              // Draw each line of the section title
+              for (let i = 0; i < sectionLines.length; i++) {
+                const line = sectionLines[i];
+                const lineY = y + i * rowHeight;
+                // Section title (left)
+                pdf.text(line, margin, lineY + rowHeight - 3, { align: 'left' });
+                // Dotted line (between section and page number)
+                const textWidth = pdf.getTextWidth(line);
+                const dotsStartX = margin + textWidth + 2;
+                const dotsEndX = margin + sectionColWidth;
+                if (dotsEndX - dotsStartX > 10) {
+                  let x = dotsStartX;
+                  pdf.setDrawColor(136, 136, 136);
+                  pdf.setLineWidth(0.3);
+                  while (x < dotsEndX - 2) {
+                    pdf.line(x, lineY + rowHeight - 6, x + 2, lineY + rowHeight - 6);
+                    x += 4;
+                  }
+                }
+                // Page number (right, only on last line)
+                if (i === sectionLines.length - 1) {
+                  pdf.setFont('helvetica', 'bold');
+                  pdf.text(pageText, margin + sectionColWidth + pageColWidth - 2, lineY + rowHeight - 3, { align: 'right' });
+                  pdf.setFont('helvetica', 'normal');
+                }
               }
-
-              // Draw section title (wrapped)
-              sectionLines.forEach(function(line: string, idx: number) {
-                const textY = y - 5 + rowHeight / 2 + 2 + idx * rowHeight;
-                pdf.text(line, margin + colWidth / 2, textY, { align: 'center', baseline: 'middle' });
-              });
-              // Draw page number (centered vertically for all lines)
-              pdf.text(pageText, margin + colWidth + colWidth / 2, y - 5 + (thisRowHeight / 2) + 2, { align: 'center', baseline: 'middle' });
-
               y += thisRowHeight;
-              rowIndex++;
             }
-            // Update currentY for next content
-            currentY = y + 20;
+            currentY = y + 10;
+
+            // Continue to next section (no page break here)
             continue;
           }
         }
@@ -1816,7 +1789,7 @@ export class ReportComponent implements AfterViewInit {
             };
             this.findings = safeData.findings || [];
             this.contentTable = safeData.contentTable ?? [];
-            this.reportVisible = true;
+            //this.reportVisible = true;
             this.chartImageURLs = safeData.chartImageURLs || [];
             this.logoDataURL = safeData.logoDataURL || '';
           }
