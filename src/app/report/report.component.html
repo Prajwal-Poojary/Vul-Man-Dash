@@ -311,6 +311,40 @@
           </div>
         </div>
 
+        <!-- Severity Summary Boxes -->
+        <div class="severity-summary-boxes">
+          <div class="severity-box critical">
+            <div class="count">{{ dashboardData.dashboardData?.severityDistribution?.critical || 0 }}</div>
+            <div class="label">Critical</div>
+          </div>
+          <div class="severity-box high">
+            <div class="count">{{ dashboardData.dashboardData?.severityDistribution?.high || 0 }}</div>
+            <div class="label">High</div>
+          </div>
+          <div class="severity-box medium">
+            <div class="count">{{ dashboardData.dashboardData?.severityDistribution?.medium || 0 }}</div>
+            <div class="label">Medium</div>
+          </div>
+          <div class="severity-box low">
+            <div class="count">{{ dashboardData.dashboardData?.severityDistribution?.low || 0 }}</div>
+            <div class="label">Low</div>
+          </div>
+          <div class="severity-box informative">
+            <div class="count">{{ dashboardData.dashboardData?.severityDistribution?.informative || 0 }}</div>
+            <div class="label">Informative</div>
+          </div>
+          <div class="severity-box total">
+            <div class="count">
+              {{ (dashboardData.dashboardData?.severityDistribution?.critical || 0)
+                + (dashboardData.dashboardData?.severityDistribution?.high || 0)
+                + (dashboardData.dashboardData?.severityDistribution?.medium || 0)
+                + (dashboardData.dashboardData?.severityDistribution?.low || 0)
+                + (dashboardData.dashboardData?.severityDistribution?.informative || 0) }}
+            </div>
+            <div class="label">Total</div>
+          </div>
+        </div>
+
         <!-- CVSS Score Chart -->
         <div class="chart-container">
           <h3 class="chart-title"></h3>
