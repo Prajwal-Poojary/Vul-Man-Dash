@@ -340,6 +340,7 @@ export class ReportComponent implements AfterViewInit {
         page: page + (idx === 0 ? 0 : idx)
       });
     });
+    // 6. Threats
     // Add Conclusion on a new page after the last threat
     const conclusionPage = page + Math.max(1, this.findings.length);
     this.contentTable.push({
