@@ -692,75 +692,116 @@ export class ReportComponent implements AfterViewInit {
   }
 
   // Add helper function for processing POC images with page breaks
-  private async processPocImages(pdf: jsPDF, images: { url: string; caption: string }[], margin: number, pdfWidth: number, pdfHeight: number, currentY: number): Promise<number> {
-    const maxImageHeight = 150; // Maximum height for each image
-    const imageSpacing = 10; // Space between images
-    
-    for (let i = 0; i < images.length; i++) {
-      const imgData = images[i].url;
-      
-      // Create a temporary image to get dimensions
+  private async processPocBlock(
+    pdf: jsPDF,
+    title: string,
+    images: { url: string; caption: string }[],
+    margin: number,
+    pdfWidth: number,
+    pdfHeight: number,
+    currentY: number
+  ): Promise<number> {
+    const titleHeight = 10;
+    const maxImageHeight = 150;
+    const imageSpacing = 5;
+    const captionHeight = 10; // Estimated height per line of caption
+    const bottomMargin = 20;
+
+    // Check if there's enough space for the block title. If not, add a new page.
+    if (currentY + titleHeight > pdfHeight - margin) {
+      pdf.addPage();
+      pdf.setDrawColor(0);
+      pdf.setLineWidth(0.5);
+      pdf.rect(5, 5, 200, 287);
+      currentY = margin;
+    }
+
+    // Draw the block title (e.g., "POC:")
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(12);
+    pdf.text(title, margin, currentY);
+    currentY += titleHeight;
+
+    for (const imgWithCaption of images) {
+      if (!imgWithCaption.url) continue;
+
       const img = new Image();
-      await new Promise((resolve) => {
+      await new Promise(resolve => {
         img.onload = resolve;
-        img.src = imgData;
+        img.onerror = resolve; // Continue even if image fails to load
+        img.src = imgWithCaption.url;
       });
-      
-      // Calculate image dimensions to fit within page width
-      const imgWidth = pdfWidth;
-      const imgHeight = Math.min((img.height * imgWidth) / img.width, maxImageHeight);
-      
-      // Check if we need a new page
-      if (currentY + imgHeight > pdfHeight - margin) {
+
+      if (img.width === 0 || img.height === 0) continue; // Skip failed images
+
+      const imgAspectRatio = img.width / img.height;
+      let imgPdfWidth = pdfWidth;
+      let imgPdfHeight = imgPdfWidth / imgAspectRatio;
+
+      if (imgPdfHeight > maxImageHeight) {
+        imgPdfHeight = maxImageHeight;
+        imgPdfWidth = imgPdfHeight * imgAspectRatio;
+      }
+
+      const captionLines = imgWithCaption.caption ? pdf.splitTextToSize(imgWithCaption.caption, pdfWidth - 20) : [];
+      const neededHeight = imgPdfHeight + (captionLines.length * captionHeight) + imageSpacing;
+
+      // Check if the entire block (image + caption) fits on the current page
+      if (currentY + neededHeight > pdfHeight - bottomMargin) {
         pdf.addPage();
         pdf.setDrawColor(0);
         pdf.setLineWidth(0.5);
         pdf.rect(5, 5, 200, 287);
         currentY = margin;
       }
-      
-      // Add image to PDF
-      pdf.addImage(imgData, 'PNG', margin, currentY, imgWidth, imgHeight);
-      currentY += imgHeight + imageSpacing;
+
+      // Add image to the PDF
+      pdf.addImage(imgWithCaption.url, 'PNG', margin, currentY, imgPdfWidth, imgPdfHeight);
+      currentY += imgPdfHeight + imageSpacing;
+
+      // Add caption to the PDF
+      if (captionLines.length > 0) {
+        pdf.setFont('helvetica', 'italic');
+        pdf.setFontSize(10);
+        pdf.setTextColor(85, 85, 85);
+        pdf.text(captionLines, pdf.internal.pageSize.getWidth() / 2, currentY, { align: 'center' });
+        currentY += captionLines.length * captionHeight;
+      }
     }
-    
     return currentY;
   }
 
   // Add helper function to process detailed vulnerability sections
   private async processDetailedVulnSection(pdf: jsPDF, element: HTMLElement, margin: number, pdfWidth: number, pdfHeight: number, currentY: number): Promise<number> {
-    // 1. Render the vulnerability details (text, labels, etc.) as an image using html2canvas (as before)
-    // Hide POC images temporarily so only the text/labels render in the canvas
-    const pocImages = Array.from(element.querySelectorAll('img[src*="data:image"]'));
-    const originalDisplays: string[] = [];
-    pocImages.forEach(img => {
-      const imgEl = img as HTMLImageElement;
-      originalDisplays.push(imgEl.style.display);
-      imgEl.style.display = 'none';
-    });
+    // Hide POC containers before rendering the main text content
+    const pocContainer = element.querySelector('.poc-container') as HTMLElement | null;
+    const retestingPocContainer = element.querySelector('.retesting-poc-container') as HTMLElement | null;
 
-    // Wait for DOM update
-    await new Promise(resolve => setTimeout(resolve, 100));
+    const originalPocDisplay = pocContainer?.style.display;
+    const originalRetestingPocDisplay = retestingPocContainer?.style.display;
+
+    if (pocContainer) pocContainer.style.display = 'none';
+    if (retestingPocContainer) retestingPocContainer.style.display = 'none';
+
+    await new Promise(resolve => setTimeout(resolve, 50));
 
     // Render the text part as an image
-    const canvas = await html2canvas(element as HTMLElement, {
+    const canvas = await html2canvas(element, {
       scale: 2,
       useCORS: true,
       logging: false,
-      allowTaint: true
+      allowTaint: true,
     });
 
-    // Restore POC images
-    pocImages.forEach((img, idx) => {
-      const imgEl = img as HTMLImageElement;
-      imgEl.style.display = originalDisplays[idx] || '';
-    });
+    // Restore POC containers
+    if (pocContainer) pocContainer.style.display = originalPocDisplay || '';
+    if (retestingPocContainer) retestingPocContainer.style.display = originalRetestingPocDisplay || '';
 
     const imgData = canvas.toDataURL('image/png');
     const imgWidth = pdfWidth;
     const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-    // Check if we need a new page
+    // Check if the rendered text part fits on the current page
     if (currentY + imgHeight > pdfHeight - margin) {
       pdf.addPage();
       pdf.setDrawColor(0);
@@ -769,15 +810,24 @@ export class ReportComponent implements AfterViewInit {
       currentY = margin;
     }
     pdf.addImage(imgData, 'PNG', margin, currentY, imgWidth, imgHeight);
-    currentY += imgHeight + 10;
+    currentY += imgHeight + 5;
 
-    // 2. Now add POC images one by one, paginating as needed
-    if (pocImages.length > 0) {
-      currentY = await this.processPocImages(pdf, pocImages.map(img => ({ url: (img as HTMLImageElement).src, caption: '' })), margin, pdfWidth, pdfHeight, currentY);
+    // Get the corresponding finding to access POC data
+    const allVulnSections = Array.from(document.querySelectorAll('.detailed-vuln-section'));
+    const findingIndex = allVulnSections.indexOf(element);
+    const finding = this.findings[findingIndex];
+
+    if (finding) {
+      // Process POC images and captions
+      if (finding.pocDataURL?.length > 0) {
+        currentY = await this.processPocBlock(pdf, 'POC:', finding.pocDataURL, margin, pdfWidth, pdfHeight, currentY);
+      }
+      // Process retesting POC images and captions
+      if (finding.retestingPocDataURL?.length > 0) {
+        currentY = await this.processPocBlock(pdf, 'Retesting POC:', finding.retestingPocDataURL, margin, pdfWidth, pdfHeight, currentY);
+      }
     }
 
-    // Add spacing after the section
-    currentY += 20;
     return currentY;
   }
 

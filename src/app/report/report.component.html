@@ -427,7 +427,7 @@
       </table>
     </div>
 
-    <h2>5. Vulnerability Details</h2>
+    <h2 class="report-section">5. Vulnerability Details</h2>
     <ng-container *ngFor="let finding of findings; let i = index">
       <div class="detailed-vuln-section"
         style="position: relative; border: 1px solid #bdbdbd; margin: 30px 0; padding: 24px; border-radius: 8px; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
@@ -461,7 +461,7 @@
         <div *ngIf="finding.stepsToReproduce" style="margin-bottom: 12px;">
           <span style="font-weight: bold;">Steps to Reproduce:</span> {{ finding.stepsToReproduce }}
         </div>
-        <div *ngIf="finding.pocType === 'poc' && finding.pocDataURL && finding.pocDataURL.length" style="margin-bottom: 8px; font-weight: bold;">
+        <div *ngIf="finding.pocType === 'poc' && finding.pocDataURL && finding.pocDataURL.length" class="poc-container" style="margin-bottom: 8px; font-weight: bold;">
           POC:
           <div *ngFor="let img of finding.pocDataURL" style="display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; margin-bottom: 8px;">
             <img [src]="img.url" alt="POC Image"
@@ -470,7 +470,7 @@
             <div *ngIf="img.caption" style="font-style: italic; color: #555; margin-top: 4px; text-align: center; max-width: 90%;">{{ img.caption }}</div>
           </div>
         </div>
-        <div *ngIf="finding.pocType === 'retesting' && finding.retestingPocDataURL && finding.retestingPocDataURL.length" style="margin-bottom: 8px; font-weight: bold;">
+        <div *ngIf="finding.pocType === 'retesting' && finding.retestingPocDataURL && finding.retestingPocDataURL.length" class="retesting-poc-container" style="margin-bottom: 8px; font-weight: bold;">
           Retesting POC:
           <div *ngFor="let img of finding.retestingPocDataURL" style="display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; margin-bottom: 8px;">
             <img [src]="img.url" alt="Retesting POC Image"
@@ -490,7 +490,7 @@
     <!-- End 6th section -->
 
     <div class="report-section">
-      <h2>5. Conclusion</h2>
+      <h2>6 Conclusion</h2>
       <p>{{ getConclusionText() }}</p>
     </div>
 
