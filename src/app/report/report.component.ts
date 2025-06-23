@@ -691,6 +691,57 @@ export class ReportComponent implements AfterViewInit {
     this.downloadProgress = Math.round(scaledProgress);
   }
 
+  private async processTextBlock(
+    pdf: jsPDF,
+    title: string,
+    content: string,
+    margin: number,
+    pdfWidth: number,
+    pdfHeight: number,
+    currentY: number
+  ): Promise<number> {
+    if (!content) return currentY;
+
+    const titleHeight = 10;
+    const textHeight = 5;
+    const bottomMargin = 20;
+
+    // Check for page break before title
+    if (currentY + titleHeight > pdfHeight - bottomMargin) {
+      pdf.addPage();
+      pdf.setDrawColor(0);
+      pdf.setLineWidth(0.5);
+      pdf.rect(5, 5, 200, 287);
+      currentY = margin;
+    }
+
+    // Add title
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(12);
+    pdf.text(title, margin, currentY);
+    currentY += titleHeight;
+
+    // Add content
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(11);
+    const lines = pdf.splitTextToSize(content, pdfWidth);
+    
+    for (const line of lines) {
+      // Check for page break before text line
+      if (currentY + textHeight > pdfHeight - bottomMargin) {
+        pdf.addPage();
+        pdf.setDrawColor(0);
+        pdf.setLineWidth(0.5);
+        pdf.rect(5, 5, 200, 287);
+        currentY = margin;
+      }
+      pdf.text(line, margin, currentY);
+      currentY += textHeight;
+    }
+
+    return currentY + 5; // Add a little spacing after the block
+  }
+
   // Add helper function for processing POC images with page breaks
   private async processPocBlock(
     pdf: jsPDF,
@@ -773,15 +824,23 @@ export class ReportComponent implements AfterViewInit {
 
   // Add helper function to process detailed vulnerability sections
   private async processDetailedVulnSection(pdf: jsPDF, element: HTMLElement, margin: number, pdfWidth: number, pdfHeight: number, currentY: number): Promise<number> {
-    // Hide POC containers before rendering the main text content
+    // Hide POC, mitigation, and references before rendering the main text content
     const pocContainer = element.querySelector('.poc-container') as HTMLElement | null;
     const retestingPocContainer = element.querySelector('.retesting-poc-container') as HTMLElement | null;
+    const mitigationSection = element.querySelector('.mitigation-section') as HTMLElement | null;
+    const referencesSection = element.querySelector('.references-section') as HTMLElement | null;
 
-    const originalPocDisplay = pocContainer?.style.display;
-    const originalRetestingPocDisplay = retestingPocContainer?.style.display;
+    const originalDisplays = {
+      poc: pocContainer?.style.display,
+      retestingPoc: retestingPocContainer?.style.display,
+      mitigation: mitigationSection?.style.display,
+      references: referencesSection?.style.display,
+    };
 
     if (pocContainer) pocContainer.style.display = 'none';
     if (retestingPocContainer) retestingPocContainer.style.display = 'none';
+    if (mitigationSection) mitigationSection.style.display = 'none';
+    if (referencesSection) referencesSection.style.display = 'none';
 
     await new Promise(resolve => setTimeout(resolve, 50));
 
@@ -793,9 +852,11 @@ export class ReportComponent implements AfterViewInit {
       allowTaint: true,
     });
 
-    // Restore POC containers
-    if (pocContainer) pocContainer.style.display = originalPocDisplay || '';
-    if (retestingPocContainer) retestingPocContainer.style.display = originalRetestingPocDisplay || '';
+    // Restore hidden elements
+    if (pocContainer) pocContainer.style.display = originalDisplays.poc || '';
+    if (retestingPocContainer) retestingPocContainer.style.display = originalDisplays.retestingPoc || '';
+    if (mitigationSection) mitigationSection.style.display = originalDisplays.mitigation || '';
+    if (referencesSection) referencesSection.style.display = originalDisplays.references || '';
 
     const imgData = canvas.toDataURL('image/png');
     const imgWidth = pdfWidth;
@@ -812,7 +873,7 @@ export class ReportComponent implements AfterViewInit {
     pdf.addImage(imgData, 'PNG', margin, currentY, imgWidth, imgHeight);
     currentY += imgHeight + 5;
 
-    // Get the corresponding finding to access POC data
+    // Get the corresponding finding to access POC, mitigation, and references data
     const allVulnSections = Array.from(document.querySelectorAll('.detailed-vuln-section'));
     const findingIndex = allVulnSections.indexOf(element);
     const finding = this.findings[findingIndex];
@@ -826,6 +887,9 @@ export class ReportComponent implements AfterViewInit {
       if (finding.retestingPocDataURL?.length > 0) {
         currentY = await this.processPocBlock(pdf, 'Retesting POC:', finding.retestingPocDataURL, margin, pdfWidth, pdfHeight, currentY);
       }
+      // Process mitigation and references text
+      currentY = await this.processTextBlock(pdf, 'Mitigation:', finding.mitigation, margin, pdfWidth, pdfHeight, currentY);
+      currentY = await this.processTextBlock(pdf, 'References:', finding.references, margin, pdfWidth, pdfHeight, currentY);
     }
 
     return currentY;

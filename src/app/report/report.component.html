@@ -479,10 +479,10 @@
             <div *ngIf="img.caption" style="font-style: italic; color: #555; margin-top: 4px; text-align: center; max-width: 90%;">{{ img.caption }}</div>
           </div>
         </div>
-        <div *ngIf="finding.mitigation" style="margin-bottom: 12px;">
+        <div *ngIf="finding.mitigation" class="mitigation-section" style="margin-bottom: 12px;">
           <span style="font-weight: bold;">Mitigation:</span> {{ finding.mitigation }}
         </div>
-        <div *ngIf="finding.references" style="margin-bottom: 12px;">
+        <div *ngIf="finding.references" class="references-section" style="margin-bottom: 12px;">
           <span style="font-weight: bold;">References:</span> {{ finding.references }}
         </div>
       </div>
