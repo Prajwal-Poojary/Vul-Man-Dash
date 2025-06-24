@@ -74,8 +74,16 @@ const reportSchema = new mongoose.Schema({
       threatDetails: String,
       impact: String,
       stepsToReproduce: String,
-      pocDataURL: [String],
-      retestingPocDataURL: [String],
+      pocDataURL: [
+        {
+          type: mongoose.Schema.Types.Mixed
+        }
+      ],
+      retestingPocDataURL: [
+        {
+          type: mongoose.Schema.Types.Mixed
+        }
+      ],
       pocType: String,
       mitigation: String,
       references: String,

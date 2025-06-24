@@ -80,8 +80,8 @@ export interface Report {
       threatDetails: string;
       impact: string;
       stepsToReproduce: string;
-      pocDataURL: string[];
-      retestingPocDataURL: string[];
+      pocDataURL: (string | { url: string; caption: string })[];
+      retestingPocDataURL: (string | { url: string; caption: string })[];
       pocType: string;
       mitigation: string;
       references: string;

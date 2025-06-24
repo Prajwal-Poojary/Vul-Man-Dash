@@ -374,8 +374,8 @@ export class ReportComponent implements AfterViewInit {
       },
       findings: this.findings.map(f => ({
         ...f,
-        pocDataURL: f.pocDataURL.map(p => p.url),
-        retestingPocDataURL: f.retestingPocDataURL.map(p => p.url)
+        pocDataURL: f.pocDataURL.map((p: any) => ({ url: p.url, caption: p.caption })),
+        retestingPocDataURL: f.retestingPocDataURL.map((p: any) => ({ url: p.url, caption: p.caption }))
       })),
       chartImageURLs: this.chartImageURLs,
       timestamp: new Date()
@@ -706,9 +706,9 @@ export class ReportComponent implements AfterViewInit {
     const titleHeight = 10;
     const textHeight = 5;
     const bottomMargin = 20;
-
-    // Check for page break before title
-    if (currentY + titleHeight > pdfHeight - bottomMargin) {
+    const lines = pdf.splitTextToSize(content, pdfWidth);
+    const estimatedBlockHeight = titleHeight + (lines.length * textHeight) + 5;
+    if (currentY + estimatedBlockHeight > pdfHeight - bottomMargin) {
       pdf.addPage();
       pdf.setDrawColor(0);
       pdf.setLineWidth(0.5);
@@ -716,19 +716,28 @@ export class ReportComponent implements AfterViewInit {
       currentY = margin;
     }
 
-    // Add title
+    // Special inline rendering for Mitigation and References
+    if (title === 'Mitigation:' || title === 'References:') {
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(12);
+      const labelWidth = pdf.getTextWidth(title + ' ');
+      pdf.text(title, margin, currentY);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setFontSize(12);
+      pdf.text(content, margin + labelWidth + 1, currentY);
+      currentY += 10; // Move to next line
+      return currentY;
+    }
+
+    // Default block rendering for other sections
     pdf.setFont('helvetica', 'bold');
     pdf.setFontSize(12);
     pdf.text(title, margin, currentY);
     currentY += titleHeight;
 
-    // Add content
     pdf.setFont('helvetica', 'normal');
     pdf.setFontSize(11);
-    const lines = pdf.splitTextToSize(content, pdfWidth);
-    
     for (const line of lines) {
-      // Check for page break before text line
       if (currentY + textHeight > pdfHeight - bottomMargin) {
         pdf.addPage();
         pdf.setDrawColor(0);
@@ -740,7 +749,7 @@ export class ReportComponent implements AfterViewInit {
       currentY += textHeight;
     }
 
-    return currentY + 5; // Add a little spacing after the block
+    return currentY + 5;
   }
 
   // Add helper function for processing POC images with page breaks
@@ -825,6 +834,19 @@ export class ReportComponent implements AfterViewInit {
 
   // Add helper function to process detailed vulnerability sections
   private async processDetailedVulnSection(pdf: jsPDF, element: HTMLElement, margin: number, pdfWidth: number, pdfHeight: number, currentY: number): Promise<number> {
+    // Get the index of the current threat section
+    const allVulnSections = Array.from(document.querySelectorAll('.detailed-vuln-section'));
+    const findingIndex = allVulnSections.indexOf(element);
+
+    // Only add a new page for threats after the first one
+    if (findingIndex > 0) {
+      pdf.addPage();
+      pdf.setDrawColor(0);
+      pdf.setLineWidth(0.5);
+      pdf.rect(5, 5, 200, 287);
+      currentY = margin;
+    }
+
     // Hide POC, mitigation, and references before rendering the main text content
     const pocContainer = element.querySelector('.poc-container') as HTMLElement | null;
     const retestingPocContainer = element.querySelector('.retesting-poc-container') as HTMLElement | null;
@@ -875,8 +897,6 @@ export class ReportComponent implements AfterViewInit {
     currentY += imgHeight + 5;
 
     // Get the corresponding finding to access POC, mitigation, and references data
-    const allVulnSections = Array.from(document.querySelectorAll('.detailed-vuln-section'));
-    const findingIndex = allVulnSections.indexOf(element);
     const finding = this.findings[findingIndex];
 
     if (finding) {
@@ -987,6 +1007,19 @@ export class ReportComponent implements AfterViewInit {
           continue;
         }
         isFirstSection = false;
+
+        // If this is the Scan Manifest section, check for the signature block
+        if (element.querySelector('.signature-block')) {
+          // Estimate the height of the signature block (in mm)
+          const signatureBlockHeight = 50; // Adjust as needed for your layout
+          if (currentY + signatureBlockHeight > pdfHeight - bottomMargin) {
+            pdf.addPage();
+            pdf.setDrawColor(0);
+            pdf.setLineWidth(0.5);
+            pdf.rect(5, 5, 200, 287);
+            currentY = margin;
+          }
+        }
 
         // Try to match the section to a contentTable entry by title
         let sectionTitle = '';
@@ -1481,7 +1514,7 @@ export class ReportComponent implements AfterViewInit {
         ...nonConclusionSections,
         ...vulnSections,
         conclusionSection
-      ].filter(Boolean); // remove any nulls
+      ].filter(Boolean);
 
 
       const sections = [];
@@ -1769,9 +1802,11 @@ export class ReportComponent implements AfterViewInit {
 
   removePoc(finding: any, i: number) {
     finding.pocDataURL.splice(i, 1);
+    finding.pocDataURL = finding.pocDataURL.filter((img: any) => !!img && !!img.url);
   }
   removeRetestingPoc(finding: any, i: number) {
     finding.retestingPocDataURL.splice(i, 1);
+    finding.retestingPocDataURL = finding.retestingPocDataURL.filter((img: any) => !!img && !!img.url);
   }
   removeLogo(input: HTMLInputElement) {
     this.logoDataURL = '';
@@ -1902,7 +1937,12 @@ export class ReportComponent implements AfterViewInit {
                 place: 'Mangalore, Karnataka.'
               }
             };
-            this.findings = safeData.findings || [];
+            // Ensure findings' pocDataURL and retestingPocDataURL are always arrays of objects with url and caption
+            this.findings = (safeData.findings || []).map((finding: any) => ({
+              ...finding,
+              pocDataURL: (finding.pocDataURL || []).map((img: any) => typeof img === 'string' ? { url: img, caption: '' } : img),
+              retestingPocDataURL: (finding.retestingPocDataURL || []).map((img: any) => typeof img === 'string' ? { url: img, caption: '' } : img)
+            }));
             this.contentTable = safeData.contentTable ?? [];
             //this.reportVisible = true;
             this.chartImageURLs = safeData.chartImageURLs || [];
