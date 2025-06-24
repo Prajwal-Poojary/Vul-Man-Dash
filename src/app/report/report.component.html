@@ -465,8 +465,7 @@
           POC:
           <div *ngFor="let img of finding.pocDataURL" style="display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; margin-bottom: 8px;">
             <img [src]="img.url" alt="POC Image"
-              class="poc-image"
-              style="display: block; margin: 0 auto;" />
+              class="poc-image" />
             <div *ngIf="img.caption" style="font-style: italic; color: #555; margin-top: 4px; text-align: center; max-width: 90%;">{{ img.caption }}</div>
           </div>
         </div>
@@ -474,8 +473,7 @@
           Retesting POC:
           <div *ngFor="let img of finding.retestingPocDataURL" style="display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; margin-bottom: 8px;">
             <img [src]="img.url" alt="Retesting POC Image"
-              class="retesting-poc-image"
-              style="display: block; margin: 0 auto;" />
+              class="retesting-poc-image" />
             <div *ngIf="img.caption" style="font-style: italic; color: #555; margin-top: 4px; text-align: center; max-width: 90%;">{{ img.caption }}</div>
           </div>
         </div>

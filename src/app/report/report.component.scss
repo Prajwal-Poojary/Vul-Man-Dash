@@ -1080,15 +1080,15 @@ button {
   img.poc-image, img.retesting-poc-image {
     display: block;
     margin: 0 auto 12px auto;
-    max-width: 400px;
-    max-height: 260px;
+    width: 400px !important;
+    height: 260px !important;
     min-width: 180px;
     min-height: 120px;
-    width: auto;
-    height: auto;
+    max-width: 400px !important;
+    max-height: 260px !important;
     border: 1px solid #888;
     border-radius: 6px;
-    object-fit: contain;
+    object-fit: contain !important;
     background: #f5f5f5;
     box-shadow: 0 2px 8px rgba(0,0,0,0.06);
   }

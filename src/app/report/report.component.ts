@@ -763,7 +763,9 @@ export class ReportComponent implements AfterViewInit {
     currentY: number
   ): Promise<number> {
     const titleHeight = 10;
-    const maxImageHeight = 150;
+    // Set fixed image box size (in mm)
+    const fixedImgWidth = 100; // mm
+    const fixedImgHeight = 65; // mm
     const imageSpacing = 5;
     const captionHeight = 10; // Estimated height per line of caption
     const bottomMargin = 20;
@@ -783,31 +785,33 @@ export class ReportComponent implements AfterViewInit {
     pdf.text(title, margin, currentY);
     currentY += titleHeight;
 
+    // Center the image box horizontally on the page
+    const pageCenterX = pdf.internal.pageSize.getWidth() / 2;
+    const boxX = pageCenterX - fixedImgWidth / 2;
+
     for (const imgWithCaption of images) {
       if (!imgWithCaption.url) continue;
-
       const img = new Image();
       await new Promise(resolve => {
         img.onload = resolve;
-        img.onerror = resolve; // Continue even if image fails to load
+        img.onerror = resolve;
         img.src = imgWithCaption.url;
       });
-
-      if (img.width === 0 || img.height === 0) continue; // Skip failed images
-
+      if (img.width === 0 || img.height === 0) continue;
       const imgAspectRatio = img.width / img.height;
-      let imgPdfWidth = pdfWidth;
-      let imgPdfHeight = imgPdfWidth / imgAspectRatio;
-
-      if (imgPdfHeight > maxImageHeight) {
-        imgPdfHeight = maxImageHeight;
-        imgPdfWidth = imgPdfHeight * imgAspectRatio;
+      const boxAspectRatio = fixedImgWidth / fixedImgHeight;
+      let imgPdfWidth = fixedImgWidth;
+      let imgPdfHeight = fixedImgHeight;
+      if (imgAspectRatio > boxAspectRatio) {
+        imgPdfWidth = fixedImgWidth;
+        imgPdfHeight = fixedImgWidth / imgAspectRatio;
+      } else {
+        imgPdfHeight = fixedImgHeight;
+        imgPdfWidth = fixedImgHeight * imgAspectRatio;
       }
-
-      const captionLines = imgWithCaption.caption ? pdf.splitTextToSize(imgWithCaption.caption, pdfWidth - 20) : [];
-      const neededHeight = imgPdfHeight + (captionLines.length * captionHeight) + imageSpacing;
-
-      // Check if the entire block (image + caption) fits on the current page
+      // Center the image in the box
+      const imgX = boxX + (fixedImgWidth - imgPdfWidth) / 2;
+      const neededHeight = fixedImgHeight + (imgWithCaption.caption ? captionHeight : 0) + imageSpacing;
       if (currentY + neededHeight > pdfHeight - bottomMargin) {
         pdf.addPage();
         pdf.setDrawColor(0);
@@ -815,17 +819,25 @@ export class ReportComponent implements AfterViewInit {
         pdf.rect(5, 5, 200, 287);
         currentY = margin;
       }
-
-      // Add image to the PDF
-      pdf.addImage(imgWithCaption.url, 'PNG', margin, currentY, imgPdfWidth, imgPdfHeight);
-      currentY += imgPdfHeight + imageSpacing;
-
-      // Add caption to the PDF
-      if (captionLines.length > 0) {
+      // Draw a border tightly around the image itself, centered in the box
+      pdf.setDrawColor(0, 0, 0); // Black border
+      pdf.setLineWidth(0.5);
+      pdf.addImage(imgWithCaption.url, 'PNG', imgX, currentY, imgPdfWidth, imgPdfHeight);
+      pdf.rect(imgX, currentY, imgPdfWidth, imgPdfHeight);
+      currentY += fixedImgHeight + imageSpacing;
+      // Add caption to the PDF, containerized to the image width, closer to the image
+      if (imgWithCaption.caption) {
         pdf.setFont('helvetica', 'italic');
         pdf.setFontSize(10);
         pdf.setTextColor(85, 85, 85);
-        pdf.text(captionLines, pdf.internal.pageSize.getWidth() / 2, currentY, { align: 'center' });
+        // Split caption to fit within the image width
+        const captionLines = pdf.splitTextToSize(imgWithCaption.caption, imgPdfWidth - 4); // 2mm padding on each side
+        // Start caption just 2mm below the image
+        let captionY = currentY - fixedImgHeight + imgPdfHeight + 2;
+        for (const line of captionLines) {
+          pdf.text(line, imgX + imgPdfWidth / 2, captionY, { align: 'center' });
+          captionY += captionHeight;
+        }
         currentY += captionLines.length * captionHeight;
       }
     }
