@@ -1120,7 +1120,6 @@ export class ReportComponent implements AfterViewInit {
             for (const row of rows) {
               const cells = Array.from(row.querySelectorAll('td'));
               const sectionText = String(cells[0]?.textContent || '').trim();
-              const pageText = String(cells[1]?.textContent || '').trim();
               // Wrap section title if too long
               const sectionLines = pdf.splitTextToSize(sectionText, sectionColWidth - 10);
               const thisRowHeight = sectionLines.length * rowHeight;
@@ -1147,31 +1146,12 @@ export class ReportComponent implements AfterViewInit {
                 pdf.setTextColor(34, 34, 34);
               }
 
-              // Draw each line of the section title
+              // Draw each line of the section title (with dotted bullet point)
               for (let i = 0; i < sectionLines.length; i++) {
                 const line = sectionLines[i];
                 const lineY = y + i * rowHeight;
-                // Section title (left)
-                pdf.text(line, margin, lineY + rowHeight - 3, { align: 'left' });
-                // Dotted line (between section and page number)
-                const textWidth = pdf.getTextWidth(line);
-                const dotsStartX = margin + textWidth + 2;
-                const dotsEndX = margin + sectionColWidth;
-                if (dotsEndX - dotsStartX > 10) {
-                  let x = dotsStartX;
-                  pdf.setDrawColor(136, 136, 136);
-                  pdf.setLineWidth(0.3);
-                  while (x < dotsEndX - 2) {
-                    pdf.line(x, lineY + rowHeight - 6, x + 2, lineY + rowHeight - 6);
-                    x += 4;
-                  }
-                }
-                // Page number (right, only on last line)
-                if (i === sectionLines.length - 1) {
-                  pdf.setFont('helvetica', 'bold');
-                  pdf.text(pageText, margin + sectionColWidth + pageColWidth - 2, lineY + rowHeight - 3, { align: 'right' });
-                  pdf.setFont('helvetica', 'normal');
-                }
+                // Section title (left) with bullet
+                pdf.text(`• ${line}`, margin, lineY + rowHeight - 3, { align: 'left' });
               }
               y += thisRowHeight;
             }
