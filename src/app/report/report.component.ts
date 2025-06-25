@@ -921,12 +921,11 @@ export class ReportComponent implements AfterViewInit {
     const finding = this.findings[findingIndex];
 
     if (finding) {
-      // Process POC images and captions
-      if (finding.pocDataURL?.length > 0) {
+      // Only process the correct POC type for this finding
+      if (finding.pocType === 'poc' && finding.pocDataURL?.length > 0) {
         currentY = await this.processPocBlock(pdf, 'POC:', finding.pocDataURL, margin, pdfWidth, pdfHeight, currentY);
       }
-      // Process retesting POC images and captions
-      if (finding.retestingPocDataURL?.length > 0) {
+      if (finding.pocType === 'retesting' && finding.retestingPocDataURL?.length > 0) {
         currentY = await this.processPocBlock(pdf, 'Retesting POC:', finding.retestingPocDataURL, margin, pdfWidth, pdfHeight, currentY);
       }
       // Process mitigation and references text
