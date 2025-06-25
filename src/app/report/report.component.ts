@@ -721,11 +721,20 @@ export class ReportComponent implements AfterViewInit {
       pdf.setFont('helvetica', 'bold');
       pdf.setFontSize(12);
       const labelWidth = pdf.getTextWidth(title + ' ');
+      // Wrap the content to fit within the available width
+      const maxContentWidth = pdfWidth - labelWidth - 2; // 2mm padding
+      const contentLines = pdf.splitTextToSize(content, maxContentWidth);
       pdf.text(title, margin, currentY);
       pdf.setFont('helvetica', 'normal');
       pdf.setFontSize(12);
-      pdf.text(content, margin + labelWidth + 1, currentY);
-      currentY += 10; // Move to next line
+      let contentY = currentY;
+      for (let i = 0; i < contentLines.length; i++) {
+        const line = contentLines[i];
+        const x = margin + labelWidth + 1;
+        pdf.text(line, x, contentY);
+        contentY += 7; // line height for wrapped lines
+      }
+      currentY = contentY;
       return currentY;
     }
 
