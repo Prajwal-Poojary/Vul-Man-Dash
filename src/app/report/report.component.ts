@@ -699,7 +699,8 @@ export class ReportComponent implements AfterViewInit {
     margin: number,
     pdfWidth: number,
     pdfHeight: number,
-    currentY: number
+    currentY: number,
+    findingIndex?: number
   ): Promise<number> {
     if (!content) return currentY;
 
@@ -716,25 +717,61 @@ export class ReportComponent implements AfterViewInit {
       currentY = margin;
     }
 
-    // Special inline rendering for Mitigation and References
-    if (title === 'Mitigation:' || title === 'References:') {
-      pdf.setFont('helvetica', 'bold');
-      pdf.setFontSize(12);
-      const labelWidth = pdf.getTextWidth(title + ' ');
-      // Wrap the content to fit within the available width
-      const maxContentWidth = pdfWidth - labelWidth - 2; // 2mm padding
-      const contentLines = pdf.splitTextToSize(content, maxContentWidth);
-      pdf.text(title, margin, currentY);
-      pdf.setFont('helvetica', 'normal');
-      pdf.setFontSize(12);
-      let contentY = currentY;
-      for (let i = 0; i < contentLines.length; i++) {
-        const line = contentLines[i];
-        const x = margin + labelWidth + 1;
-        pdf.text(line, x, contentY);
-        contentY += 7; // line height for wrapped lines
+    // Special rendering for Mitigation and References using html2canvas (to match the main box style)
+    if (title === 'Mitigation:' && findingIndex !== undefined) {
+      // Combine mitigation and references for this finding
+      const allVulnSections = Array.from(document.querySelectorAll('.detailed-vuln-section'));
+      let mitigationElem: HTMLElement | null = null;
+      let referencesElem: HTMLElement | null = null;
+      if (allVulnSections[findingIndex]) {
+        mitigationElem = allVulnSections[findingIndex].querySelector('.mitigation-section') as HTMLElement;
+        referencesElem = allVulnSections[findingIndex].querySelector('.references-section') as HTMLElement;
       }
-      currentY = contentY;
+      if (mitigationElem && referencesElem) {
+        // Create a temporary container to combine both
+        const tempDiv = document.createElement('div');
+        tempDiv.style.display = 'block';
+        tempDiv.style.background = '#fff';
+        tempDiv.style.padding = '0';
+        tempDiv.style.margin = '0';
+        tempDiv.style.borderRadius = '18px';
+        tempDiv.style.fontFamily = 'inherit';
+        tempDiv.appendChild(mitigationElem.cloneNode(true));
+        tempDiv.appendChild(referencesElem.cloneNode(true));
+        // Force all text in tempDiv to black
+        Array.from(tempDiv.querySelectorAll('*')).forEach((el: any) => {
+          el.style.color = '#000';
+          el.style.fontSize = '30px';
+        });
+        document.body.appendChild(tempDiv);
+        const canvas = await html2canvas(tempDiv, {
+          scale: 2,
+          useCORS: true,
+          logging: false,
+          allowTaint: true,
+        });
+        document.body.removeChild(tempDiv);
+        const imgData = canvas.toDataURL('image/png');
+        const imgWidth = pdfWidth;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        if (currentY + imgHeight > pdfHeight - margin) {
+          pdf.addPage();
+          pdf.setDrawColor(0);
+          pdf.setLineWidth(0.5);
+          pdf.rect(5, 5, 200, 287);
+          currentY = margin;
+        }
+        pdf.setDrawColor(189, 189, 189); // #bdbdbd
+        pdf.setLineWidth(0.3); // thinner border
+        pdf.rect(margin - 2, currentY - 2, imgWidth + 4, imgHeight + 4, 'S');
+        pdf.setTextColor(0, 0, 0); // ensure text is black
+        pdf.addImage(imgData, 'PNG', margin, currentY, imgWidth, imgHeight);
+        currentY += imgHeight + 5;
+        return currentY;
+      }
+    }
+    // ... keep the references block from being rendered separately
+    if (title === 'References:') {
       return currentY;
     }
 
@@ -928,9 +965,9 @@ export class ReportComponent implements AfterViewInit {
       if (finding.pocType === 'retesting' && finding.retestingPocDataURL?.length > 0) {
         currentY = await this.processPocBlock(pdf, 'Retesting POC:', finding.retestingPocDataURL, margin, pdfWidth, pdfHeight, currentY);
       }
-      // Process mitigation and references text
-      currentY = await this.processTextBlock(pdf, 'Mitigation:', finding.mitigation, margin, pdfWidth, pdfHeight, currentY);
-      currentY = await this.processTextBlock(pdf, 'References:', finding.references, margin, pdfWidth, pdfHeight, currentY);
+      // Process mitigation and references text, passing findingIndex
+      currentY = await this.processTextBlock(pdf, 'Mitigation:', finding.mitigation, margin, pdfWidth, pdfHeight, currentY, findingIndex);
+      currentY = await this.processTextBlock(pdf, 'References:', finding.references, margin, pdfWidth, pdfHeight, currentY, findingIndex);
     }
 
     return currentY;
