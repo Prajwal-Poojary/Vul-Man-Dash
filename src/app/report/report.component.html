@@ -459,7 +459,10 @@
           <span style="font-weight: bold;">Impact:</span> {{ finding.impact }}
         </div>
         <div *ngIf="finding.stepsToReproduce" style="margin-bottom: 12px;">
-          <span style="font-weight: bold;">Steps to Reproduce:</span> {{ finding.stepsToReproduce }}
+          <span style="font-weight: bold;">Steps to Reproduce:</span>
+          <ol style="margin: 0; padding-left: 1.2em;">
+            <li *ngFor="let step of finding.stepsToReproduce.split('\n')">{{ step }}</li>
+          </ol>
         </div>
         <div *ngIf="finding.pocType === 'poc' && finding.pocDataURL && finding.pocDataURL.length" class="poc-container" style="margin-bottom: 8px; font-weight: bold;">
           POC:
