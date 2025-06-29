@@ -91,4 +91,8 @@ export class MyreportComponent implements OnInit, OnDestroy {
   get totalPages(): number {
     return Math.ceil(this.total / this.limit) || 1;
   }
+
+  trackByReportId(index: number, report: any): string {
+    return report._id;
+  }
 }

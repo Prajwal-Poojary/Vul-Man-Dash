@@ -1992,5 +1992,12 @@ export class ReportComponent implements AfterViewInit {
       });
     }
   }
+
+  trackByFindingIndex(index: number, finding: any): number {
+    return index;
+  }
+  trackByImgIndex(index: number, img: any): number {
+    return index;
+  }
 }
 

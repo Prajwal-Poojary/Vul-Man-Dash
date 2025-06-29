@@ -25,7 +25,7 @@
     <div class="scope-fields">
       <div *ngFor="let scope of form.scopes; let i = index; trackBy: trackByScope" class="scope-field">
         <label>Scope {{i + 1}}: <input type="text" [(ngModel)]="form.scopes[i]" autocomplete="off" /> <!-- No maxlength, unlimited input --></label>
-        <button type="button" class="remove-scope" (click)="removeScope(i, 'main')" *ngIf="form.scopes.length > 1">
+        <button type="button" class="remove-scope" (click)="removeScope(i, 'main')" *ngIf="form.scopes.length > 1" aria-label="Remove scope">
           <span class="remove-icon">×</span>
         </button>
       </div>
@@ -56,9 +56,9 @@
 
     <div *ngIf="selectedManifestType">
       <h3>Findings</h3>
-      <div *ngFor="let finding of findings; index as i" class="finding-card">
+      <div *ngFor="let finding of findings; index as i; trackBy: trackByFindingIndex" class="finding-card">
         <h4>Finding #{{ i + 1 }}</h4>
-        <button type="button" class="remove-finding" (click)="removeFinding(i)" *ngIf="findings.length > 1">
+        <button type="button" class="remove-finding" (click)="removeFinding(i)" *ngIf="findings.length > 1" aria-label="Remove finding">
           <span class="remove-icon">×</span>
         </button>
         <label>Threat: <input type="text" [(ngModel)]="finding.threat" /></label>
@@ -76,7 +76,7 @@
         <label *ngIf="finding.pocType === 'poc'">
           POC: <input #pocFileInput type="file" (change)="handlePocUpload($event, i, 'poc')" accept="image/*" multiple />
           <ng-container *ngIf="finding.pocDataURL && finding.pocDataURL.length">
-            <div *ngFor="let img of finding.pocDataURL; let imgIdx = index" style="margin-top: 10px; display: flex; flex-direction: column; gap: 10px;">
+            <div *ngFor="let img of finding.pocDataURL; let imgIdx = index; trackBy: trackByImgIndex" style="margin-top: 10px; display: flex; flex-direction: column; gap: 10px;">
               <div style="display: flex; align-items: center; gap: 10px;">
                 <img *ngIf="img && img.url" [src]="img.url" alt="POC Preview" style="max-width: 200px; border: 1px solid #888; border-radius: 4px;" />
                 <button type="button" (click)="removePoc(finding, imgIdx)" style="background: #d32f2f; color: #fff; border: none; border-radius: 4px; padding: 6px 12px; cursor: pointer;">Remove</button>
@@ -88,7 +88,7 @@
         <label *ngIf="finding.pocType === 'retesting'">
           Retesting POC: <input #retestingPocFileInput type="file" (change)="handlePocUpload($event, i, 'retesting')" accept="image/*" multiple />
           <ng-container *ngIf="finding.retestingPocDataURL && finding.retestingPocDataURL.length">
-            <div *ngFor="let img of finding.retestingPocDataURL; let imgIdx = index" style="margin-top: 10px; display: flex; flex-direction: column; gap: 10px;">
+            <div *ngFor="let img of finding.retestingPocDataURL; let imgIdx = index; trackBy: trackByImgIndex" style="margin-top: 10px; display: flex; flex-direction: column; gap: 10px;">
               <div style="display: flex; align-items: center; gap: 10px;">
                 <img *ngIf="img && img.url" [src]="img.url" alt="Retesting POC Preview" style="max-width: 200px; border: 1px solid #888; border-radius: 4px;" />
                 <button type="button" (click)="removeRetestingPoc(finding, imgIdx)" style="background: #d32f2f; color: #fff; border: none; border-radius: 4px; padding: 6px 12px; cursor: pointer;">Remove</button>
@@ -119,7 +119,7 @@
       <div class="add-findings-controls">
         <div class="add-multiple-findings">
           <input type="number" min="1" max="50" [(ngModel)]="findingsToAdd" placeholder="Number of findings" class="findings-number-input" />
-          <button (click)="addMultipleFindings()" class="add-multiple-findings-btn">Add Findings</button>
+          <button (click)="addMultipleFindings()" class="add-multiple-findings-btn" aria-label="Add multiple findings">Add Findings</button>
         </div>
       </div>
     </div>
@@ -128,7 +128,7 @@
     <div *ngIf="selectedManifestType" class="scope-fields">
       <div *ngFor="let scope of form.manifest.scopes; let i = index; trackBy: trackByScope" class="scope-field">
         <label>Scope {{i + 1}}: <input type="text" [(ngModel)]="form.manifest.scopes[i]" name="manifestScope" /></label>
-        <button type="button" class="remove-scope" (click)="removeScope(i, 'manifest')" *ngIf="form.manifest.scopes.length > 1">
+        <button type="button" class="remove-scope" (click)="removeScope(i, 'manifest')" *ngIf="form.manifest.scopes.length > 1" aria-label="Remove manifest scope">
           <span class="remove-icon">×</span>
         </button>
       </div>
@@ -194,7 +194,7 @@
       </div>
 
       <div class="form-actions">
-        <button type="submit" class="generate-btn">Generate Report</button>
+        <button type="submit" class="generate-btn" aria-label="Generate Report">Generate Report</button>
       </div>
     </form>
   </div>
@@ -466,7 +466,7 @@
         </div>
         <div *ngIf="finding.pocType === 'poc' && finding.pocDataURL && finding.pocDataURL.length" class="poc-container" style="margin-bottom: 8px; font-weight: bold;">
           POC:
-          <div *ngFor="let img of finding.pocDataURL" style="display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; margin-bottom: 8px;">
+          <div *ngFor="let img of finding.pocDataURL; let imgIdx = index; trackBy: trackByImgIndex" style="display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; margin-bottom: 8px;">
             <img *ngIf="img && img.url" [src]="img.url" alt="POC Image"
               class="poc-image" />
             <div *ngIf="img.caption" style="font-style: italic; color: #555; margin-top: 4px; text-align: center; max-width: 90%;">{{ img.caption }}</div>
@@ -474,7 +474,7 @@
         </div>
         <div *ngIf="finding.pocType === 'retesting' && finding.retestingPocDataURL && finding.retestingPocDataURL.length" class="retesting-poc-container" style="margin-bottom: 8px; font-weight: bold;">
           Retesting POC:
-          <div *ngFor="let img of finding.retestingPocDataURL" style="display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; margin-bottom: 8px;">
+          <div *ngFor="let img of finding.retestingPocDataURL; let imgIdx = index; trackBy: trackByImgIndex" style="display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; margin-bottom: 8px;">
             <img *ngIf="img && img.url" [src]="img.url" alt="Retesting POC Image"
               class="retesting-poc-image" />
             <div *ngIf="img.caption" style="font-style: italic; color: #555; margin-top: 4px; text-align: center; max-width: 90%;">{{ img.caption }}</div>

@@ -11,13 +11,13 @@
       </tr>
     </thead>
     <tbody>
-      <tr *ngFor="let report of reports; let i = index">
+      <tr *ngFor="let report of reports; let i = index; trackBy: trackByReportId">
         <td>{{ i + 1 }}</td>
         <td>{{ report.title }}</td>
         <td>{{ report.createdTime | date:'short' }}</td>
         <td>
-          <button (click)="deleteReport(i)">Delete</button>
-          <button (click)="editReport(i)" class="btn-edit">Edit</button>
+          <button (click)="deleteReport(i)" aria-label="Delete report">Delete</button>
+          <button (click)="editReport(i)" class="btn-edit" aria-label="Edit report">Edit</button>
         </td>
       </tr>
     </tbody>
