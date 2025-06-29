@@ -20,6 +20,10 @@ export class MyreportComponent implements OnInit, OnDestroy {
   reports: any[] = [];
   searchTerm: string = '';
   private searchSubscription!: Subscription;
+  page: number = 1;
+  limit: number = 10;
+  total: number = 0;
+  loading: boolean = false;
 
   constructor(
     private router: Router,
@@ -29,11 +33,11 @@ export class MyreportComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.loadReports();
-
     this.searchSubscription = this.searchService.currentSearchTerm$.subscribe(term => {
       this.searchTerm = term;
+      this.page = 1;
+      this.loadReports();
     });
-
     this.router.events
       .pipe(filter(event => event instanceof NavigationEnd))
       .subscribe(() => this.loadReports());
@@ -44,15 +48,33 @@ export class MyreportComponent implements OnInit, OnDestroy {
   }
 
   loadReports() {
-    this.reportService.getReports().subscribe(data => {
-      this.reports = data || [];
+    this.loading = true;
+    this.reportService.getReports(this.page, this.limit, this.searchTerm).subscribe(data => {
+      this.reports = data.reports || [];
+      this.total = data.total || 0;
+      this.loading = false;
+    }, () => {
+      this.loading = false;
     });
+  }
+
+  nextPage() {
+    if (this.page * this.limit < this.total) {
+      this.page++;
+      this.loadReports();
+    }
+  }
+
+  prevPage() {
+    if (this.page > 1) {
+      this.page--;
+      this.loadReports();
+    }
   }
 
   deleteReport(index: number) {
     const id = this.reports[index]?._id;
     if (!id || !confirm('Are you sure you want to delete this report?')) return;
-
     this.reportService.deleteReport(id).subscribe({
       next: () => this.loadReports(),
       error: () => alert('Failed to delete report')
@@ -60,16 +82,13 @@ export class MyreportComponent implements OnInit, OnDestroy {
   }
 
   editReport(index: number) {
-    const report = this.filteredReports()[index];
+    const report = this.reports[index];
     this.router.navigate(['/password-verify'], {
       state: { reportTitle: report.title, reportId: report._id }
     });
   }
 
-  filteredReports() {
-    if (!this.searchTerm) return this.reports;
-    return this.reports.filter(r =>
-      r.title?.toLowerCase().includes(this.searchTerm.toLowerCase())
-    );
+  get totalPages(): number {
+    return Math.ceil(this.total / this.limit) || 1;
   }
 }

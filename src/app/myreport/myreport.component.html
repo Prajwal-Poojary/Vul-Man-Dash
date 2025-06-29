@@ -1,5 +1,7 @@
 <div class="container">
-  <table *ngIf="filteredReports().length > 0" class="report-table">
+  <div *ngIf="loading" class="loading-spinner">Loading...</div>
+
+  <table *ngIf="!loading && reports.length > 0" class="report-table">
     <thead>
       <tr>
         <th>ID</th>
@@ -9,7 +11,7 @@
       </tr>
     </thead>
     <tbody>
-      <tr *ngFor="let report of filteredReports(); let i = index">
+      <tr *ngFor="let report of reports; let i = index">
         <td>{{ i + 1 }}</td>
         <td>{{ report.title }}</td>
         <td>{{ report.createdTime | date:'short' }}</td>
@@ -21,7 +23,13 @@
     </tbody>
   </table>
 
-  <div *ngIf="filteredReports().length === 0" class="empty-msg">
+  <div *ngIf="!loading && reports.length === 0" class="empty-msg">
     No reports found.
+  </div>
+
+  <div *ngIf="!loading && total > limit" class="pagination-controls">
+    <button (click)="prevPage()" [disabled]="page === 1">Previous</button>
+    <span>Page {{ page }} of {{ totalPages }}</span>
+    <button (click)="nextPage()" [disabled]="page * limit >= total">Next</button>
   </div>
 </div>

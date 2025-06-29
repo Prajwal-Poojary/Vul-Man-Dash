@@ -101,9 +101,13 @@ export class ReportService {
 
   constructor(private http: HttpClient) {}
 
-  // Get all reports
-  getReports(): Observable<Report[]> {
-    return this.http.get<Report[]>(this.apiUrl);
+  // Get all reports (paginated, with optional search)
+  getReports(page: number = 1, limit: number = 10, search: string = ''): Observable<any> {
+    let url = `${this.apiUrl}?page=${page}&limit=${limit}`;
+    if (search) {
+      url += `&search=${encodeURIComponent(search)}`;
+    }
+    return this.http.get<any>(url);
   }
 
   // Get report by title

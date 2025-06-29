@@ -78,7 +78,7 @@
           <ng-container *ngIf="finding.pocDataURL && finding.pocDataURL.length">
             <div *ngFor="let img of finding.pocDataURL; let imgIdx = index" style="margin-top: 10px; display: flex; flex-direction: column; gap: 10px;">
               <div style="display: flex; align-items: center; gap: 10px;">
-                <img [src]="img.url" alt="POC Preview" style="max-width: 200px; border: 1px solid #888; border-radius: 4px;" />
+                <img *ngIf="img && img.url" [src]="img.url" alt="POC Preview" style="max-width: 200px; border: 1px solid #888; border-radius: 4px;" />
                 <button type="button" (click)="removePoc(finding, imgIdx)" style="background: #d32f2f; color: #fff; border: none; border-radius: 4px; padding: 6px 12px; cursor: pointer;">Remove</button>
               </div>
               <input type="text" [(ngModel)]="img.caption" placeholder="Enter caption for POC image" [ngModelOptions]="{standalone: true}" style="width: 100%; margin-top: 5px;" />
@@ -90,7 +90,7 @@
           <ng-container *ngIf="finding.retestingPocDataURL && finding.retestingPocDataURL.length">
             <div *ngFor="let img of finding.retestingPocDataURL; let imgIdx = index" style="margin-top: 10px; display: flex; flex-direction: column; gap: 10px;">
               <div style="display: flex; align-items: center; gap: 10px;">
-                <img [src]="img.url" alt="Retesting POC Preview" style="max-width: 200px; border: 1px solid #888; border-radius: 4px;" />
+                <img *ngIf="img && img.url" [src]="img.url" alt="Retesting POC Preview" style="max-width: 200px; border: 1px solid #888; border-radius: 4px;" />
                 <button type="button" (click)="removeRetestingPoc(finding, imgIdx)" style="background: #d32f2f; color: #fff; border: none; border-radius: 4px; padding: 6px 12px; cursor: pointer;">Remove</button>
               </div>
               <input type="text" [(ngModel)]="img.caption" placeholder="Enter caption for Retesting POC image" [ngModelOptions]="{standalone: true}" style="width: 100%; margin-top: 5px;" />
@@ -467,7 +467,7 @@
         <div *ngIf="finding.pocType === 'poc' && finding.pocDataURL && finding.pocDataURL.length" class="poc-container" style="margin-bottom: 8px; font-weight: bold;">
           POC:
           <div *ngFor="let img of finding.pocDataURL" style="display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; margin-bottom: 8px;">
-            <img [src]="img.url" alt="POC Image"
+            <img *ngIf="img && img.url" [src]="img.url" alt="POC Image"
               class="poc-image" />
             <div *ngIf="img.caption" style="font-style: italic; color: #555; margin-top: 4px; text-align: center; max-width: 90%;">{{ img.caption }}</div>
           </div>
@@ -475,7 +475,7 @@
         <div *ngIf="finding.pocType === 'retesting' && finding.retestingPocDataURL && finding.retestingPocDataURL.length" class="retesting-poc-container" style="margin-bottom: 8px; font-weight: bold;">
           Retesting POC:
           <div *ngFor="let img of finding.retestingPocDataURL" style="display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; margin-bottom: 8px;">
-            <img [src]="img.url" alt="Retesting POC Image"
+            <img *ngIf="img && img.url" [src]="img.url" alt="Retesting POC Image"
               class="retesting-poc-image" />
             <div *ngIf="img.caption" style="font-style: italic; color: #555; margin-top: 4px; text-align: center; max-width: 90%;">{{ img.caption }}</div>
           </div>

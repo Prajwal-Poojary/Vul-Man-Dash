@@ -3,10 +3,18 @@ import Report from '../models/report.model.js';
 
 const router = express.Router();
 
-// Get all reports
+// Get all reports with pagination and search
 router.get('/', async (req, res) => {
-  const reports = await Report.find();
-  res.json(reports);
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const skip = (page - 1) * limit;
+  const search = req.query.search || '';
+  const query = search
+    ? { title: { $regex: search, $options: 'i' } }
+    : {};
+  const reports = await Report.find(query).skip(skip).limit(limit);
+  const total = await Report.countDocuments(query);
+  res.json({ reports, total, page, limit });
 });
 
 // Get report by title
