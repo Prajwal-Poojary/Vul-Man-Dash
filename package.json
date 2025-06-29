@@ -7,7 +7,6 @@
     "start:frontend": "ng serve",
     "start:backend": "node backend/start-server.js",
     "build": "ng build",
-    "postinstall": "cd backend && pip install -r requirements.txt",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },
