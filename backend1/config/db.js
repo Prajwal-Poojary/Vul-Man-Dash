@@ -16,35 +16,35 @@ const connectDB = async () => {
         });
 
         mongoose.connection.on('connected', () => {
-            console.log('MongoDB connected successfully');
-            console.log('Connection Host:', mongoose.connection.host);
+            // MongoDB connected successfully
+            // Connection Host: mongoose.connection.host
         });
 
         mongoose.connection.on('error', (err) => {
-            console.error('MongoDB connection error:', err);
-            if (err.name === 'MongooseServerSelectionError') {
-                console.error('Please check your network connection and MongoDB Atlas status');
-            }
+            // MongoDB connection error
+            // if (err.name === 'MongooseServerSelectionError') {
+            //     Please check your network connection and MongoDB Atlas status
+            // }
         });
 
         mongoose.connection.on('disconnected', () => {
-            console.log('MongoDB disconnected');
+            // MongoDB disconnected
         });
 
         process.on('SIGINT', async () => {
             try {
                 await mongoose.connection.close();
-                console.log('MongoDB connection closed through app termination');
+                // MongoDB connection closed through app termination
                 process.exit(0);
             } catch (err) {
-                console.error('Error closing MongoDB connection:', err);
+                // Error closing MongoDB connection
                 process.exit(1);
             }
         });
 
         return conn;
     } catch (error) {
-        console.error('MongoDB connection error:', error);
+        // MongoDB connection error
         process.exit(1);
     }
 };

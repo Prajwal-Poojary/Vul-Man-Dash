@@ -14,9 +14,9 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('MongoDB connected'))
-  .catch((err) => console.error('MongoDB connection error:', err));
+  .then(() => {/* console.log('MongoDB connected') */})
+  .catch((err) => {/* console.error('MongoDB connection error:', err) */});
 
 app.use('/api/reports', reportRoutes);
 
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => {/* console.log(`Server running on port ${PORT}`) */});

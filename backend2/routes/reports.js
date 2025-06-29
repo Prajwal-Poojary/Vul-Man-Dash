@@ -60,7 +60,7 @@ router.get('/dashboard/:id', async (req, res) => {
       res.status(404).json({ error: 'Dashboard data not found' });
     }
   } catch (err) {
-    console.error('Error fetching dashboard data:', err);
+    // console.error('Error fetching dashboard data:', err);
     res.status(500).json({ error: 'Failed to fetch dashboard data', details: err.message });
   }
 });
@@ -71,8 +71,8 @@ router.post('/dashboard/:id', async (req, res) => {
     const reportId = req.params.id;
     const dashboardData = req.body;
     
-    console.log('Saving dashboard data for report:', reportId);
-    console.log('Dashboard data:', dashboardData);
+    // console.log('Saving dashboard data for report:', reportId);
+    // console.log('Dashboard data:', dashboardData);
     
     const report = await Report.findByIdAndUpdate(
       reportId,
@@ -84,14 +84,14 @@ router.post('/dashboard/:id', async (req, res) => {
       return res.status(404).json({ error: 'Report not found' });
     }
     
-    console.log('Dashboard data saved successfully');
+    // console.log('Dashboard data saved successfully');
     res.status(200).json({ 
       message: 'Dashboard data saved', 
       report: report,
       dashboardData: report.dashboardData
     });
   } catch (err) {
-    console.error('Error saving dashboard data:', err);
+    // console.error('Error saving dashboard data:', err);
     res.status(500).json({ error: 'Failed to save dashboard data', details: err.message });
   }
 });
@@ -102,7 +102,7 @@ router.put('/dashboard/:id', async (req, res) => {
     const reportId = req.params.id;
     const dashboardData = req.body;
     
-    console.log('Updating dashboard data for report:', reportId);
+    // console.log('Updating dashboard data for report:', reportId);
     
     const report = await Report.findByIdAndUpdate(
       reportId,
@@ -114,14 +114,14 @@ router.put('/dashboard/:id', async (req, res) => {
       return res.status(404).json({ error: 'Report not found' });
     }
     
-    console.log('Dashboard data updated successfully');
+    // console.log('Dashboard data updated successfully');
     res.json({ 
       message: 'Dashboard data updated', 
       report: report,
       dashboardData: report.dashboardData
     });
   } catch (err) {
-    console.error('Error updating dashboard data:', err);
+    // console.error('Error updating dashboard data:', err);
     res.status(500).json({ error: 'Failed to update dashboard data', details: err.message });
   }
 });
@@ -141,7 +141,7 @@ router.get('/report/:id', async (req, res) => {
       res.status(404).json({ error: 'Report data not found' });
     }
   } catch (err) {
-    console.error('Error fetching report data:', err);
+    // console.error('Error fetching report data:', err);
     res.status(500).json({ error: 'Failed to fetch report data', details: err.message });
   }
 });
@@ -152,7 +152,7 @@ router.post('/report/:id', async (req, res) => {
     const reportId = req.params.id;
     const reportData = req.body;
     
-    console.log('Saving report data for report:', reportId);
+    // console.log('Saving report data for report:', reportId);
     
     const report = await Report.findByIdAndUpdate(
       reportId,
@@ -164,14 +164,14 @@ router.post('/report/:id', async (req, res) => {
       return res.status(404).json({ error: 'Report not found' });
     }
     
-    console.log('Report data saved successfully');
+    // console.log('Report data saved successfully');
     res.status(200).json({ 
       message: 'Report data saved', 
       report: report,
       reportData: report.reportData
     });
   } catch (err) {
-    console.error('Error saving report data:', err);
+    // console.error('Error saving report data:', err);
     res.status(500).json({ error: 'Failed to save report data', details: err.message });
   }
 });
@@ -182,7 +182,7 @@ router.put('/report/:id', async (req, res) => {
     const reportId = req.params.id;
     const reportData = req.body;
     
-    console.log('Updating report data for report:', reportId);
+    // console.log('Updating report data for report:', reportId);
     
     const report = await Report.findByIdAndUpdate(
       reportId,
@@ -194,14 +194,14 @@ router.put('/report/:id', async (req, res) => {
       return res.status(404).json({ error: 'Report not found' });
     }
     
-    console.log('Report data updated successfully');
+    // console.log('Report data updated successfully');
     res.json({ 
       message: 'Report data updated', 
       report: report,
       reportData: report.reportData
     });
   } catch (err) {
-    console.error('Error updating report data:', err);
+    // console.error('Error updating report data:', err);
     res.status(500).json({ error: 'Failed to update report data', details: err.message });
   }
 });

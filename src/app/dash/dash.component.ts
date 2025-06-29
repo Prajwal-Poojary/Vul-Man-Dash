@@ -124,7 +124,6 @@ export class DashComponent implements AfterViewInit {
 
   ngAfterViewInit() {
     if (!this.showInputForm) {
-      console.log('Creating charts in ngAfterViewInit');
       this.createCharts();
     }
   }
@@ -237,7 +236,6 @@ export class DashComponent implements AfterViewInit {
       return;
     }
 
-    console.log('Starting dashboard submission...');
     const cvssScore = this.calculateCVSS();
     this.cvssBaseScore = cvssScore;
     this.cvssRiskLevel = this.getRiskLevel(cvssScore);
@@ -280,17 +278,11 @@ export class DashComponent implements AfterViewInit {
     };
 
     try {
-      console.log('Saving dashboard data to MongoDB...');
-      console.log('Using reportId:', this.reportId);
-      
       if (this.reportId) {
         // Update existing report
-        console.log('Updating existing report:', this.reportId);
         await this.reportService.updateDashboardData(this.reportId, dashboardData).toPromise();
-        console.log('Report updated successfully');
       } else {
         // Create new report - this shouldn't happen in edit mode
-        console.log('No reportId found - this should not happen in edit mode');
         this.saveError = true;
         this.errorMessage = 'No report ID found for saving dashboard data';
         setTimeout(() => {
@@ -308,7 +300,6 @@ export class DashComponent implements AfterViewInit {
       this.showInputForm = false;
       setTimeout(() => this.createCharts(), 100);
     } catch (error) {
-      console.error('Error saving dashboard data:', error);
       this.saveError = true;
       this.errorMessage = 'Failed to save dashboard data';
       setTimeout(() => {
@@ -392,7 +383,6 @@ export class DashComponent implements AfterViewInit {
   }
 
   private createCharts() {
-    console.log('Starting chart creation');
     this.createSeverityChart();
     this.createCVSSScoreChart();
     this.createRemediationChart();
@@ -401,7 +391,6 @@ export class DashComponent implements AfterViewInit {
   private createSeverityChart() {
     const canvas = document.getElementById('severityChart') as HTMLCanvasElement;
     if (!canvas) {
-      console.error('Severity chart canvas not found');
       return;
     }
 
@@ -504,7 +493,6 @@ export class DashComponent implements AfterViewInit {
   private createCVSSScoreChart() {
     const canvas = document.getElementById('cvssScoreChart') as HTMLCanvasElement;
     if (!canvas) {
-      console.error('CVSS Score chart canvas not found');
       return;
     }
 
@@ -703,8 +691,6 @@ export class DashComponent implements AfterViewInit {
   }
 
   loadDashboardData(data: DashboardData) {
-    console.log('Loading dashboard data:', data);
-    
     // Load CVSS score
     if (data.cvssScore) {
       this.cvssBaseScore = data.cvssScore.baseScore;
@@ -756,27 +742,20 @@ export class DashComponent implements AfterViewInit {
   }
 
   fetchDashboardDataForEdit(reportId: string) {
-    console.log('Fetching dashboard data for edit mode, reportId:', reportId);
-    console.log('Using ReportService to fetch from:', 'http://localhost:5001/api/reports/dashboard/' + reportId);
-    
     this.reportService.getDashboardData(reportId).subscribe({
       next: (data) => {
-        console.log('Fetched dashboard data for edit:', data);
         if (data) {
           // Populate the form fields with existing data
           this.populateFormWithData(data);
           // Show the input form with populated data
           this.showInputForm = true;
         } else {
-          console.log('No data found for reportId:', reportId);
           // If no data exists, start with empty form
           this.showInputForm = true;
           this.reportId = null;
         }
       },
       error: (error) => {
-        console.error('Error fetching dashboard data for edit:', error);
-        console.error('Error details:', error.status, error.message);
         // If fetch fails, start with empty form
         this.showInputForm = true;
         this.reportId = null;
@@ -787,7 +766,6 @@ export class DashComponent implements AfterViewInit {
   fetchDashboardData(reportId: string) {
     this.reportService.getDashboardData(reportId).subscribe({
       next: (data) => {
-        console.log('Fetched dashboard data:', data);
         if (data) {
           this.loadDashboardData(data);
           // Update the reportId if it's not set
@@ -803,7 +781,6 @@ export class DashComponent implements AfterViewInit {
         }
       },
       error: (error) => {
-        console.error('Error fetching dashboard data:', error);
         // If fetch fails, start with empty form
         this.showInputForm = true;
         this.reportId = null;
@@ -812,8 +789,6 @@ export class DashComponent implements AfterViewInit {
   }
 
   populateFormWithData(data: DashboardData) {
-    console.log('Populating form with data:', data);
-    
     // Populate CVSS metrics
     if (data.cvssMetrics) {
       this.formData.attackVector = data.cvssMetrics.attackVector as AttackVector;
@@ -855,7 +830,7 @@ export class DashComponent implements AfterViewInit {
       this.currentDate = new Date(data.timestamp);
     }
 
-    console.log('Form data populated:', this.formData);
+    // console.log('Form data populated:', this.formData);
   }
 
   reloadDashboardData() {

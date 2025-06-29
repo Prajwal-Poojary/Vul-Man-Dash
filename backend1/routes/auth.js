@@ -66,7 +66,7 @@ router.post('/register', async (req, res) => {
     });
 
   }  catch (err) {
-  console.error('Registration error:', err);
+  // console.error('Registration error:', err);
 
   // Detailed duplicate key error logging
   if (err.code === 11000) {
@@ -120,7 +120,7 @@ router.post('/login', async (req, res) => {
     });
 
   } catch (err) {
-    console.error('Login error:', err);
+    // console.error('Login error:', err);
     res.status(500).json({ message: 'Login failed' });
   }
 });
@@ -131,7 +131,7 @@ router.get('/user', auth, async (req, res) => {
     const user = await User.findById(req.user.id).select('-password');
     res.json(user);
   } catch (err) {
-    console.error('User data error:', err);
+    // console.error('User data error:', err);
     res.status(500).json({ message: 'Error fetching user data' });
   }
 });
@@ -173,7 +173,7 @@ router.post('/forgot-password', async (req, res) => {
     res.json({ message: 'Reset email sent if account exists' });
 
   } catch (err) {
-    console.error('Forgot password error:', err);
+    // console.error('Forgot password error:', err);
     res.status(500).json({ message: 'Error processing request' });
   }
 });
@@ -204,7 +204,7 @@ router.post('/reset-password', async (req, res) => {
     res.json({ success: true, message: 'Password reset successful' });
 
   } catch (err) {
-    console.error('Reset password error:', err);
+    // console.error('Reset password error:', err);
     res.status(500).json({ message: 'Error resetting password' });
   }
 });

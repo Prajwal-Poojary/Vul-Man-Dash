@@ -213,7 +213,6 @@ export class ReportComponent implements AfterViewInit {
       }
       if (this.dashboardData?.reportId) {
         this.reportId = this.dashboardData.reportId;
-        console.log('Loaded existing report ID:', this.reportId);
         // Load report data if we have a report ID
         this.loadReportData();
       }
@@ -385,22 +384,21 @@ export class ReportComponent implements AfterViewInit {
     if (this.reportId) {
       this.reportService.updateReportData(this.reportId, reportData).subscribe({
         next: (response) => {
-          console.log('Report data updated successfully:', response);
-          this.reportVisible = true;
+          // console.log('Report data updated successfully:', response);
         },
         error: (error) => {
-          console.error('Error updating report data:', error);
+          // console.error('Error updating report data:', error);
         }
       });
     } else {
       this.reportService.saveReportData(this.reportId || '', reportData).subscribe({
         next: (response) => {
-          console.log('Report data saved successfully:', response);
+          // console.log('Report data saved successfully:', response);
           this.reportId = response.report._id;
           this.reportVisible = true;
         },
         error: (error) => {
-          console.error('Error saving report data:', error);
+          // console.error('Error saving report data:', error);
         }
       });
     }
@@ -412,7 +410,7 @@ export class ReportComponent implements AfterViewInit {
   editReport() {
     this.reportVisible = false;
     this.dropdownOpen = false;
-    console.log('Editing report:', this.reportId);
+    // console.log('Editing report:', this.reportId);
   }
 
   toggleDropdown(event: Event) {
@@ -422,7 +420,7 @@ export class ReportComponent implements AfterViewInit {
 
   private createReportCharts() {
     if (!this.dashboardData?.dashboardData) {
-      console.warn('Dashboard data is not available');
+      // console.warn('Dashboard data is not available');
       return;
     }
 
@@ -448,7 +446,7 @@ export class ReportComponent implements AfterViewInit {
   private createReportSeverityChart() {
     const canvas = document.getElementById('reportSeverityChart') as HTMLCanvasElement;
     if (!canvas || !this.dashboardData?.dashboardData?.severityDistribution) {
-      console.warn('Severity chart data is not available');
+      // console.warn('Severity chart data is not available');
       return;
     }
 
@@ -536,7 +534,7 @@ export class ReportComponent implements AfterViewInit {
   private createReportRemediationChart() {
     const ctx = document.getElementById('reportRemediationChart') as HTMLCanvasElement;
     if (!ctx || !this.dashboardData?.dashboardData?.vulnerabilityFindings?.areaVulnerabilities) {
-      console.warn('Remediation chart data is not available');
+      // console.warn('Remediation chart data is not available');
       return;
     }
 
@@ -1209,39 +1207,39 @@ export class ReportComponent implements AfterViewInit {
 
         // Handle findings table
         const findingsTableContainer = element.querySelector('.findings-table-container');
-        console.log('Checking for findings table in element:', element.className, element.tagName);
-        console.log('Findings table container found:', !!findingsTableContainer);
+        // console.log('Checking for findings table in element:', element.className, element.tagName);
+        // console.log('Findings table container found:', !!findingsTableContainer);
         
         if (findingsTableContainer) {
-          console.log('Processing findings table with custom drawing logic...');
+          // console.log('Processing findings table with custom drawing logic...');
           const rows: any[] = [];
           const tableHeading = element.querySelector('h2')?.textContent || 'Findings';
-          console.log('Table heading:', tableHeading);
+          // console.log('Table heading:', tableHeading);
           
           // Get headers from the findings-header div
           const headerRow = findingsTableContainer.querySelector('.findings-header');
-          console.log('Header row found:', !!headerRow);
+          // console.log('Header row found:', !!headerRow);
           
           const headerCells = headerRow?.querySelectorAll('.findings-cell');
-          console.log('Header cells found:', headerCells?.length);
+          // console.log('Header cells found:', headerCells?.length);
           
           // Extract header texts
           const tableHeaders = headerCells 
             ? Array.from(headerCells).map(th => th.textContent?.trim() || '')
             : ['ID', 'Vulnerability', 'Severity', 'Status'];
 
-          console.log('Table headers:', tableHeaders);
+          // console.log('Table headers:', tableHeaders);
 
           // Get table body rows (all findings-row except the header)
           const bodyRows = findingsTableContainer.querySelectorAll('.findings-row:not(.findings-header)');
-          console.log('Number of body rows:', bodyRows.length);
+          // console.log('Number of body rows:', bodyRows.length);
           
           bodyRows.forEach((row) => {
             const cells = Array.from(row.querySelectorAll('.findings-cell')).map(td => td.textContent?.trim() || '');
             rows.push(cells);
           });
 
-          console.log('Processed rows:', rows);
+          // console.log('Processed rows:', rows);
 
           // Check if we need a new page
           if (currentY + 100 > pdfHeight - margin) {
@@ -1366,10 +1364,10 @@ export class ReportComponent implements AfterViewInit {
           currentY = startY + 20;
 
           isFirstPage = false;
-          console.log('Finished processing findings table with custom drawing logic');
+          // console.log('Finished processing findings table with custom drawing logic');
           continue;
         } else {
-          console.log('No findings table found, element:', element.className, element.tagName);
+          // console.log('No findings table found, element:', element.className, element.tagName);
         }
 
         // Handle other content
@@ -1387,7 +1385,7 @@ export class ReportComponent implements AfterViewInit {
             canvas.style.display = 'none';
             canvasImages.push(img);
           } catch (error) {
-            console.error('Error converting canvas to image:', error);
+            // console.error('Error converting canvas to image:', error);
           }
         }
 
@@ -1403,7 +1401,7 @@ export class ReportComponent implements AfterViewInit {
         await new Promise(resolve => setTimeout(resolve, 500));
 
         try {
-          console.log('Processing element with html2canvas:', element.className, element.tagName);
+          // console.log('Processing element with html2canvas:', element.className, element.tagName);
           const canvas = await html2canvas(element as HTMLElement, {
             scale: 2,
             useCORS: true,
@@ -1460,7 +1458,7 @@ export class ReportComponent implements AfterViewInit {
             currentY = margin; // Reset currentY for next content
           }
         } catch (error) {
-          console.error('Error processing section:', error);
+          // console.error('Error processing section:', error);
         }
       }
 
@@ -1516,7 +1514,7 @@ export class ReportComponent implements AfterViewInit {
       // Update progress
       this.updateProgress(100, 100);
     } catch (error) {
-      console.error('PDF generation failed:', error);
+      // console.error('PDF generation failed:', error);
       alert(error instanceof Error ? error.message : 'Failed to generate PDF. Please try again.');
     } finally {
       this.showDownloadProgress = false;
@@ -1800,7 +1798,7 @@ export class ReportComponent implements AfterViewInit {
       window.URL.revokeObjectURL(url);
       this.dropdownOpen = false;
     } catch (error) {
-      console.error('DOCX download failed:', error);
+      // console.error('DOCX download failed:', error);
       alert('Failed to generate document. Please try again.');
     } finally {
       this.showDownloadProgress = false;
@@ -1987,7 +1985,7 @@ export class ReportComponent implements AfterViewInit {
           }
         },
         error: (error) => {
-          console.error('Error loading report data:', error);
+          // console.error('Error loading report data:', error);
         }
       });
     }

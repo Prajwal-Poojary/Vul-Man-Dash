@@ -76,7 +76,7 @@ export class CreateReportComponent implements OnInit {
         this.router.navigate(['/myreport']);
       },
       error: (err) => {
-        console.error('Save failed', err);
+        // console.error('Save failed', err);
         this.errorMsg = 'Failed to save Report!';
         setTimeout(() => this.errorMsg = '', 3000);
       }

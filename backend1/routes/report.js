@@ -9,7 +9,7 @@ router.get('/', auth, async (req, res) => {
     const reports = await Report.find({ user: req.user.userId }).sort({ date: -1 });
     res.json(reports);
   } catch (err) {
-    console.error(err);
+    // console.error(err);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -26,7 +26,7 @@ router.get('/:id', auth, async (req, res) => {
     }
     res.json(report);
   } catch (err) {
-    console.error(err);
+    // console.error(err);
     if (err.kind === 'ObjectId') {
       return res.status(404).json({ message: 'Report not found' });
     }
@@ -49,7 +49,7 @@ router.post('/', auth, async (req, res) => {
     const report = await newReport.save();
     res.json(report);
   } catch (err) {
-    console.error(err);
+    // console.error(err);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -72,7 +72,7 @@ router.put('/:id', auth, async (req, res) => {
     );
     res.json(report);
   } catch (err) {
-    console.error(err);
+    // console.error(err);
     if (err.kind === 'ObjectId') {
       return res.status(404).json({ message: 'Report not found' });
     }
@@ -94,7 +94,7 @@ router.delete('/:id', auth, async (req, res) => {
     await report.deleteOne();
     res.json({ message: 'Report removed' });
   } catch (err) {
-    console.error(err);
+    // console.error(err);
     if (err.kind === 'ObjectId') {
       return res.status(404).json({ message: 'Report not found' });
     }

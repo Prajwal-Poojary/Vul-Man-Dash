@@ -65,7 +65,7 @@ export class PasswordVerifyComponent {
         // Check if dashboard data exists
         this.reportService.getDashboardData(this.reportId!).subscribe({
           next: (report: any) => {
-            console.log('Fetched report:', report);
+            // console.log('Fetched report:', report);
             if (report.dashboardData && Object.keys(report.dashboardData).length > 0) {
               // Show dashboard view
               this.report = report;
@@ -81,7 +81,7 @@ export class PasswordVerifyComponent {
             }
           },
           error: (error: any) => {
-            console.log('No dashboard data found, showing input form');
+            // console.log('No dashboard data found, showing input form');
             // If error (like 404), show input form
             this.router.navigate(['/dashboard'], {
               state: {
