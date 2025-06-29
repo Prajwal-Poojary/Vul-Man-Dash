@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
-const Report = require('../models/Report');
+const Report = require('../models/report');
 
 // Get all reports
 router.get('/', auth, async (req, res) => {
