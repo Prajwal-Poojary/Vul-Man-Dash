@@ -55,9 +55,11 @@ router.post('/register', async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: '1d' }
     );
+    const decoded = jwt.decode(token);
 
     res.status(201).json({
       token,
+      exp: decoded.exp,
       user: {
         id: savedUser._id,
         name: savedUser.name,
@@ -109,9 +111,10 @@ router.post('/login', async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: '1d' }
     );
-
+    const decoded = jwt.decode(token);
     res.json({
       token,
+      exp: decoded.exp,
       user: {
         id: user._id,
         name: user.name,

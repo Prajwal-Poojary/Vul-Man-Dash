@@ -3,6 +3,7 @@ import { Router, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { NavbarComponent } from './navbar/navbar.component';
+import { AuthService } from './core/services/auth.service';
 
 @Component({
   selector: 'app-root',
@@ -13,7 +14,7 @@ import { NavbarComponent } from './navbar/navbar.component';
 export class AppComponent {
   showNavbar = true;
 
-  constructor(private router: Router) {
+  constructor(private router: Router, private authService: AuthService) {
     this.router.events.subscribe(event => {
       if (event instanceof NavigationEnd) {
         const url = event.urlAfterRedirects || event.url;
@@ -25,5 +26,6 @@ export class AppComponent {
         );
       }
     });
+    this.authService.initializeAutoLogout();
   }
 }
