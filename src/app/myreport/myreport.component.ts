@@ -73,11 +73,9 @@ export class MyreportComponent implements OnInit, OnDestroy {
   }
 
   deleteReport(index: number) {
-    const id = this.reports[index]?._id;
-    if (!id || !confirm('Are you sure you want to delete this report?')) return;
-    this.reportService.deleteReport(id).subscribe({
-      next: () => this.loadReports(),
-      error: () => alert('Failed to delete report')
+    const report = this.reports[index];
+    this.router.navigate(['/password-verify'], {
+      state: { reportTitle: report.title, reportId: report._id, deleteIntent: true }
     });
   }
 

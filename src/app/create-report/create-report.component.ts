@@ -25,6 +25,9 @@ export class CreateReportComponent implements OnInit {
   errorMsg = '';
   successMsg = '';
 
+  showPassword = false;
+  showConfirmPassword = false;
+
   constructor(private reportService: ReportService, private router: Router) {}
 
   checkStrength() {
@@ -89,5 +92,13 @@ export class CreateReportComponent implements OnInit {
       this.report = JSON.parse(editData);
       localStorage.removeItem('editReport');
     }
+  }
+
+  toggleShowPassword() {
+    this.showPassword = !this.showPassword;
+  }
+
+  toggleShowConfirmPassword() {
+    this.showConfirmPassword = !this.showConfirmPassword;
   }
 }

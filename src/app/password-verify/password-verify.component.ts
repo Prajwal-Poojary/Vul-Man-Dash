@@ -21,11 +21,15 @@ export class PasswordVerifyComponent {
   reportTitle: string | null = null;
   reportId: string | null = null;
   report: any = null;
+  deleteIntent: boolean = false;
+
+  showPassword = false;
 
   constructor(private router: Router, private reportService: ReportService) {
     const navigation = this.router.getCurrentNavigation();
     this.reportTitle = navigation?.extras.state?.['reportTitle'] ?? null;
     this.reportId = navigation?.extras.state?.['reportId'] ?? null;
+    this.deleteIntent = navigation?.extras.state?.['deleteIntent'] ?? false;
 
     if (!this.reportTitle || !this.reportId) {
       this.errorMsg = 'No report specified for editing';
@@ -59,6 +63,21 @@ export class PasswordVerifyComponent {
 
     setTimeout(() => {
       if (this.password === this.report?.password) {
+        if (this.deleteIntent) {
+          // Delete the report after password verification
+          this.reportService.deleteReport(this.reportId!).subscribe({
+            next: () => {
+              this.successMsg = 'Report deleted! Redirecting...';
+              setTimeout(() => this.router.navigate(['/myreport']), 1200);
+            },
+            error: () => {
+              this.errorMsg = 'Failed to delete report';
+              setTimeout(() => this.errorMsg = '', 3000);
+            }
+          });
+          this.isLoading = false;
+          return;
+        }
         this.successMsg = 'Password verified! Redirecting to dashboard...';
         setTimeout(() => this.successMsg = '', 3000);
 
@@ -102,5 +121,9 @@ export class PasswordVerifyComponent {
 
   cancelVerification() {
     this.router.navigate(['/myreport']);
+  }
+
+  toggleShowPassword() {
+    this.showPassword = !this.showPassword;
   }
 }
