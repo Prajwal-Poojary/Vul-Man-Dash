@@ -13,7 +13,13 @@ interface DashboardStats {
   providedIn: 'root'
 })
 export class ReportService {
-  private apiUrl = `${environment.apiUrl}/reports`;
+  // All three API URLs for flexible use
+  private backend1ApiUrl = environment.apiUrl;
+  private backend2ApiUrl = environment.apiUrl2;
+  private flaskApiUrl = environment.apiUrl3;
+
+  // Default: use backend2 for reports (can change as needed)
+  private apiUrl = this.backend2ApiUrl + '/reports';
 
   constructor(private http: HttpClient) {}
 
@@ -40,5 +46,10 @@ export class ReportService {
 
   deleteReport(id: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
+
+  // Example: Use Flask backend for a specific call
+  getFlaskReports(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.flaskApiUrl}/reports`);
   }
 } 
