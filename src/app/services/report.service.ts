@@ -97,7 +97,7 @@ export interface Report {
   providedIn: 'root'
 })
 export class ReportService {
-  private apiUrl = 'http://localhost:5001/api/reports';
+  private apiUrl = 'https://final-backend2-j69c.onrender.com/api/reports';
 
   constructor(private http: HttpClient) {}
 
