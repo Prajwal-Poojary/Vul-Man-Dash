@@ -109,7 +109,7 @@ export class ReportComponent implements AfterViewInit {
   reportVisible = false;
   dropdownOpen = false;
   dashboardData: any;
-  private readonly apiUrl = 'https://final-backend-ccjq.onrender.com/api/report';
+  private readonly apiUrl = 'http://localhost:5002/api/report';
   chartImageURLs: string[] = [];
   findingsToAdd: number = 1;
   scopesToAdd: number = 1;
@@ -1493,7 +1493,7 @@ export class ReportComponent implements AfterViewInit {
       formData.append('confirm_password', password);
 
       // Send to backend for encryption
-      const response = await fetch('https://final-backend-ccjq.onrender.com/api/report/protect-pdf', {
+      const response = await fetch('http://localhost:5002/api/report/protect-pdf', {
         method: 'POST',
         body: formData
       });
