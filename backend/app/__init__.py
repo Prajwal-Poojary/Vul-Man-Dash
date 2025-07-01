@@ -8,4 +8,8 @@ def create_app():
     from .routes import report_routes
     app.register_blueprint(report_routes)
     
+    @app.route('/')
+    def health_check():
+        return 'API is running', 200
+    
     return app

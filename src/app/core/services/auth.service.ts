@@ -118,4 +118,8 @@ export class AuthService {
       this.setAutoLogout(user.exp);
     }
   }
+
+  isLoggedIn(): boolean {
+    return this.isAuthenticated();
+  }
 } 
