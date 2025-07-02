@@ -23,6 +23,7 @@ import {
 import { Chart, registerables } from 'chart.js';
 import { DownloadProgressComponent } from '../shared/download-progress/download-progress.component';
 import { ReportService } from '../services/report.service';
+import { authFetch } from '../core/services/auth-fetch';
 
 // Add helper function for table drawing
 function drawTable(pdf: jsPDF, headers: string[], rows: any[][], startY: number, margin: number): number {
@@ -1492,11 +1493,24 @@ export class ReportComponent implements AfterViewInit {
       formData.append('password', password);
       formData.append('confirm_password', password);
 
-      // Send to backend for encryption
-      const response = await fetch('http://localhost:5002/api/report/protect-pdf', {
+      // PDF protection endpoint
+      const token = localStorage.getItem('currentUser')
+        ? JSON.parse(localStorage.getItem('currentUser')!).token
+        : null;
+      const response = await authFetch('http://localhost:5002/api/report/protect-pdf', {
         method: 'POST',
-        body: formData
+        body: formData,
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        }
       });
+
+      if (response.status === 401 || response.status === 403) {
+        // Handle unauthorized: logout and redirect
+        localStorage.removeItem('currentUser');
+        window.location.href = '/login';
+        return;
+      }
 
       if (!response.ok) {
         const errorData = await response.json();

@@ -1,7 +1,24 @@
 import express from 'express';
 import Report from '../models/report.model.js';
+import jwt from 'jsonwebtoken';
+import dotenv from 'dotenv';
+dotenv.config();
 
 const router = express.Router();
+
+function tokenRequired(req, res, next) {
+  const authHeader = req.headers['authorization'];
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Token is missing!' });
+  }
+  const token = authHeader.split(' ')[1];
+  try {
+    jwt.verify(token, process.env.JWT_SECRET);
+    next();
+  } catch (err) {
+    return res.status(401).json({ error: 'Token is invalid or expired!' });
+  }
+}
 
 // Get all reports with pagination and search
 router.get('/', async (req, res) => {
@@ -25,7 +42,7 @@ router.get('/title/:title', async (req, res) => {
 });
 
 // Add new report
-router.post('/', async (req, res) => {
+router.post('/', tokenRequired, async (req, res) => {
   try {
     const newReport = new Report(req.body);
     await newReport.save();
@@ -36,7 +53,7 @@ router.post('/', async (req, res) => {
 });
 
 // Delete report by id
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', tokenRequired, async (req, res) => {
   try {
     await Report.findByIdAndDelete(req.params.id);
     res.sendStatus(204);
@@ -66,7 +83,7 @@ router.get('/dashboard/:id', async (req, res) => {
 });
 
 // Save dashboard data for a report
-router.post('/dashboard/:id', async (req, res) => {
+router.post('/dashboard/:id', tokenRequired, async (req, res) => {
   try {
     const reportId = req.params.id;
     const dashboardData = req.body;
@@ -97,7 +114,7 @@ router.post('/dashboard/:id', async (req, res) => {
 });
 
 // Update dashboard data for a report
-router.put('/dashboard/:id', async (req, res) => {
+router.put('/dashboard/:id', tokenRequired, async (req, res) => {
   try {
     const reportId = req.params.id;
     const dashboardData = req.body;
@@ -147,7 +164,7 @@ router.get('/report/:id', async (req, res) => {
 });
 
 // Save report data
-router.post('/report/:id', async (req, res) => {
+router.post('/report/:id', tokenRequired, async (req, res) => {
   try {
     const reportId = req.params.id;
     const reportData = req.body;
@@ -177,7 +194,7 @@ router.post('/report/:id', async (req, res) => {
 });
 
 // Update report data
-router.put('/report/:id', async (req, res) => {
+router.put('/report/:id', tokenRequired, async (req, res) => {
   try {
     const reportId = req.params.id;
     const reportData = req.body;
