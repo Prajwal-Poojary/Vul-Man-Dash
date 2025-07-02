@@ -1594,8 +1594,16 @@ export class ReportComponent implements AfterViewInit {
 
         const logoImg = element.querySelector('img');
         if (logoImg && logoImg.src) {
-          const response = await fetch(logoImg.src);
-          const logoBuffer = await response.arrayBuffer();
+          // Use authFetch for remote URLs to ensure token tampering is handled
+          const isRemote = /^https?:\/\//.test(logoImg.src);
+          let logoBuffer;
+          if (isRemote) {
+            const response = await authFetch(logoImg.src);
+            logoBuffer = await response.arrayBuffer();
+          } else {
+            const response = await fetch(logoImg.src);
+            logoBuffer = await response.arrayBuffer();
+          }
 
           children.push(
             new Paragraph({
@@ -1652,6 +1660,7 @@ export class ReportComponent implements AfterViewInit {
         const canvases = Array.from(element.querySelectorAll('canvas'));
         for (const canvas of canvases) {
           const imgDataUrl = canvas.toDataURL('image/png');
+          // Data URLs are local, so use fetch
           const imageBuffer = await fetch(imgDataUrl).then(res => res.arrayBuffer());
 
           children.push(
@@ -1729,9 +1738,17 @@ export class ReportComponent implements AfterViewInit {
           );
 
           if (finding.pocDataURL.length > 0) {
-            finding.pocDataURL.forEach(async (poc, i) => {
-              const response = await fetch(poc.url);
-              const imageBuffer = await response.arrayBuffer();
+            for (const poc of finding.pocDataURL) {
+              // Use authFetch for remote URLs to ensure token tampering is handled
+              const isRemote = /^https?:\/\//.test(poc.url);
+              let imageBuffer;
+              if (isRemote) {
+                const response = await authFetch(poc.url);
+                imageBuffer = await response.arrayBuffer();
+              } else {
+                const response = await fetch(poc.url);
+                imageBuffer = await response.arrayBuffer();
+              }
               children.push(
                 new Paragraph({
                   children: [
@@ -1752,7 +1769,7 @@ export class ReportComponent implements AfterViewInit {
                   alignment: AlignmentType.CENTER
                 })
               );
-            });
+            }
           }
         }
 

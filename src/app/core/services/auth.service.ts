@@ -30,7 +30,6 @@ export class AuthService {
             token: res.token,
             exp: decoded.exp
           };
-          console.log('Login user:', user); // Debug log
           localStorage.setItem('currentUser', JSON.stringify(user));
           this.currentUserSubject.next(user);
           this.setAutoLogout(user.exp!);
@@ -49,7 +48,6 @@ export class AuthService {
             token: res.token,
             exp: decoded.exp
           };
-          console.log('Register user:', user); // Debug log
           localStorage.setItem('currentUser', JSON.stringify(user));
           this.currentUserSubject.next(user);
           this.setAutoLogout(user.exp!);
