@@ -2,6 +2,7 @@ import express from 'express';
 import Report from '../models/report.model.js';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
+import bcrypt from 'bcryptjs';
 dotenv.config();
 
 const router = express.Router();
@@ -258,10 +259,36 @@ router.post('/verify-password', tokenRequired, async (req, res) => {
   if (!report) {
     return res.status(404).json({ success: false, error: 'Report not found' });
   }
-  if (report.password === password) {
+  const isMatch = await bcrypt.compare(password, report.password || '');
+  if (isMatch) {
     return res.json({ success: true });
   } else {
     return res.json({ success: false });
+  }
+});
+
+// Update report by id
+router.put('/:id', tokenRequired, async (req, res) => {
+  try {
+    // Hash password if present in update
+    if (req.body.password) {
+      const bcrypt = await import('bcryptjs');
+      const salt = await bcrypt.default.genSalt(10);
+      req.body.password = await bcrypt.default.hash(req.body.password, salt);
+    }
+    const report = await Report.findByIdAndUpdate(
+      req.params.id,
+      { $set: req.body },
+      { new: true, runValidators: true }
+    );
+    if (!report) {
+      return res.status(404).json({ message: 'Report not found' });
+    }
+    const reportObj = report.toObject();
+    delete reportObj.password;
+    res.json(reportObj);
+  } catch (err) {
+    res.status(400).send(err.message);
   }
 });
 
