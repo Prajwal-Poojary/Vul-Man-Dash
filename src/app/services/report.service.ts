@@ -154,4 +154,9 @@ export class ReportService {
   updateReportData(reportId: string, reportData: Report['reportData']): Observable<any> {
     return this.http.put(`${this.apiUrl}/report/${reportId}`, reportData);
   }
+
+  // Verify report password
+  verifyReportPassword(data: { title?: string; id?: string; password: string }): Observable<{ success: boolean }> {
+    return this.http.post<{ success: boolean }>(`${this.apiUrl}/verify-password`, data);
+  }
 }

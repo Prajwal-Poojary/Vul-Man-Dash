@@ -61,35 +61,47 @@ export class PasswordVerifyComponent {
     this.errorMsg = '';
     this.successMsg = '';
 
-    setTimeout(() => {
-      if (this.password === this.report?.password) {
-        if (this.deleteIntent) {
-          // Delete the report after password verification
-          this.reportService.deleteReport(this.reportId!).subscribe({
-            next: () => {
-              this.successMsg = 'Report deleted! Redirecting...';
-              setTimeout(() => this.router.navigate(['/myreport']), 1200);
-            },
-            error: () => {
-              this.errorMsg = 'Failed to delete report';
-              setTimeout(() => this.errorMsg = '', 3000);
-            }
-          });
-          this.isLoading = false;
-          return;
-        }
-        this.successMsg = 'Password verified! Redirecting to dashboard...';
-        setTimeout(() => this.successMsg = '', 3000);
+    // Use backend API for password verification
+    this.reportService.verifyReportPassword({
+      id: this.reportId!,
+      password: this.password
+    }).subscribe({
+      next: (result) => {
+        if (result.success) {
+          if (this.deleteIntent) {
+            // Delete the report after password verification
+            this.reportService.deleteReport(this.reportId!).subscribe({
+              next: () => {
+                this.successMsg = 'Report deleted! Redirecting...';
+                setTimeout(() => this.router.navigate(['/myreport']), 1200);
+              },
+              error: () => {
+                this.errorMsg = 'Failed to delete report';
+                setTimeout(() => this.errorMsg = '', 3000);
+              }
+            });
+            this.isLoading = false;
+            return;
+          }
+          this.successMsg = 'Password verified! Redirecting to dashboard...';
+          setTimeout(() => this.successMsg = '', 3000);
 
-        // Check if dashboard data exists
-        this.reportService.getDashboardData(this.reportId!).subscribe({
-          next: (report: any) => {
-            // console.log('Fetched report:', report);
-            if (report.dashboardData && Object.keys(report.dashboardData).length > 0) {
-              // Show dashboard view
-              this.report = report;
-            } else {
-              // Show dashboard input form
+          // Check if dashboard data exists
+          this.reportService.getDashboardData(this.reportId!).subscribe({
+            next: (report: any) => {
+              if (report.dashboardData && Object.keys(report.dashboardData).length > 0) {
+                this.report = report;
+              } else {
+                this.router.navigate(['/dashboard'], {
+                  state: {
+                    isEdit: true,
+                    reportId: this.reportId,
+                    showInputForm: true
+                  }
+                });
+              }
+            },
+            error: (error: any) => {
               this.router.navigate(['/dashboard'], {
                 state: {
                   isEdit: true,
@@ -98,25 +110,19 @@ export class PasswordVerifyComponent {
                 }
               });
             }
-          },
-          error: (error: any) => {
-            // console.log('No dashboard data found, showing input form');
-            // If error (like 404), show input form
-            this.router.navigate(['/dashboard'], {
-              state: {
-                isEdit: true,
-                reportId: this.reportId,
-                showInputForm: true
-              }
-            });
-          }
-        });
-      } else {
-        this.errorMsg = 'Incorrect password. Please try again.';
+          });
+        } else {
+          this.errorMsg = 'Incorrect password. Please try again.';
+          setTimeout(() => this.errorMsg = '', 3000);
+        }
+        this.isLoading = false;
+      },
+      error: () => {
+        this.errorMsg = 'Verification failed. Please try again.';
         setTimeout(() => this.errorMsg = '', 3000);
+        this.isLoading = false;
       }
-      this.isLoading = false;
-    }, 800);
+    });
   }
 
   cancelVerification() {

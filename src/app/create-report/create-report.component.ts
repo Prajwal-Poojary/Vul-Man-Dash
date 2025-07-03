@@ -90,6 +90,9 @@ export class CreateReportComponent implements OnInit {
     const editData = localStorage.getItem('editReport');
     if (editData) {
       this.report = JSON.parse(editData);
+      // Remove sensitive fields if present
+      if ('password' in this.report) this.report.password = '';
+      if ('confirmPassword' in this.report) this.report.confirmPassword = '';
       localStorage.removeItem('editReport');
     }
   }

@@ -21,7 +21,7 @@ function tokenRequired(req, res, next) {
 }
 
 // Get all reports with pagination and search
-router.get('/', async (req, res) => {
+router.get('/', tokenRequired, async (req, res) => {
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
   const skip = (page - 1) * limit;
@@ -31,14 +31,22 @@ router.get('/', async (req, res) => {
     : {};
   const reports = await Report.find(query).skip(skip).limit(limit);
   const total = await Report.countDocuments(query);
-  res.json({ reports, total, page, limit });
+  // Remove password from each report
+  const reportsObj = reports.map(r => {
+    const obj = r.toObject();
+    delete obj.password;
+    return obj;
+  });
+  res.json({ reports: reportsObj, total, page, limit });
 });
 
 // Get report by title
-router.get('/title/:title', async (req, res) => {
+router.get('/title/:title', tokenRequired, async (req, res) => {
   const report = await Report.findOne({ title: req.params.title });
   if (!report) return res.status(404).send('Report not found');
-  res.json(report);
+  const reportObj = report.toObject();
+  delete reportObj.password;
+  res.json(reportObj);
 });
 
 // Add new report
@@ -46,7 +54,9 @@ router.post('/', tokenRequired, async (req, res) => {
   try {
     const newReport = new Report(req.body);
     await newReport.save();
-    res.status(201).json(newReport);
+    const reportObj = newReport.toObject();
+    delete reportObj.password;
+    res.status(201).json(reportObj);
   } catch (err) {
     res.status(400).send(err.message);
   }
@@ -63,7 +73,7 @@ router.delete('/:id', tokenRequired, async (req, res) => {
 });
 
 // Get dashboard data by report ID
-router.get('/dashboard/:id', async (req, res) => {
+router.get('/dashboard/:id', tokenRequired, async (req, res) => {
   try {
     const report = await Report.findById(req.params.id);
     if (!report) {
@@ -144,7 +154,7 @@ router.put('/dashboard/:id', tokenRequired, async (req, res) => {
 });
 
 // Get report data by ID
-router.get('/report/:id', async (req, res) => {
+router.get('/report/:id', tokenRequired, async (req, res) => {
   try {
     const report = await Report.findById(req.params.id);
     if (!report) {
@@ -220,6 +230,38 @@ router.put('/report/:id', tokenRequired, async (req, res) => {
   } catch (err) {
     // console.error('Error updating report data:', err);
     res.status(500).json({ error: 'Failed to update report data', details: err.message });
+  }
+});
+
+// Any other endpoint that returns a report
+// Example for GET by ID
+router.get('/:id', tokenRequired, async (req, res) => {
+  const report = await Report.findById(req.params.id);
+  if (!report) return res.status(404).send('Report not found');
+  const reportObj = report.toObject();
+  delete reportObj.password;
+  res.json(reportObj);
+});
+
+// Verify report password
+router.post('/verify-password', tokenRequired, async (req, res) => {
+  const { title, id, password } = req.body;
+  if (!password || (!title && !id)) {
+    return res.status(400).json({ success: false, error: 'Missing required fields' });
+  }
+  let report;
+  if (id) {
+    report = await Report.findById(id);
+  } else if (title) {
+    report = await Report.findOne({ title });
+  }
+  if (!report) {
+    return res.status(404).json({ success: false, error: 'Report not found' });
+  }
+  if (report.password === password) {
+    return res.json({ success: true });
+  } else {
+    return res.json({ success: false });
   }
 });
 
