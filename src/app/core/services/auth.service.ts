@@ -18,6 +18,18 @@ export class AuthService {
     if (storedUser) {
       this.currentUserSubject.next(JSON.parse(storedUser));
     }
+    // Listen for token changes in other tabs
+    window.addEventListener('storage', (event) => {
+      if (event.key === 'currentUser') {
+        const newValue = event.newValue;
+        const oldValue = event.oldValue;
+        // If token is removed or changed, logout and redirect
+        if (!newValue || newValue !== oldValue) {
+          this.logout();
+          window.location.href = '/login';
+        }
+      }
+    });
   }
 
   login(email: string, password: string): Observable<User> {
