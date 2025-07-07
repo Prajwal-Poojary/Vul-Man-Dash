@@ -1,6 +1,6 @@
 {
   "/api": {
-    "target": "http://localhost:5001",
+    "target": "https://final-backend2-2vvt.onrender.com",
     "secure": false,
     "changeOrigin": true,
     "pathRewrite": {"^/api": ""}

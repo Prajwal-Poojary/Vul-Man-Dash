@@ -110,7 +110,7 @@ export class ReportComponent implements AfterViewInit {
   reportVisible = false;
   dropdownOpen = false;
   dashboardData: any;
-  private readonly apiUrl = 'http://localhost:5002/api/report';
+  private readonly apiUrl = 'https://final-backend-hpcs.onrender.com/api/report';
   chartImageURLs: string[] = [];
   findingsToAdd: number = 1;
   scopesToAdd: number = 1;
@@ -1497,7 +1497,7 @@ export class ReportComponent implements AfterViewInit {
       const token = localStorage.getItem('currentUser')
         ? JSON.parse(localStorage.getItem('currentUser')!).token
         : null;
-      const response = await authFetch('http://localhost:5002/api/report/protect-pdf', {
+      const response = await authFetch('https://final-backend-hpcs.onrender.com/api/report/protect-pdf', {
         method: 'POST',
         body: formData,
         headers: {
