@@ -24,6 +24,7 @@ import { Chart, registerables } from 'chart.js';
 import { DownloadProgressComponent } from '../shared/download-progress/download-progress.component';
 import { ReportService } from '../services/report.service';
 import { authFetch } from '../core/services/auth-fetch';
+import { environment } from '../../environments/environment';
 
 // Add helper function for table drawing
 function drawTable(pdf: jsPDF, headers: string[], rows: any[][], startY: number, margin: number): number {
@@ -110,7 +111,7 @@ export class ReportComponent implements AfterViewInit {
   reportVisible = false;
   dropdownOpen = false;
   dashboardData: any;
-  private readonly apiUrl = 'https://final-backend-hpcs.onrender.com/api/report';
+  private readonly apiUrl = `${environment.apiUrlFlask}/report`;
   chartImageURLs: string[] = [];
   findingsToAdd: number = 1;
   scopesToAdd: number = 1;
@@ -1497,7 +1498,7 @@ export class ReportComponent implements AfterViewInit {
       const token = localStorage.getItem('currentUser')
         ? JSON.parse(localStorage.getItem('currentUser')!).token
         : null;
-      const response = await authFetch('https://final-backend-hpcs.onrender.com/api/report/protect-pdf', {
+      const response = await authFetch(`${environment.apiUrlFlask}/report/protect-pdf`, {
         method: 'POST',
         body: formData,
         headers: {
