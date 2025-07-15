@@ -1,7 +1,7 @@
 export const environment = {
   production: false,
-  apiUrl: 'https://final-backend1-td6h.onrender.com/api',
-  apiUrl2: 'https://final-backend2-2vvt.onrender.com/api2',
-  apiUrlFlask: 'https://final-backend-hpcs.onrender.com/api',
-  frontendUrl: 'https://vulnarability-management-dashboard.onrender.com'
+  apiUrl: 'http://localhost:5000/api', // backend1
+  apiUrl2: 'http://localhost:5001/api', // backend2
+  apiUrlFlask: 'http://localhost:5002/api', // Flask backend
+  frontendUrl: 'http://localhost:4200'
 }; 

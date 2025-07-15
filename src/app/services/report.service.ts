@@ -3,6 +3,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface DashboardData {
   _id?: string;
@@ -97,7 +98,7 @@ export interface Report {
   providedIn: 'root'
 })
 export class ReportService {
-  private apiUrl = 'https://final-backend2-2vvt.onrender.com/api/reports';
+  private apiUrl = `${environment.apiUrl2}/reports`;
 
   constructor(private http: HttpClient) {}
 
