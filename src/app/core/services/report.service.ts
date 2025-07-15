@@ -13,7 +13,7 @@ interface DashboardStats {
   providedIn: 'root'
 })
 export class ReportService {
-  private apiUrl = environment.production ? `${environment.apiUrl2}/reports` : `${environment.apiUrl}/reports`;
+  private apiUrl = `${environment.apiUrl2}/reports`;
 
   constructor(private http: HttpClient) {}
 
