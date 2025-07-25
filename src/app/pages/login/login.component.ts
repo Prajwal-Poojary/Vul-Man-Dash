@@ -1,5 +1,5 @@
 // login.component.ts
-import { Component } from '@angular/core';
+import { Component, OnInit, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -12,229 +12,152 @@ import { InputComponent } from '../../shared/components/input/input.component';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterLink, InputComponent],
   template: `
-    <div class="container">
-      <div class="card">
-        <div class="header">
-          <h2>Sign In</h2>
+    <div class="cyber-container">
+      <!-- Animated Background -->
+      <div class="matrix-bg">
+        <canvas #matrixCanvas class="matrix-canvas"></canvas>
+        <div class="cyber-grid"></div>
+        <div class="gradient-overlay"></div>
+      </div>
+
+      <!-- Floating Security Elements -->
+      <div class="security-elements">
+        <div class="security-icon shield" [style.animation-delay]="'0s'">
+          <i class="fas fa-shield-alt"></i>
+        </div>
+        <div class="security-icon lock" [style.animation-delay]="'2s'">
+          <i class="fas fa-lock"></i>
+        </div>
+        <div class="security-icon key" [style.animation-delay]="'4s'">
+          <i class="fas fa-key"></i>
+        </div>
+        <div class="security-icon fingerprint" [style.animation-delay]="'1s'">
+          <i class="fas fa-fingerprint"></i>
+        </div>
+      </div>
+
+      <!-- Main Login Card -->
+      <div class="cyber-card" [class.loading]="isLoading">
+        <!-- Header Section -->
+        <div class="card-header">
+          <div class="security-badge">
+            <i class="fas fa-shield-virus"></i>
+            <div class="pulse-ring"></div>
+          </div>
+          <h1 class="terminal-title">
+            <span class="typing-text">SECURE_ACCESS</span>
+            <span class="cursor">|</span>
+          </h1>
+          <p class="subtitle">Cybersecurity Vulnerability Assessment Portal</p>
+          <div class="status-line">
+            <span class="status-indicator"></span>
+            <span class="status-text">AUTHENTICATION_REQUIRED</span>
+          </div>
         </div>
 
-        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="form">
-          <div class="input-group">
-            <app-input
-              label="Email"
-              type="email"
-              id="email"
-              controlName="email"
-              [formGroup]="loginForm"
-            ></app-input>
+        <!-- Login Form -->
+        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="cyber-form">
+          <div class="terminal-section">
+            <div class="section-header">
+              <i class="fas fa-terminal"></i>
+              <span>LOGIN_CREDENTIALS</span>
+            </div>
+            
+            <div class="input-grid">
+              <div class="input-container">
+                <div class="input-label">
+                  <i class="fas fa-envelope"></i>
+                  <span>EMAIL_ADDRESS</span>
+                </div>
+                <app-input
+                  label=""
+                  type="email"
+                  id="email"
+                  controlName="email"
+                  [formGroup]="loginForm"
+                ></app-input>
+              </div>
 
-            <app-input
-              label="Password"
-              type="password"
-              id="password"
-              controlName="password"
-              [formGroup]="loginForm"
-            ></app-input>
+              <div class="input-container">
+                <div class="input-label">
+                  <i class="fas fa-key"></i>
+                  <span>SECURE_PASSWORD</span>
+                </div>
+                <app-input
+                  label=""
+                  type="password"
+                  id="password"
+                  controlName="password"
+                  [formGroup]="loginForm"
+                ></app-input>
+              </div>
+            </div>
           </div>
 
-          <div class="two-div">
-            <a routerLink="/register">Create Account</a>
-            <a routerLink="/forgot-password">Forgot Password?</a>
-          </div>
-
-          <div>
+          <!-- Action Buttons -->
+          <div class="action-section">
             <button
               type="submit"
               [disabled]="loginForm.invalid || isLoading"
-              class="btn-submit"
+              class="cyber-button primary"
             >
-              <span class="btn-icon" aria-hidden="true">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                  <path
-                    fill-rule="evenodd"
-                    d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
-                    clip-rule="evenodd"
-                  />
-                </svg>
-              </span>
-              {{ isLoading ? 'Signing in...' : 'Sign in' }}
+              <div class="button-content">
+                <i class="fas fa-sign-in-alt button-icon"></i>
+                <span class="button-text">
+                  {{ isLoading ? 'AUTHENTICATING...' : 'INITIALIZE_LOGIN' }}
+                </span>
+                <div class="button-scanner" *ngIf="isLoading"></div>
+              </div>
+              <div class="button-glow"></div>
             </button>
+
+            <div class="secondary-actions">
+              <a routerLink="/register" class="cyber-link">
+                <i class="fas fa-user-plus"></i>
+                <span>CREATE_ACCOUNT</span>
+              </a>
+              <a routerLink="/forgot-password" class="cyber-link">
+                <i class="fas fa-unlock-alt"></i>
+                <span>RECOVER_ACCESS</span>
+              </a>
+            </div>
           </div>
         </form>
-      </div>
-    </div>
 
-    <!-- Popup Modal -->
-    <div class="popup" *ngIf="showPopup">
-      <div class="popup-content">
-        <h3>Login Failed</h3>
-        <p>Invalid email or password. Please try again.</p>
-        <button class="popup-close" (click)="closePopup()">Close</button>
+        <!-- Security Footer -->
+        <div class="security-footer">
+          <div class="encryption-status">
+            <i class="fas fa-lock"></i>
+            <span>256-BIT_ENCRYPTION_ACTIVE</span>
+          </div>
+          <div class="threat-level">
+            <span class="threat-indicator low"></span>
+            <span>THREAT_LEVEL: LOW</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Enhanced Error Modal -->
+      <div class="cyber-modal" *ngIf="showPopup" (click)="closePopup()">
+        <div class="modal-content" (click)="$event.stopPropagation()">
+          <div class="modal-header">
+            <i class="fas fa-exclamation-triangle"></i>
+            <h3>AUTHENTICATION_FAILED</h3>
+          </div>
+          <div class="modal-body">
+            <p>INVALID_CREDENTIALS_DETECTED</p>
+            <div class="error-code">ERROR_CODE: AUTH_001</div>
+          </div>
+          <div class="modal-actions">
+            <button class="cyber-button secondary" (click)="closePopup()">
+              <span>ACKNOWLEDGE</span>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   `,
-  styles: [`
-    .container {
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 3rem 1rem;
-      background: linear-gradient(135deg, #18191a 0%, #1a1a2e 100%);
-    }
-    .card {
-      max-width: 500px;
-      width: 100%;
-      background: rgba(35, 35, 35, 0.95);
-      border: 1px solid rgba(41, 41, 41, 0.8);
-      border-radius: 18px;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-      color: #e2e8f0;
-      font-family: 'Inter', sans-serif;
-      padding: 2.5rem 2rem 2rem 2rem;
-      backdrop-filter: blur(10px);
-    }
-    .header h2 {
-      font-size: 1.75rem;
-      font-weight: 600;
-      color: #e2e8f0;
-      margin-bottom: 1.5rem;
-      text-align: center;
-      font-family: 'Inter', sans-serif;
-      letter-spacing: -0.5px;
-    }
-    .form {
-      display: flex;
-      flex-direction: column;
-      gap: 1.5rem;
-    }
-    .input-group {
-      display: flex;
-      flex-direction: column;
-      gap: 1.25rem;
-    }
-    .btn-submit {
-      width: 100%;
-      padding: 0.875rem 1.5rem;
-      font-size: 1.1rem;
-      font-weight: 600;
-      color: #fff;
-      background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
-      border: none;
-      border-radius: 12px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      margin-top: 1rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.75rem;
-      position: relative;
-      overflow: hidden;
-      
-      &::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
-        opacity: 0;
-        transition: opacity 0.3s ease;
-      }
-      
-      &:hover:not(:disabled) {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
-        
-        &::before {
-          opacity: 1;
-        }
-      }
-      
-      &:active:not(:disabled) {
-        transform: translateY(0);
-      }
-      
-      &:disabled {
-        opacity: 0.7;
-        cursor: not-allowed;
-        background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
-      }
-    }
-    .two-div {
-      display: flex;
-      gap: 1.5rem;
-      justify-content: space-between;
-      margin-top: 0.5rem;
-    }
-    a {
-      text-decoration: none;
-      font-size: 0.95rem;
-      color: #4cc9f0;
-      font-weight: 500;
-      transition: all 0.2s ease;
-      
-      &:hover {
-        color: #4895ef;
-        text-decoration: underline;
-      }
-    }
-    .popup {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      backdrop-filter: blur(8px);
-      background-color: rgba(0, 0, 0, 0.4);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 999;
-    }
-    .popup-content {
-      background: rgba(35, 35, 35, 0.95);
-      color: #fff;
-      padding: 2.5rem;
-      border-radius: 16px;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-      text-align: center;
-      max-width: 400px;
-      border: 1px solid rgba(41, 41, 41, 0.8);
-      backdrop-filter: blur(10px);
-      
-      h3 {
-        margin-bottom: 1rem;
-        color: #f44336;
-        font-size: 1.5rem;
-        font-weight: 600;
-      }
-      
-      p {
-        color: #e2e8f0;
-        margin-bottom: 1.5rem;
-        font-size: 1.1rem;
-      }
-    }
-    .popup-close {
-      background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
-      color: #fff;
-      border: none;
-      border-radius: 12px;
-      padding: 0.75rem 2rem;
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      
-      &:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
-      }
-    }
-  `]
+  styleUrls: ['./login.component.scss']
 })
 export class LoginComponent {
   loginForm: FormGroup;
