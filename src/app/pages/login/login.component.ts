@@ -159,10 +159,17 @@ import { InputComponent } from '../../shared/components/input/input.component';
   `,
   styleUrls: ['./login.component.scss']
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit, AfterViewInit {
   loginForm: FormGroup;
   isLoading = false;
   showPopup = false;
+  
+  // Matrix animation properties
+  private canvas!: HTMLCanvasElement;
+  private ctx!: CanvasRenderingContext2D;
+  private characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()_+-=[]{}|;:,.<>?';
+  private matrix: any[] = [];
+  private animationId!: number;
 
   constructor(
     private fb: FormBuilder,
@@ -174,6 +181,71 @@ export class LoginComponent {
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]]
     });
+  }
+
+  ngOnInit(): void {
+    // Component initialization
+  }
+
+  ngAfterViewInit(): void {
+    this.initMatrixAnimation();
+  }
+
+  private initMatrixAnimation(): void {
+    this.canvas = document.querySelector('.matrix-canvas') as HTMLCanvasElement;
+    if (!this.canvas) return;
+
+    this.ctx = this.canvas.getContext('2d')!;
+    this.resizeCanvas();
+    this.createMatrixDrops();
+    this.animateMatrix();
+
+    // Handle window resize
+    window.addEventListener('resize', () => {
+      this.resizeCanvas();
+      this.createMatrixDrops();
+    });
+  }
+
+  private resizeCanvas(): void {
+    this.canvas.width = window.innerWidth;
+    this.canvas.height = window.innerHeight;
+  }
+
+  private createMatrixDrops(): void {
+    const columns = Math.floor(this.canvas.width / 20);
+    this.matrix = [];
+
+    for (let i = 0; i < columns; i++) {
+      this.matrix[i] = {
+        y: Math.random() * this.canvas.height,
+        speed: Math.random() * 3 + 1
+      };
+    }
+  }
+
+  private animateMatrix(): void {
+    this.ctx.fillStyle = 'rgba(0, 0, 0, 0.04)';
+    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+    this.ctx.fillStyle = '#0f4c75';
+    this.ctx.font = '15px monospace';
+
+    for (let i = 0; i < this.matrix.length; i++) {
+      const char = this.characters.charAt(Math.floor(Math.random() * this.characters.length));
+      const x = i * 20;
+      const y = this.matrix[i].y;
+
+      this.ctx.fillText(char, x, y);
+
+      if (y > this.canvas.height && Math.random() > 0.975) {
+        this.matrix[i].y = 0;
+      }
+
+      this.matrix[i].y += this.matrix[i].speed;
+    }
+
+    this.animationId = requestAnimationFrame(() => this.animateMatrix());
   }
 
   onSubmit(): void {
@@ -196,5 +268,12 @@ export class LoginComponent {
 
   closePopup(): void {
     this.showPopup = false;
+  }
+
+  ngOnDestroy(): void {
+    if (this.animationId) {
+      cancelAnimationFrame(this.animationId);
+    }
+    window.removeEventListener('resize', () => {});
   }
 }
