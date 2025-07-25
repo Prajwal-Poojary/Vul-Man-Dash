@@ -175,16 +175,137 @@
   </div>
 
   <div class="dashboard-view" *ngIf="!showInputForm">
-    <div class="dashboard-header">
-      <div>
-        <h1 class="dashboard-title">
-          Threat & Vulnerability Dashboard
-        </h1>
-        <p class="dashboard-subtitle">Last updated: {{ currentDate | date:'medium' }}</p>
+    <!-- Enhanced Cybersecurity Header -->
+    <div class="cyber-dashboard-header">
+      <div class="header-main">
+        <div class="header-left">
+          <div class="cyber-title-section">
+            <div class="security-badge">
+              <i class="fas fa-shield-virus"></i>
+              <div class="pulse-ring"></div>
+            </div>
+            <div class="title-content">
+              <h1 class="cyber-title">
+                <span class="typing-text">THREAT_ASSESSMENT_DASHBOARD</span>
+                <span class="cursor">|</span>
+              </h1>
+              <p class="cyber-subtitle">Real-time Security Monitoring & Analysis</p>
+            </div>
+          </div>
+          <div class="status-indicators">
+            <div class="status-item">
+              <div class="status-dot active"></div>
+              <span>SYSTEM_ACTIVE</span>
+            </div>
+            <div class="status-item">
+              <div class="status-dot scanning"></div>
+              <span>SCANNING_ENABLED</span>
+            </div>
+            <div class="status-item">
+              <div class="status-dot secured"></div>
+              <span>SECURED_CONNECTION</span>
+            </div>
+          </div>
+        </div>
+        <div class="header-right">
+          <div class="timestamp-section">
+            <div class="timestamp-label">LAST_SCAN</div>
+            <div class="timestamp-value">{{ currentDate | date:'MMM dd, yyyy HH:mm' }}</div>
+          </div>
+          <button (click)="showInputForm = true" class="cyber-edit-button">
+            <i class="fas fa-edit"></i>
+            <span>MODIFY_DATA</span>
+          </button>
+        </div>
       </div>
-      <button (click)="showInputForm = true" class="edit-button">
-        Edit Data
-      </button>
+    </div>
+
+    <!-- Real-time Security Status Panel -->
+    <div class="security-status-panel">
+      <div class="status-grid">
+        <div class="status-card threat-level">
+          <div class="card-header">
+            <i class="fas fa-exclamation-triangle"></i>
+            <h3>THREAT_LEVEL</h3>
+          </div>
+          <div class="card-content">
+            <div class="threat-indicator" [ngClass]="cvssRiskLevel?.toLowerCase()">
+              <div class="threat-circle">
+                <span class="threat-text">{{ cvssRiskLevel || 'UNKNOWN' }}</span>
+              </div>
+            </div>
+            <div class="threat-details">
+              <div class="threat-score">{{ cvssBaseScore || 0 }}/10</div>
+              <div class="threat-description">CVSS Base Score</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="status-card vulnerability-count">
+          <div class="card-header">
+            <i class="fas fa-bug"></i>
+            <h3>VULNERABILITIES</h3>
+          </div>
+          <div class="card-content">
+            <div class="vuln-number">{{ totalRiskCount }}</div>
+            <div class="vuln-breakdown">
+              <div class="vuln-item critical">
+                <span class="vuln-count">{{ severityDistribution.critical }}</span>
+                <span class="vuln-label">CRITICAL</span>
+              </div>
+              <div class="vuln-item high">
+                <span class="vuln-count">{{ severityDistribution.high }}</span>
+                <span class="vuln-label">HIGH</span>
+              </div>
+              <div class="vuln-item medium">
+                <span class="vuln-count">{{ severityDistribution.medium }}</span>
+                <span class="vuln-label">MEDIUM</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="status-card security-score">
+          <div class="card-header">
+            <i class="fas fa-shield-check"></i>
+            <h3>SECURITY_SCORE</h3>
+          </div>
+          <div class="card-content">
+            <div class="score-display">
+              <div class="score-circle">
+                <div class="score-progress" [style.--progress]="getSecurityScore() + '%'"></div>
+                <div class="score-text">{{ getSecurityScore() }}%</div>
+              </div>
+            </div>
+            <div class="score-status">{{ getSecurityStatus() }}</div>
+          </div>
+        </div>
+
+        <div class="status-card scan-status">
+          <div class="card-header">
+            <i class="fas fa-search"></i>
+            <h3>SCAN_STATUS</h3>
+          </div>
+          <div class="card-content">
+            <div class="scan-progress">
+              <div class="progress-bar">
+                <div class="progress-fill scanning-animation"></div>
+              </div>
+              <div class="scan-text">MONITORING_ACTIVE</div>
+            </div>
+            <div class="scan-details">
+              <div class="scan-item">
+                <span class="scan-label">AREAS_SCANNED:</span>
+                <span class="scan-value">{{ areaVulnerabilities.length }}</span>
+              </div>
+              <div class="scan-item">
+                <span class="scan-label">TOTAL_FINDINGS:</span>
+                <span class="scan-value">{{ totalVulnerabilities }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="dashboard-content">
