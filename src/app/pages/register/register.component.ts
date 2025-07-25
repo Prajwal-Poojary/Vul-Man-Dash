@@ -197,10 +197,17 @@ import { passwordStrengthValidator } from '../../shared/validators';
   `,
   styleUrls: ['./register.component.scss']
 })
-export class RegisterComponent {
+export class RegisterComponent implements OnInit, AfterViewInit, OnDestroy {
   registerForm: FormGroup;
   isLoading = false;
   showPopup = false;
+  
+  // Matrix animation properties
+  private canvas!: HTMLCanvasElement;
+  private ctx!: CanvasRenderingContext2D;
+  private characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()_+-=[]{}|;:,.<>?';
+  private matrix: any[] = [];
+  private animationId!: number;
 
   constructor(
     private fb: FormBuilder,
