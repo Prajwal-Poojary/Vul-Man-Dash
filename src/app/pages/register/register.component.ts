@@ -321,4 +321,11 @@ export class RegisterComponent implements OnInit, AfterViewInit, OnDestroy {
   closePopup(): void {
     this.showPopup = false;
   }
+
+  ngOnDestroy(): void {
+    if (this.animationId) {
+      cancelAnimationFrame(this.animationId);
+    }
+    window.removeEventListener('resize', () => {});
+  }
 }
