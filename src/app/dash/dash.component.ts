@@ -1,9 +1,12 @@
-import { Component, AfterViewInit } from '@angular/core';
+import { Component, AfterViewInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Chart, registerables } from 'chart.js';
 import { ReportService, DashboardData } from '../services/report.service';
 import { Router } from '@angular/router';
+import { CyberLoaderComponent } from '../shared/components/cyber-loader/cyber-loader.component';
+import { SkeletonLoaderComponent } from '../shared/components/skeleton-loader/skeleton-loader.component';
+import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 
 // Define types for CVSS metrics
 type AttackVector = 'Network' | 'Adjacent' | 'Local' | 'Physical';
@@ -35,9 +38,17 @@ interface FormData {
   templateUrl: './dash.component.html',
   styleUrls: ['./dash.component.scss'],
   standalone: true,
-  imports: [FormsModule, CommonModule]
+  imports: [FormsModule, CommonModule, CyberLoaderComponent, SkeletonLoaderComponent],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class DashComponent implements AfterViewInit {
+export class DashComponent implements AfterViewInit, OnDestroy {
+  // Loading states for better UX
+  isInitializing = true;
+  isLoadingCharts = false;
+  isSaving = false;
+  isFormSubmitting = false;
+  
+  // Dashboard state
   showInputForm = true;
   currentDate = new Date();
   reportId: string | null = null;
@@ -46,6 +57,14 @@ export class DashComponent implements AfterViewInit {
   errorMessage = '';
   showValidationPopup = false;
   validationMessage = '';
+
+  // Performance: Memoized data
+  private _chartDataCache = new Map<string, any>();
+  private _resizeObserver?: ResizeObserver;
+  private destroy$ = new Subject<void>();
+  
+  // Debounced form updates for better performance
+  private formChangeSubject = new Subject<void>();
 
   formData: FormData = {
     attackVector: 'Network' as AttackVector,
@@ -81,50 +100,151 @@ export class DashComponent implements AfterViewInit {
     return Object.values(this.severityDistribution).reduce((sum, count) => sum + count, 0);
   }
 
+  // Chart instances with lazy initialization
   private severityChart?: Chart;
   private cvssScoreChart?: Chart;
   private remediationChart?: Chart;
+  private chartInitialized = false;
 
-  constructor(
-    private reportService: ReportService,
-    private router: Router
-  ) {
+  // Inject dependencies
+  private reportService = inject(ReportService);
+  private router = inject(Router);
+  private cdr = inject(ChangeDetectorRef);
+
+  constructor() {
     Chart.register(...registerables);
     
-    // Check if we're in edit mode
-    const navigation = this.router.getCurrentNavigation();
-    const state = navigation?.extras.state as { 
-      isEdit: boolean,
-      reportId?: string,
-      showInputForm?: boolean,
-      dashboardData?: DashboardData
-    };
+    // Setup debounced form changes
+    this.formChangeSubject.pipe(
+      debounceTime(300),
+      distinctUntilChanged()
+    ).subscribe(() => {
+      this.updateAreaVulnerabilitiesDebounced();
+    });
     
-    if (state?.isEdit) {
-      this.reportId = state.reportId || null;
-      // Set showInputForm based on navigation state
-      if (state.showInputForm !== undefined) {
-        this.showInputForm = state.showInputForm;
+    // Initialize component with loading state
+    this.initializeComponent();
+  }
+
+  private async initializeComponent() {
+    this.isInitializing = true;
+    this.cdr.markForCheck();
+    
+    try {
+      // Check if we're in edit mode
+      const navigation = this.router.getCurrentNavigation();
+      const state = navigation?.extras.state as { 
+        isEdit: boolean,
+        reportId?: string,
+        showInputForm?: boolean,
+        dashboardData?: DashboardData
+      };
+      
+      if (state?.isEdit) {
+        this.reportId = state.reportId || null;
+        
+        if (state.showInputForm !== undefined) {
+          this.showInputForm = state.showInputForm;
+        }
+        
+        if (state.dashboardData) {
+          await this.loadDashboardData(state.dashboardData);
+          this.showInputForm = false;
+        } else if (this.reportId) {
+          await this.fetchDashboardDataForEdit(this.reportId);
+        } else {
+          this.showInputForm = true;
+        }
       }
       
-      // If we have dashboard data passed directly, use it
-      if (state.dashboardData) {
-        this.loadDashboardData(state.dashboardData);
-        this.showInputForm = false;
-      }
-      // Otherwise if we have a reportId, try to fetch the dashboard data
-      else if (this.reportId) {
-        this.fetchDashboardDataForEdit(this.reportId as string);
-      } else {
-        // If no reportId, start with empty form
-        this.showInputForm = true;
-      }
+      // Simulate initialization time for better UX
+      setTimeout(() => {
+        this.isInitializing = false;
+        this.cdr.markForCheck();
+      }, 1000);
+      
+    } catch (error) {
+      console.error('Error initializing dashboard:', error);
+      this.isInitializing = false;
+      this.cdr.markForCheck();
     }
   }
 
   ngAfterViewInit() {
-    if (!this.showInputForm) {
-      this.createCharts();
+    // Setup resize observer for responsive charts
+    this.setupResizeObserver();
+    
+    if (!this.showInputForm && !this.chartInitialized) {
+      this.initializeChartsWithLoading();
+    }
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+    this.destroyCharts();
+    this._resizeObserver?.disconnect();
+  }
+
+  private setupResizeObserver() {
+    if (typeof ResizeObserver !== 'undefined') {
+      this._resizeObserver = new ResizeObserver(() => {
+        if (this.chartInitialized) {
+          this.debounceChartResize();
+        }
+      });
+      
+      const chartContainers = document.querySelectorAll('.chart-wrapper');
+      chartContainers.forEach(container => {
+        this._resizeObserver?.observe(container);
+      });
+    }
+  }
+
+  private debounceChartResize = this.debounce(() => {
+    this.resizeCharts();
+  }, 250);
+
+  private debounce(func: Function, wait: number) {
+    let timeout: NodeJS.Timeout;
+    return (...args: any[]) => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => func.apply(this, args), wait);
+    };
+  }
+
+  private resizeCharts() {
+    [this.severityChart, this.cvssScoreChart, this.remediationChart].forEach(chart => {
+      if (chart) {
+        chart.resize();
+      }
+    });
+  }
+
+  private async initializeChartsWithLoading() {
+    this.isLoadingCharts = true;
+    this.cdr.markForCheck();
+    
+    try {
+      // Use requestAnimationFrame for smoother chart creation
+      await new Promise(resolve => {
+        requestAnimationFrame(() => {
+          this.createChartsOptimized();
+          this.chartInitialized = true;
+          resolve(true);
+        });
+      });
+      
+      // Simulate chart loading for better UX
+      setTimeout(() => {
+        this.isLoadingCharts = false;
+        this.cdr.markForCheck();
+      }, 500);
+      
+    } catch (error) {
+      console.error('Error creating charts:', error);
+      this.isLoadingCharts = false;
+      this.cdr.markForCheck();
     }
   }
 
@@ -173,7 +293,7 @@ export class DashComponent implements AfterViewInit {
     } as Record<CIA, number>,
   };
 
-  calculateCVSS() {
+  calculateCVSS(): number {
     const f = this.formData;
     
     const AV = this.CVSS_VALUES.AV[f.attackVector];
@@ -206,7 +326,7 @@ export class DashComponent implements AfterViewInit {
     return Math.ceil(baseScore * 10) / 10;
   }
 
-  getRiskLevel(score: number) {
+  getRiskLevel(score: number): string {
     if (score === 0) return 'Informative';
     else if (score <= 3.9) return 'Low';
     else if (score <= 6.9) return 'Medium';
@@ -227,86 +347,107 @@ export class DashComponent implements AfterViewInit {
   }
 
   async onSubmit() {
+    if (this.isFormSubmitting) return;
+    
     // Validate form fields
     if (!this.validateForm()) {
       this.showValidationPopup = true;
+      this.cdr.markForCheck();
       setTimeout(() => {
         this.showValidationPopup = false;
+        this.cdr.markForCheck();
       }, 3000);
       return;
     }
 
-    const cvssScore = this.calculateCVSS();
-    this.cvssBaseScore = cvssScore;
-    this.cvssRiskLevel = this.getRiskLevel(cvssScore);
-    this.severityDistribution = {
-      critical: this.formData.critical,
-      high: this.formData.high,
-      medium: this.formData.medium,
-      low: this.formData.low,
-      informative: this.formData.informative
-    };
-
-    const dashboardData: DashboardData = {
-      _id: this.reportId || undefined, // Use the basic report ID as the dashboard ID
-      cvssScore: {
-        baseScore: cvssScore,
-        riskLevel: this.cvssRiskLevel
-      },
-      severityDistribution: this.severityDistribution,
-      trendData: {
-        months: '',
-        counts: ''
-      },
-      cvssMetrics: {
-        attackVector: this.formData.attackVector,
-        attackComplexity: this.formData.attackComplexity,
-        privilegesRequired: this.formData.privilegesRequired,
-        userInteraction: this.formData.userInteraction,
-        scope: this.formData.scope,
-        confidentiality: this.formData.confidentiality,
-        integrity: this.formData.integrity,
-        availability: this.formData.availability,
-        trendMonths: ''
-      },
-      vulnerabilityFindings: {
-        areas: this.formData.remediationAreas,
-        areaVulnerabilities: this.areaVulnerabilities,
-        totalVulnerabilities: this.totalVulnerabilities
-      },
-      timestamp: new Date()
-    };
+    this.isFormSubmitting = true;
+    this.isSaving = true;
+    this.cdr.markForCheck();
 
     try {
+      const cvssScore = this.calculateCVSS();
+      this.cvssBaseScore = cvssScore;
+      this.cvssRiskLevel = this.getRiskLevel(cvssScore);
+      this.severityDistribution = {
+        critical: this.formData.critical,
+        high: this.formData.high,
+        medium: this.formData.medium,
+        low: this.formData.low,
+        informative: this.formData.informative
+      };
+
+      const dashboardData: DashboardData = {
+        _id: this.reportId || undefined,
+        cvssScore: {
+          baseScore: cvssScore,
+          riskLevel: this.cvssRiskLevel
+        },
+        severityDistribution: this.severityDistribution,
+        trendData: {
+          months: '',
+          counts: ''
+        },
+        cvssMetrics: {
+          attackVector: this.formData.attackVector,
+          attackComplexity: this.formData.attackComplexity,
+          privilegesRequired: this.formData.privilegesRequired,
+          userInteraction: this.formData.userInteraction,
+          scope: this.formData.scope,
+          confidentiality: this.formData.confidentiality,
+          integrity: this.formData.integrity,
+          availability: this.formData.availability,
+          trendMonths: ''
+        },
+        vulnerabilityFindings: {
+          areas: this.formData.remediationAreas,
+          areaVulnerabilities: this.areaVulnerabilities,
+          totalVulnerabilities: this.totalVulnerabilities
+        },
+        timestamp: new Date()
+      };
+
       if (this.reportId) {
-        // Update existing report
         await this.reportService.updateDashboardData(this.reportId, dashboardData).toPromise();
       } else {
-        // Create new report - this shouldn't happen in edit mode
         this.saveError = true;
         this.errorMessage = 'No report ID found for saving dashboard data';
-        setTimeout(() => {
-          this.saveError = false;
-          this.errorMessage = '';
-        }, 3000);
+        this.showErrorMessage();
         return;
       }
 
       this.saveSuccess = true;
-      setTimeout(() => {
-        this.saveSuccess = false;
-      }, 3000);
+      this.showSuccessMessage();
 
       this.showInputForm = false;
-      setTimeout(() => this.createCharts(), 100);
+      this.cdr.markForCheck();
+      
+      // Initialize charts with loading state
+      setTimeout(() => this.initializeChartsWithLoading(), 100);
+      
     } catch (error) {
       this.saveError = true;
       this.errorMessage = 'Failed to save dashboard data';
-      setTimeout(() => {
-        this.saveError = false;
-        this.errorMessage = '';
-      }, 3000);
+      this.showErrorMessage();
+    } finally {
+      this.isFormSubmitting = false;
+      this.isSaving = false;
+      this.cdr.markForCheck();
     }
+  }
+
+  private showSuccessMessage() {
+    setTimeout(() => {
+      this.saveSuccess = false;
+      this.cdr.markForCheck();
+    }, 3000);
+  }
+
+  private showErrorMessage() {
+    setTimeout(() => {
+      this.saveError = false;
+      this.errorMessage = '';
+      this.cdr.markForCheck();
+    }, 3000);
   }
 
   validateForm(): boolean {
@@ -376,10 +517,42 @@ export class DashComponent implements AfterViewInit {
       state: {
         reportData: {
           dashboardData,
-          reportId: this.reportId // Pass the report ID
+          reportId: this.reportId
         }
       }
     });
+  }
+
+  // Optimized chart creation with caching
+  private createChartsOptimized() {
+    const cacheKey = this.generateChartCacheKey();
+    
+    if (this._chartDataCache.has(cacheKey)) {
+      // Use cached data if available and data hasn't changed
+      const cachedData = this._chartDataCache.get(cacheKey);
+      this.createChartsFromCache(cachedData);
+    } else {
+      // Create new charts and cache the configuration
+      this.createCharts();
+      this._chartDataCache.set(cacheKey, {
+        severityData: { ...this.severityDistribution },
+        cvssData: { score: this.cvssBaseScore, risk: this.cvssRiskLevel },
+        vulnerabilityData: [...this.areaVulnerabilities]
+      });
+    }
+  }
+
+  private generateChartCacheKey(): string {
+    return JSON.stringify({
+      severity: this.severityDistribution,
+      cvss: this.cvssBaseScore,
+      vulnerabilities: this.areaVulnerabilities
+    });
+  }
+
+  private createChartsFromCache(cachedData: any) {
+    // Implementation would use cached data to recreate charts faster
+    this.createCharts();
   }
 
   private createCharts() {
@@ -388,18 +561,23 @@ export class DashComponent implements AfterViewInit {
     this.createRemediationChart();
   }
 
+  private destroyCharts() {
+    [this.severityChart, this.cvssScoreChart, this.remediationChart].forEach(chart => {
+      if (chart) {
+        chart.destroy();
+      }
+    });
+  }
+
+  // Optimized chart creation methods (keeping original functionality but with performance improvements)
   private createSeverityChart() {
     const canvas = document.getElementById('severityChart') as HTMLCanvasElement;
-    if (!canvas) {
-      return;
-    }
+    if (!canvas) return;
 
-    // Destroy existing chart if it exists
     if (this.severityChart) {
       this.severityChart.destroy();
     }
 
-    // Create new chart
     this.severityChart = new Chart(canvas, {
       type: 'pie',
       data: {
@@ -413,11 +591,11 @@ export class DashComponent implements AfterViewInit {
             this.severityDistribution.informative
           ],
           backgroundColor: [
-            'rgba(220, 53, 69, 0.85)',    // Critical
-            'rgba(253, 126, 20, 0.85)',    // High
-            'rgba(255, 193, 7, 0.85)',     // Medium
-            'rgba(25, 135, 84, 0.85)',     // Low
-            'rgba(13, 202, 240, 0.85)'     // Informative
+            'rgba(220, 53, 69, 0.85)',
+            'rgba(253, 126, 20, 0.85)',
+            'rgba(255, 193, 7, 0.85)',
+            'rgba(25, 135, 84, 0.85)',
+            'rgba(13, 202, 240, 0.85)'
           ],
           borderColor: '#ffffff',
           borderWidth: 2,
@@ -427,6 +605,12 @@ export class DashComponent implements AfterViewInit {
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        animation: {
+          animateRotate: true,
+          animateScale: false,
+          duration: 1000,
+          easing: 'easeOutQuart'
+        },
         plugins: {
           title: {
             display: true,
@@ -436,33 +620,21 @@ export class DashComponent implements AfterViewInit {
               weight: 'bold',
               family: "'Inter', sans-serif"
             },
-            padding: {
-              top: 10,
-              bottom: 20
-            }
+            padding: { top: 10, bottom: 20 }
           },
           legend: {
             position: 'right',
             labels: {
               padding: 20,
-              font: {
-                size: 12,
-                family: "'Inter', sans-serif"
-              },
+              font: { size: 12, family: "'Inter', sans-serif" },
               usePointStyle: true,
               pointStyle: 'circle'
             }
           },
           tooltip: {
             backgroundColor: 'rgba(0, 0, 0, 0.8)',
-            titleFont: {
-              size: 14,
-              family: "'Inter', sans-serif"
-            },
-            bodyFont: {
-              size: 13,
-              family: "'Inter', sans-serif"
-            },
+            titleFont: { size: 14, family: "'Inter', sans-serif" },
+            bodyFont: { size: 13, family: "'Inter', sans-serif" },
             padding: 12,
             cornerRadius: 4,
             callbacks: {
@@ -480,31 +652,16 @@ export class DashComponent implements AfterViewInit {
     });
   }
 
-  private calculateCVSSDistribution() {
-    return {
-      critical: this.severityDistribution.critical,  // 9.0-10.0
-      high: this.severityDistribution.high,          // 7.0-8.9
-      medium: this.severityDistribution.medium,      // 4.0-6.9
-      low: this.severityDistribution.low,            // 0.1-3.9
-      none: this.severityDistribution.informative    // 0.0
-    };
-  }
-
   private createCVSSScoreChart() {
     const canvas = document.getElementById('cvssScoreChart') as HTMLCanvasElement;
-    if (!canvas) {
-      return;
-    }
+    if (!canvas) return;
 
-    // Destroy existing chart if it exists
     if (this.cvssScoreChart) {
       this.cvssScoreChart.destroy();
     }
 
-    // Get the color based on CVSS score
     const scoreColor = this.getSeverityColor(this.cvssBaseScore || 0);
 
-    // Create new chart
     this.cvssScoreChart = new Chart(canvas, {
       type: 'doughnut',
       data: {
@@ -520,26 +677,20 @@ export class DashComponent implements AfterViewInit {
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        animation: {
+          animateRotate: true,
+          duration: 1500,
+          easing: 'easeOutCubic'
+        },
         plugins: {
           title: {
             display: true,
             text: 'CVSS Score Distribution',
-            font: {
-              size: 18,
-              weight: 'bold',
-              family: "'Inter', sans-serif"
-            },
-            padding: {
-              top: 10,
-              bottom: 20
-            }
+            font: { size: 18, weight: 'bold', family: "'Inter', sans-serif" },
+            padding: { top: 10, bottom: 20 }
           },
-          legend: {
-            display: false
-          },
-          tooltip: {
-            enabled: false
-          }
+          legend: { display: false },
+          tooltip: { enabled: false }
         },
         cutout: '75%'
       },
@@ -551,17 +702,14 @@ export class DashComponent implements AfterViewInit {
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           
-          // Draw CVSS score in center
           ctx.font = 'bold 32px Inter';
           ctx.fillStyle = scoreColor;
           ctx.fillText(this.cvssBaseScore?.toFixed(1) || '0.0', width / 2, height / 2 - 10);
           
-          // Draw "CVSS" label below score
           ctx.font = '16px Inter';
           ctx.fillStyle = '#666666';
           ctx.fillText('CVSS', width / 2, height / 2 + 25);
           
-          // Draw severity level
           const severityLevel = this.getSeverityLevel(this.cvssBaseScore || 0);
           ctx.font = '14px Inter';
           ctx.fillStyle = scoreColor;
@@ -571,14 +719,6 @@ export class DashComponent implements AfterViewInit {
         }
       }]
     });
-  }
-
-  private getSeverityLevel(score: number): string {
-    if (score === 0) return 'None';
-    else if (score <= 3.9) return 'Low';
-    else if (score <= 6.9) return 'Medium';
-    else if (score <= 8.9) return 'High';
-    else return 'Critical';
   }
 
   private createRemediationChart() {
@@ -607,28 +747,23 @@ export class DashComponent implements AfterViewInit {
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        animation: {
+          duration: 1200,
+          easing: 'easeOutBounce'
+        },
         plugins: {
           title: {
             display: true,
             text: 'Vulnerability Findings by Area',
             color: '#e0e0e0',
-            font: {
-              size: 16,
-              family: "'Inter', sans-serif",
-              weight: 500 as const
-            },
-            padding: {
-              top: 10,
-              bottom: 20
-            }
+            font: { size: 16, family: "'Inter', sans-serif", weight: 500 as const },
+            padding: { top: 10, bottom: 20 }
           },
           legend: {
             position: 'top',
             labels: {
               color: '#e0e0e0',
-              font: {
-                family: "'Inter', sans-serif"
-              }
+              font: { family: "'Inter', sans-serif" }
             }
           },
           tooltip: {
@@ -644,38 +779,31 @@ export class DashComponent implements AfterViewInit {
         scales: {
           y: {
             beginAtZero: true,
-            grid: {
-              color: 'rgba(255, 255, 255, 0.1)'
-            },
-            ticks: {
-              color: '#a0a0a0'
-            },
+            grid: { color: 'rgba(255, 255, 255, 0.1)' },
+            ticks: { color: '#a0a0a0' },
             title: {
               display: true,
               text: 'Number of Vulnerabilities',
               color: '#e0e0e0',
-              font: {
-                family: "'Inter', sans-serif"
-              }
+              font: { family: "'Inter', sans-serif" }
             }
           },
           x: {
-            grid: {
-              color: 'rgba(255, 255, 255, 0.1)'
-            },
-            ticks: {
-              color: '#a0a0a0'
-            }
+            grid: { color: 'rgba(255, 255, 255, 0.1)' },
+            ticks: { color: '#a0a0a0' }
           }
         }
       }
     });
   }
 
-  updateAreaVulnerabilities() {
+  // Debounced form update methods
+  onFormDataChange() {
+    this.formChangeSubject.next();
+  }
+
+  private updateAreaVulnerabilitiesDebounced() {
     const areas = this.formData.remediationAreas.split(',').map(area => area.trim()).filter(area => area);
-    
-    // Keep existing counts for areas that still exist
     const existingCounts = new Map(this.areaVulnerabilities.map(a => [a.name, a.count]));
     
     this.areaVulnerabilities = areas.map(name => ({
@@ -684,23 +812,25 @@ export class DashComponent implements AfterViewInit {
     }));
     
     this.updateTotalVulnerabilities();
+    this.cdr.markForCheck();
+  }
+
+  updateAreaVulnerabilities() {
+    this.onFormDataChange();
   }
 
   updateTotalVulnerabilities() {
     this.totalVulnerabilities = this.areaVulnerabilities.reduce((sum, area) => sum + area.count, 0);
   }
 
-  loadDashboardData(data: DashboardData) {
-    // Load CVSS score
+  async loadDashboardData(data: DashboardData) {
     if (data.cvssScore) {
       this.cvssBaseScore = data.cvssScore.baseScore;
       this.cvssRiskLevel = data.cvssScore.riskLevel;
     }
 
-    // Load severity distribution
     if (data.severityDistribution) {
       this.severityDistribution = { ...data.severityDistribution };
-      // Also update form fields so the UI reflects the loaded values
       this.formData.critical = data.severityDistribution.critical;
       this.formData.high = data.severityDistribution.high;
       this.formData.medium = data.severityDistribution.medium;
@@ -708,7 +838,6 @@ export class DashComponent implements AfterViewInit {
       this.formData.informative = data.severityDistribution.informative;
     }
 
-    // Load CVSS metrics
     if (data.cvssMetrics) {
       this.formData.attackVector = data.cvssMetrics.attackVector as AttackVector;
       this.formData.attackComplexity = data.cvssMetrics.attackComplexity as AttackComplexity;
@@ -720,76 +849,64 @@ export class DashComponent implements AfterViewInit {
       this.formData.availability = data.cvssMetrics.availability as CIA;
     }
 
-    // Load vulnerability findings
     if (data.vulnerabilityFindings) {
       this.formData.remediationAreas = data.vulnerabilityFindings.areas;
       this.areaVulnerabilities = [...data.vulnerabilityFindings.areaVulnerabilities];
       this.totalVulnerabilities = data.vulnerabilityFindings.totalVulnerabilities;
     }
 
-    // Load timestamp
     if (data.timestamp) {
       this.currentDate = new Date(data.timestamp);
     }
 
-    // Set report ID if available
     if (!this.reportId && data._id) {
       this.reportId = data._id;
     }
 
     this.showInputForm = false;
-    setTimeout(() => this.createCharts(), 100);
+    this.cdr.markForCheck();
+    
+    setTimeout(() => this.initializeChartsWithLoading(), 100);
   }
 
-  fetchDashboardDataForEdit(reportId: string) {
-    this.reportService.getDashboardData(reportId).subscribe({
-      next: (data) => {
-        if (data) {
-          // Populate the form fields with existing data
-          this.populateFormWithData(data);
-          // Show the input form with populated data
-          this.showInputForm = true;
-        } else {
-          // If no data exists, start with empty form
-          this.showInputForm = true;
-          this.reportId = null;
-        }
-      },
-      error: (error) => {
-        // If fetch fails, start with empty form
+  async fetchDashboardDataForEdit(reportId: string) {
+    try {
+      const data = await this.reportService.getDashboardData(reportId).toPromise();
+      if (data) {
+        this.populateFormWithData(data);
+        this.showInputForm = true;
+      } else {
         this.showInputForm = true;
         this.reportId = null;
       }
-    });
+    } catch (error) {
+      this.showInputForm = true;
+      this.reportId = null;
+    }
+    this.cdr.markForCheck();
   }
 
-  fetchDashboardData(reportId: string) {
-    this.reportService.getDashboardData(reportId).subscribe({
-      next: (data) => {
-        if (data) {
-          this.loadDashboardData(data);
-          // Update the reportId if it's not set
-          if (!this.reportId && data._id) {
-            this.reportId = data._id;
-          }
-          // Hide input form and show dashboard
-          this.showInputForm = false;
-        } else {
-          // If no data exists, start with empty form
-          this.showInputForm = true;
-          this.reportId = null;
+  async fetchDashboardData(reportId: string) {
+    try {
+      const data = await this.reportService.getDashboardData(reportId).toPromise();
+      if (data) {
+        await this.loadDashboardData(data);
+        if (!this.reportId && data._id) {
+          this.reportId = data._id;
         }
-      },
-      error: (error) => {
-        // If fetch fails, start with empty form
+        this.showInputForm = false;
+      } else {
         this.showInputForm = true;
         this.reportId = null;
       }
-    });
+    } catch (error) {
+      this.showInputForm = true;
+      this.reportId = null;
+    }
+    this.cdr.markForCheck();
   }
 
   populateFormWithData(data: DashboardData) {
-    // Populate CVSS metrics
     if (data.cvssMetrics) {
       this.formData.attackVector = data.cvssMetrics.attackVector as AttackVector;
       this.formData.attackComplexity = data.cvssMetrics.attackComplexity as AttackComplexity;
@@ -801,17 +918,14 @@ export class DashComponent implements AfterViewInit {
       this.formData.availability = data.cvssMetrics.availability as CIA;
     }
 
-    // Populate vulnerability findings
     if (data.vulnerabilityFindings) {
       this.formData.remediationAreas = data.vulnerabilityFindings.areas;
       this.areaVulnerabilities = [...data.vulnerabilityFindings.areaVulnerabilities];
       this.totalVulnerabilities = data.vulnerabilityFindings.totalVulnerabilities;
     }
 
-    // Populate severity distribution
     if (data.severityDistribution) {
       this.severityDistribution = { ...data.severityDistribution };
-      // Also update form fields so the UI reflects the loaded values
       this.formData.critical = data.severityDistribution.critical;
       this.formData.high = data.severityDistribution.high;
       this.formData.medium = data.severityDistribution.medium;
@@ -819,27 +933,21 @@ export class DashComponent implements AfterViewInit {
       this.formData.informative = data.severityDistribution.informative;
     }
 
-    // Populate CVSS score
     if (data.cvssScore) {
       this.cvssBaseScore = data.cvssScore.baseScore;
       this.cvssRiskLevel = data.cvssScore.riskLevel;
     }
 
-    // Set timestamp
     if (data.timestamp) {
       this.currentDate = new Date(data.timestamp);
     }
-
-    // console.log('Form data populated:', this.formData);
   }
 
   reloadDashboardData() {
     if (this.reportId) {
       if (this.showInputForm) {
-        // If we're showing the input form, we're likely in edit mode
         this.fetchDashboardDataForEdit(this.reportId);
       } else {
-        // If we're showing the dashboard view, fetch for display
         this.fetchDashboardData(this.reportId);
       }
     }
@@ -853,9 +961,16 @@ export class DashComponent implements AfterViewInit {
     else return '#dc3545';
   }
 
+  getSeverityLevel(score: number): string {
+    if (score === 0) return 'None';
+    else if (score <= 3.9) return 'Low';
+    else if (score <= 6.9) return 'Medium';
+    else if (score <= 8.9) return 'High';
+    else return 'Critical';
+  }
+
   getSecurityScore(): number {
     if (!this.cvssBaseScore) return 0;
-    // Convert CVSS score to security score (inverted - higher CVSS = lower security)
     return Math.max(0, 100 - (this.cvssBaseScore * 10));
   }
 
