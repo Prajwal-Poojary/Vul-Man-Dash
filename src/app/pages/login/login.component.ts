@@ -159,7 +159,7 @@ import { InputComponent } from '../../shared/components/input/input.component';
   `,
   styleUrls: ['./login.component.scss']
 })
-export class LoginComponent implements OnInit, AfterViewInit {
+export class LoginComponent implements OnInit, AfterViewInit, OnDestroy {
   loginForm: FormGroup;
   isLoading = false;
   showPopup = false;
