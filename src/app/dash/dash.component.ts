@@ -852,4 +852,28 @@ export class DashComponent implements AfterViewInit {
     else if (score <= 8.9) return '#fd7e14';
     else return '#dc3545';
   }
+
+  getSecurityScore(): number {
+    if (!this.cvssBaseScore) return 0;
+    // Convert CVSS score to security score (inverted - higher CVSS = lower security)
+    return Math.max(0, 100 - (this.cvssBaseScore * 10));
+  }
+
+  getSecurityStatus(): string {
+    const score = this.getSecurityScore();
+    if (score >= 80) return 'SECURE';
+    else if (score >= 60) return 'MODERATE';
+    else if (score >= 40) return 'VULNERABLE';
+    else return 'CRITICAL';
+  }
+
+  getPercentage(value: number): number {
+    if (this.totalRiskCount === 0) return 0;
+    return Math.round((value / this.totalRiskCount) * 100);
+  }
+
+  getAverageFindings(): number {
+    if (this.areaVulnerabilities.length === 0) return 0;
+    return Math.round(this.totalVulnerabilities / this.areaVulnerabilities.length * 10) / 10;
+  }
 }
