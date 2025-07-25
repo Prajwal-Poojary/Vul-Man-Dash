@@ -309,134 +309,292 @@
     </div>
 
     <div class="dashboard-content">
-      <!-- CVSS Score Display -->
-      <div class="dashboard-section" *ngIf="cvssBaseScore !== null">
-        <h2 class="section-title">
-          CVSS Score
-        </h2>
-        <div class="score-display">
-          <div class="score-box" [style.background-color]="getRiskColor(cvssRiskLevel)">
-            <div class="score-content">
-              <div class="score-value">{{ cvssBaseScore }}</div>
-              <div class="score-divider"></div>
-              <div class="risk-level">{{ cvssRiskLevel }}</div>
+      <!-- Enhanced CVSS Score Display -->
+      <div class="cyber-dashboard-section cvss-section" *ngIf="cvssBaseScore !== null">
+        <div class="section-header">
+          <h2 class="cyber-section-title">
+            <i class="fas fa-calculator"></i>
+            CVSS_RISK_ASSESSMENT
+          </h2>
+          <div class="section-status">
+            <span class="status-indicator active"></span>
+            <span>ASSESSMENT_COMPLETE</span>
+          </div>
+        </div>
+        
+        <div class="cvss-display-grid">
+          <div class="cvss-score-card">
+            <div class="score-header">
+              <h3>BASE_SCORE</h3>
+              <div class="score-timestamp">{{ currentDate | date:'HH:mm:ss' }}</div>
+            </div>
+            <div class="score-container">
+              <div class="score-gauge">
+                <div class="gauge-bg"></div>
+                <div class="gauge-fill" [style.--score]="cvssBaseScore || 0"></div>
+                <div class="gauge-center">
+                  <div class="score-value">{{ cvssBaseScore }}</div>
+                  <div class="score-max">/10</div>
+                </div>
+              </div>
+            </div>
+            <div class="score-footer">
+              <div class="risk-badge" [ngClass]="cvssRiskLevel?.toLowerCase()">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>{{ cvssRiskLevel }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="cvss-breakdown">
+            <h3>VECTOR_ANALYSIS</h3>
+            <div class="vector-grid">
+              <div class="vector-item">
+                <div class="vector-label">ATTACK_VECTOR</div>
+                <div class="vector-value">{{ formData.attackVector }}</div>
+              </div>
+              <div class="vector-item">
+                <div class="vector-label">COMPLEXITY</div>
+                <div class="vector-value">{{ formData.attackComplexity }}</div>
+              </div>
+              <div class="vector-item">
+                <div class="vector-label">PRIVILEGES</div>
+                <div class="vector-value">{{ formData.privilegesRequired }}</div>
+              </div>
+              <div class="vector-item">
+                <div class="vector-label">USER_INTERACTION</div>
+                <div class="vector-value">{{ formData.userInteraction }}</div>
+              </div>
+              <div class="vector-item">
+                <div class="vector-label">SCOPE</div>
+                <div class="vector-value">{{ formData.scope }}</div>
+              </div>
+              <div class="vector-item">
+                <div class="vector-label">IMPACT_LEVEL</div>
+                <div class="vector-value">
+                  C:{{ formData.confidentiality }}/I:{{ formData.integrity }}/A:{{ formData.availability }}
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
       <!-- Enhanced Risk Matrix -->
-      <div class="dashboard-section">
-        <h2 class="section-title">
-          Risk Matrix
-        </h2>
-        <div class="risk-matrix">
-          <table>
-            <thead>
-              <tr>
-                <th>Impact</th>
-                <th>Critical</th>
-                <th>High</th>
-                <th>Medium</th>
-                <th>Low</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr [class.active]="cvssRiskLevel === 'Critical'">
-                <td class="impact-cell">Critical</td>
-                <td class="score-cell critical" [class.active]="cvssBaseScore && cvssBaseScore >= 9.0">9.0-10.0</td>
-                <td class="score-cell high" [class.active]="cvssBaseScore && cvssBaseScore >= 7.0 && cvssBaseScore < 9.0">7.0-8.9</td>
-                <td class="score-cell medium" [class.active]="cvssBaseScore && cvssBaseScore >= 4.0 && cvssBaseScore < 7.0">4.0-6.9</td>
-                <td class="score-cell low" [class.active]="cvssBaseScore && cvssBaseScore > 0 && cvssBaseScore < 4.0">0.1-3.9</td>
-              </tr>
-              <tr [class.active]="cvssRiskLevel === 'High'">
-                <td class="impact-cell">High</td>
-                <td class="score-cell high" [class.active]="cvssBaseScore && cvssBaseScore >= 7.0 && cvssBaseScore < 9.0">7.0-8.9</td>
-                <td class="score-cell high" [class.active]="cvssBaseScore && cvssBaseScore >= 5.0 && cvssBaseScore < 7.0">5.0-6.9</td>
-                <td class="score-cell medium" [class.active]="cvssBaseScore && cvssBaseScore >= 3.0 && cvssBaseScore < 5.0">3.0-4.9</td>
-                <td class="score-cell low" [class.active]="cvssBaseScore && cvssBaseScore > 0 && cvssBaseScore < 3.0">0.1-2.9</td>
-              </tr>
-              <tr [class.active]="cvssRiskLevel === 'Medium'">
-                <td class="impact-cell">Medium</td>
-                <td class="score-cell medium" [class.active]="cvssBaseScore && cvssBaseScore >= 4.0 && cvssBaseScore < 7.0">4.0-6.9</td>
-                <td class="score-cell medium" [class.active]="cvssBaseScore && cvssBaseScore >= 3.0 && cvssBaseScore < 5.0">3.0-4.9</td>
-                <td class="score-cell medium" [class.active]="cvssBaseScore && cvssBaseScore >= 2.0 && cvssBaseScore < 3.0">2.0-2.9</td>
-                <td class="score-cell low" [class.active]="cvssBaseScore && cvssBaseScore > 0 && cvssBaseScore < 2.0">0.1-1.9</td>
-              </tr>
-              <tr [class.active]="cvssRiskLevel === 'Low'">
-                <td class="impact-cell">Low</td>
-                <td class="score-cell low" [class.active]="cvssBaseScore && cvssBaseScore > 0 && cvssBaseScore < 4.0">0.1-3.9</td>
-                <td class="score-cell low" [class.active]="cvssBaseScore && cvssBaseScore > 0 && cvssBaseScore < 3.0">0.1-2.9</td>
-                <td class="score-cell low" [class.active]="cvssBaseScore && cvssBaseScore > 0 && cvssBaseScore < 2.0">0.1-1.9</td>
-                <td class="score-cell informative" [class.active]="cvssBaseScore === 0">0.0</td>
-              </tr>
-            </tbody>
-          </table>
+      <div class="cyber-dashboard-section risk-matrix-section">
+        <div class="section-header">
+          <h2 class="cyber-section-title">
+            <i class="fas fa-th"></i>
+            RISK_MATRIX_ANALYSIS
+          </h2>
+          <div class="matrix-legend">
+            <div class="legend-item critical">
+              <div class="legend-color"></div>
+              <span>CRITICAL</span>
+            </div>
+            <div class="legend-item high">
+              <div class="legend-color"></div>
+              <span>HIGH</span>
+            </div>
+            <div class="legend-item medium">
+              <div class="legend-color"></div>
+              <span>MEDIUM</span>
+            </div>
+            <div class="legend-item low">
+              <div class="legend-color"></div>
+              <span>LOW</span>
+            </div>
+          </div>
         </div>
-
-        <!-- Risk Count Section -->
-        <div class="risk-counts">
-          <div class="risk-count-item critical">
-            <div class="count">{{ severityDistribution.critical }}</div>
-            <div class="label">Critical</div>
-          </div>
-          <div class="risk-count-item high">
-            <div class="count">{{ severityDistribution.high }}</div>
-            <div class="label">High</div>
-          </div>
-          <div class="risk-count-item medium">
-            <div class="count">{{ severityDistribution.medium }}</div>
-            <div class="label">Medium</div>
-          </div>
-          <div class="risk-count-item low">
-            <div class="count">{{ severityDistribution.low }}</div>
-            <div class="label">Low</div>
-          </div>
-          <div class="risk-count-item informative">
-            <div class="count">{{ severityDistribution.informative }}</div>
-            <div class="label">Informative</div>
-          </div>
-          <div class="risk-count-item total">
-            <div class="count">{{ totalRiskCount }}</div>
-            <div class="label">Total</div>
+        
+        <div class="enhanced-risk-matrix">
+          <div class="matrix-container">
+            <div class="matrix-header">
+              <div class="matrix-title">CVSS_SCORE_RANGES</div>
+              <div class="matrix-controls">
+                <button class="matrix-btn active">STANDARD</button>
+                <button class="matrix-btn">DETAILED</button>
+              </div>
+            </div>
+            
+            <div class="matrix-table">
+              <div class="matrix-row header">
+                <div class="matrix-cell">SEVERITY</div>
+                <div class="matrix-cell">SCORE_RANGE</div>
+                <div class="matrix-cell">COUNT</div>
+                <div class="matrix-cell">PERCENTAGE</div>
+              </div>
+              
+              <div class="matrix-row" [ngClass]="{'active': cvssRiskLevel === 'Critical'}">
+                <div class="matrix-cell severity critical">
+                  <i class="fas fa-exclamation-triangle"></i>
+                  CRITICAL
+                </div>
+                <div class="matrix-cell score-range">9.0 - 10.0</div>
+                <div class="matrix-cell count">{{ severityDistribution.critical }}</div>
+                <div class="matrix-cell percentage">{{ getPercentage(severityDistribution.critical) }}%</div>
+              </div>
+              
+              <div class="matrix-row" [ngClass]="{'active': cvssRiskLevel === 'High'}">
+                <div class="matrix-cell severity high">
+                  <i class="fas fa-exclamation-circle"></i>
+                  HIGH
+                </div>
+                <div class="matrix-cell score-range">7.0 - 8.9</div>
+                <div class="matrix-cell count">{{ severityDistribution.high }}</div>
+                <div class="matrix-cell percentage">{{ getPercentage(severityDistribution.high) }}%</div>
+              </div>
+              
+              <div class="matrix-row" [ngClass]="{'active': cvssRiskLevel === 'Medium'}">
+                <div class="matrix-cell severity medium">
+                  <i class="fas fa-minus-circle"></i>
+                  MEDIUM
+                </div>
+                <div class="matrix-cell score-range">4.0 - 6.9</div>
+                <div class="matrix-cell count">{{ severityDistribution.medium }}</div>
+                <div class="matrix-cell percentage">{{ getPercentage(severityDistribution.medium) }}%</div>
+              </div>
+              
+              <div class="matrix-row" [ngClass]="{'active': cvssRiskLevel === 'Low'}">
+                <div class="matrix-cell severity low">
+                  <i class="fas fa-info-circle"></i>
+                  LOW
+                </div>
+                <div class="matrix-cell score-range">0.1 - 3.9</div>
+                <div class="matrix-cell count">{{ severityDistribution.low }}</div>
+                <div class="matrix-cell percentage">{{ getPercentage(severityDistribution.low) }}%</div>
+              </div>
+              
+              <div class="matrix-row" [ngClass]="{'active': cvssRiskLevel === 'Informative'}">
+                <div class="matrix-cell severity informative">
+                  <i class="fas fa-info"></i>
+                  INFORMATIVE
+                </div>
+                <div class="matrix-cell score-range">0.0</div>
+                <div class="matrix-cell count">{{ severityDistribution.informative }}</div>
+                <div class="matrix-cell percentage">{{ getPercentage(severityDistribution.informative) }}%</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Charts Section -->
-      <div class="dashboard-section">
-        <h2 class="section-title">
-          Security Visualizations
-        </h2>
-        <div class="charts-grid">
-          <!-- Severity Chart -->
-          <div class="chart-container">
-            <h3 class="chart-title">Vulnerability Severity</h3>
-            <div class="chart-wrapper">
-              <canvas id="severityChart"></canvas>
+      <!-- Enhanced Charts Section -->
+      <div class="cyber-dashboard-section charts-section">
+        <div class="section-header">
+          <h2 class="cyber-section-title">
+            <i class="fas fa-chart-pie"></i>
+            THREAT_VISUALIZATION
+          </h2>
+          <div class="chart-controls">
+            <button class="chart-btn active">REAL_TIME</button>
+            <button class="chart-btn">HISTORICAL</button>
+          </div>
+        </div>
+        
+        <div class="enhanced-charts-grid">
+          <!-- Enhanced Severity Chart -->
+          <div class="cyber-chart-container">
+            <div class="chart-header">
+              <h3 class="chart-title">
+                <i class="fas fa-exclamation-triangle"></i>
+                VULNERABILITY_SEVERITY
+              </h3>
+              <div class="chart-status">
+                <span class="status-dot active"></span>
+                <span>LIVE</span>
+              </div>
+            </div>
+            <div class="chart-content">
+              <div class="chart-wrapper">
+                <canvas id="severityChart"></canvas>
+              </div>
+              <div class="chart-legend">
+                <div class="legend-item">
+                  <div class="legend-color critical"></div>
+                  <span>Critical: {{ severityDistribution.critical }}</span>
+                </div>
+                <div class="legend-item">
+                  <div class="legend-color high"></div>
+                  <span>High: {{ severityDistribution.high }}</span>
+                </div>
+                <div class="legend-item">
+                  <div class="legend-color medium"></div>
+                  <span>Medium: {{ severityDistribution.medium }}</span>
+                </div>
+                <div class="legend-item">
+                  <div class="legend-color low"></div>
+                  <span>Low: {{ severityDistribution.low }}</span>
+                </div>
+              </div>
             </div>
           </div>
-          <!-- CVSS Score Chart -->
-          <div class="chart-container">
-            <h3 class="chart-title">CVSS Score Distribution</h3>
-            <div class="chart-wrapper">
-              <canvas id="cvssScoreChart"></canvas>
+
+          <!-- Enhanced CVSS Chart -->
+          <div class="cyber-chart-container">
+            <div class="chart-header">
+              <h3 class="chart-title">
+                <i class="fas fa-tachometer-alt"></i>
+                CVSS_RISK_METER
+              </h3>
+              <div class="chart-status">
+                <span class="status-dot active"></span>
+                <span>CALCULATED</span>
+              </div>
+            </div>
+            <div class="chart-content">
+              <div class="chart-wrapper">
+                <canvas id="cvssScoreChart"></canvas>
+              </div>
+              <div class="cvss-chart-info">
+                <div class="cvss-info-item">
+                  <span class="info-label">CURRENT_SCORE</span>
+                  <span class="info-value">{{ cvssBaseScore }}</span>
+                </div>
+                <div class="cvss-info-item">
+                  <span class="info-label">RISK_LEVEL</span>
+                  <span class="info-value" [ngClass]="cvssRiskLevel?.toLowerCase()">{{ cvssRiskLevel }}</span>
+                </div>
+              </div>
             </div>
           </div>
-          <!-- Remediation Chart -->
-          <div class="chart-container">
-            <h3 class="chart-title">Vulnerability Findings by Area</h3>
-            <div class="chart-wrapper">
-              <canvas id="remediationChart"></canvas>
+
+          <!-- Enhanced Findings Chart -->
+          <div class="cyber-chart-container findings-chart">
+            <div class="chart-header">
+              <h3 class="chart-title">
+                <i class="fas fa-bug"></i>
+                VULNERABILITY_FINDINGS
+              </h3>
+              <div class="chart-status">
+                <span class="status-dot scanning"></span>
+                <span>SCANNING</span>
+              </div>
             </div>
-            <div class="chart-total">
-              <span class="total-label">Total Vulnerabilities:</span>
-              <span class="total-value">{{ totalVulnerabilities }}</span>
-            </div>
-            <div class="chart-actions">
-              <button (click)="navigateToReport()" class="submit-button">
-                Enter Report
-              </button>
+            <div class="chart-content">
+              <div class="chart-wrapper">
+                <canvas id="remediationChart"></canvas>
+              </div>
+              <div class="findings-summary">
+                <div class="summary-item">
+                  <div class="summary-label">TOTAL_AREAS</div>
+                  <div class="summary-value">{{ areaVulnerabilities.length }}</div>
+                </div>
+                <div class="summary-item">
+                  <div class="summary-label">TOTAL_FINDINGS</div>
+                  <div class="summary-value">{{ totalVulnerabilities }}</div>
+                </div>
+                <div class="summary-item">
+                  <div class="summary-label">AVG_PER_AREA</div>
+                  <div class="summary-value">{{ getAverageFindings() }}</div>
+                </div>
+              </div>
+              <div class="chart-actions">
+                <button (click)="navigateToReport()" class="cyber-action-button">
+                  <i class="fas fa-file-alt"></i>
+                  <span>GENERATE_REPORT</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
