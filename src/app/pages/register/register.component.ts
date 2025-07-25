@@ -1,13 +1,3 @@
-import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
-import { AuthService } from '../../core/services/auth.service';
-import { AlertService } from '../../core/services/alert.service';
-import { InputComponent } from '../../shared/components/input/input.component';
-import { PasswordStrengthComponent } from '../../shared/components/password-strength/password-strength.component';
-import { passwordStrengthValidator } from '../../shared/validators';
-
 import { Component, OnInit, AfterViewInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
