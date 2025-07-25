@@ -1,28 +1,53 @@
 import { Routes } from '@angular/router';
-import { MyreportComponent } from './myreport/myreport.component';
-import { PasswordVerifyComponent } from './password-verify/password-verify.component';
-import { CreateReportComponent } from './create-report/create-report.component';
-import { DashComponent } from './dash/dash.component';
-import { ReportComponent } from './report/report.component';
-import { LoginComponent } from './pages/login/login.component';
-import { ForgotPasswordComponent } from './pages/forgot-password/forgot-password.component';
-import { RegisterComponent } from './pages/register/register.component';
-import { ResetPasswordComponent } from './pages/reset-password/reset-password.component';
 import { authGuard } from './core/guards/auth.guard';
-
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
-  { path: 'login', component: LoginComponent },
-  { path: 'forgot-password', component: ForgotPasswordComponent },
-  { path: 'register', component: RegisterComponent },
-  { path: 'reset-password', component: ResetPasswordComponent },
+  
+  // Auth Pages - Direct load for fast initial access
+  { 
+    path: 'login', 
+    loadComponent: () => import('./pages/login/login.component').then(m => m.LoginComponent)
+  },
+  { 
+    path: 'forgot-password', 
+    loadComponent: () => import('./pages/forgot-password/forgot-password.component').then(m => m.ForgotPasswordComponent)
+  },
+  { 
+    path: 'register', 
+    loadComponent: () => import('./pages/register/register.component').then(m => m.RegisterComponent)
+  },
+  { 
+    path: 'reset-password', 
+    loadComponent: () => import('./pages/reset-password/reset-password.component').then(m => m.ResetPasswordComponent)
+  },
 
-  { path: 'myreport', component: MyreportComponent, canActivate: [authGuard] },
-  { path: 'create-report', component: CreateReportComponent, canActivate: [authGuard] },
-  { path: 'password-verify', component: PasswordVerifyComponent, canActivate: [authGuard] },
-  { path: 'dashboard', component: DashComponent, canActivate: [authGuard] },
-  { path: 'report', component: ReportComponent, canActivate: [authGuard] },
+  // Protected Routes - Lazy loaded for performance
+  { 
+    path: 'myreport', 
+    loadComponent: () => import('./myreport/myreport.component').then(m => m.MyreportComponent),
+    canActivate: [authGuard]
+  },
+  { 
+    path: 'create-report', 
+    loadComponent: () => import('./create-report/create-report.component').then(m => m.CreateReportComponent),
+    canActivate: [authGuard]
+  },
+  { 
+    path: 'password-verify', 
+    loadComponent: () => import('./password-verify/password-verify.component').then(m => m.PasswordVerifyComponent),
+    canActivate: [authGuard]
+  },
+  { 
+    path: 'dashboard', 
+    loadComponent: () => import('./dash/dash.component').then(m => m.DashComponent),
+    canActivate: [authGuard]
+  },
+  { 
+    path: 'report', 
+    loadComponent: () => import('./report/report.component').then(m => m.ReportComponent),
+    canActivate: [authGuard]
+  },
 
   { path: '**', redirectTo: 'login' },
 ];
