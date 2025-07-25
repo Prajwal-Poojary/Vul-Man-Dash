@@ -8,6 +8,16 @@ import { InputComponent } from '../../shared/components/input/input.component';
 import { PasswordStrengthComponent } from '../../shared/components/password-strength/password-strength.component';
 import { passwordStrengthValidator } from '../../shared/validators';
 
+import { Component, OnInit, AfterViewInit, OnDestroy } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
+import { AuthService } from '../../core/services/auth.service';
+import { AlertService } from '../../core/services/alert.service';
+import { InputComponent } from '../../shared/components/input/input.component';
+import { PasswordStrengthComponent } from '../../shared/components/password-strength/password-strength.component';
+import { passwordStrengthValidator } from '../../shared/validators';
+
 @Component({
   selector: 'app-register',
   standalone: true,
@@ -19,252 +29,183 @@ import { passwordStrengthValidator } from '../../shared/validators';
     PasswordStrengthComponent,
   ],
   template: `
-    <div class="container">
-      <div class="card">
-        <div class="header">
-          <h2>Register</h2>
+    <div class="cyber-container">
+      <!-- Animated Background -->
+      <div class="matrix-bg">
+        <canvas #matrixCanvas class="matrix-canvas"></canvas>
+        <div class="cyber-grid"></div>
+        <div class="gradient-overlay"></div>
+      </div>
+
+      <!-- Floating Security Elements -->
+      <div class="security-elements">
+        <div class="security-icon user-shield" [style.animation-delay]="'0s'">
+          <i class="fas fa-user-shield"></i>
+        </div>
+        <div class="security-icon user-plus" [style.animation-delay]="'2s'">
+          <i class="fas fa-user-plus"></i>
+        </div>
+        <div class="security-icon certificate" [style.animation-delay]="'4s'">
+          <i class="fas fa-certificate"></i>
+        </div>
+        <div class="security-icon id-card" [style.animation-delay]="'1s'">
+          <i class="fas fa-id-card"></i>
+        </div>
+      </div>
+
+      <!-- Main Register Card -->
+      <div class="cyber-card" [class.loading]="isLoading">
+        <!-- Header Section -->
+        <div class="card-header">
+          <div class="security-badge">
+            <i class="fas fa-user-plus"></i>
+            <div class="pulse-ring"></div>
+          </div>
+          <h1 class="terminal-title">
+            <span class="typing-text">CREATE_ACCOUNT</span>
+            <span class="cursor">|</span>
+          </h1>
+          <p class="subtitle">Secure Registration Portal</p>
+          <div class="status-line">
+            <span class="status-indicator"></span>
+            <span class="status-text">ENROLLMENT_READY</span>
+          </div>
         </div>
 
-        <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="form">
-          <div class="input-group">
-            <app-input
-              label="Full Name"
-              type="text"
-              id="name"
-              controlName="name"
-              [formGroup]="registerForm"
-            ></app-input>
-
-            <app-input
-              label="Email"
-              type="email"
-              id="email"
-              controlName="email"
-              [formGroup]="registerForm"
-            ></app-input>
-
-            <div class="password-section">
-              <app-input
-                label="Password"
-                type="password"
-                id="password"
-                controlName="password"
-                [formGroup]="registerForm"
-              ></app-input>
-
-              <app-password-strength
-                [password]="registerForm.get('password')?.value || ''"
-              ></app-password-strength>
+        <!-- Register Form -->
+        <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="cyber-form">
+          <div class="terminal-section">
+            <div class="section-header">
+              <i class="fas fa-terminal"></i>
+              <span>USER_CREDENTIALS</span>
             </div>
+            
+            <div class="input-grid">
+              <div class="input-container">
+                <div class="input-label">
+                  <i class="fas fa-user"></i>
+                  <span>FULL_NAME</span>
+                </div>
+                <app-input
+                  label=""
+                  type="text"
+                  id="name"
+                  controlName="name"
+                  [formGroup]="registerForm"
+                ></app-input>
+              </div>
 
-            <app-input
-              label="Confirm Password"
-              type="password"
-              id="confirmPassword"
-              controlName="confirmPassword"
-              [formGroup]="registerForm"
-            ></app-input>
+              <div class="input-container">
+                <div class="input-label">
+                  <i class="fas fa-envelope"></i>
+                  <span>EMAIL_ADDRESS</span>
+                </div>
+                <app-input
+                  label=""
+                  type="email"
+                  id="email"
+                  controlName="email"
+                  [formGroup]="registerForm"
+                ></app-input>
+              </div>
+
+              <div class="input-container password-section">
+                <div class="input-label">
+                  <i class="fas fa-shield-alt"></i>
+                  <span>SECURE_PASSWORD</span>
+                </div>
+                <app-input
+                  label=""
+                  type="password"
+                  id="password"
+                  controlName="password"
+                  [formGroup]="registerForm"
+                ></app-input>
+                
+                <!-- Password Strength Indicator -->
+                <div class="password-strength-wrapper">
+                  <app-password-strength
+                    [password]="registerForm.get('password')?.value || ''"
+                  ></app-password-strength>
+                </div>
+              </div>
+
+              <div class="input-container">
+                <div class="input-label">
+                  <i class="fas fa-lock"></i>
+                  <span>CONFIRM_PASSWORD</span>
+                </div>
+                <app-input
+                  label=""
+                  type="password"
+                  id="confirmPassword"
+                  controlName="confirmPassword"
+                  [formGroup]="registerForm"
+                ></app-input>
+              </div>
+            </div>
           </div>
 
-          <div class="two-div">
-            <a routerLink="/login">Already have an account?</a>
-          </div>
-
-          <div>
+          <!-- Action Buttons -->
+          <div class="action-section">
             <button
               type="submit"
               [disabled]="registerForm.invalid || isLoading"
-              class="btn-submit"
+              class="cyber-button primary"
             >
-              <span class="btn-icon" aria-hidden="true">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z"
-                  />
-                </svg>
-              </span>
-              {{ isLoading ? 'Registering...' : 'Register' }}
+              <div class="button-content">
+                <i class="fas fa-user-plus button-icon"></i>
+                <span class="button-text">
+                  {{ isLoading ? 'PROCESSING...' : 'INITIALIZE_ACCOUNT' }}
+                </span>
+                <div class="button-scanner" *ngIf="isLoading"></div>
+              </div>
+              <div class="button-glow"></div>
             </button>
+
+            <div class="secondary-actions">
+              <a routerLink="/login" class="cyber-link">
+                <i class="fas fa-sign-in-alt"></i>
+                <span>EXISTING_USER_LOGIN</span>
+              </a>
+            </div>
           </div>
         </form>
-      </div>
-    </div>
 
-    <!-- Popup Modal -->
-    <div class="popup" *ngIf="showPopup">
-      <div class="popup-content">
-        <h3>Registration Failed</h3>
-        <p>Something went wrong. Please try again.</p>
-        <button class="popup-close" (click)="closePopup()">Close</button>
+        <!-- Security Footer -->
+        <div class="security-footer">
+          <div class="encryption-status">
+            <i class="fas fa-shield-virus"></i>
+            <span>SECURE_REGISTRATION</span>
+          </div>
+          <div class="compliance-status">
+            <span class="compliance-indicator active"></span>
+            <span>GDPR_COMPLIANT</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Enhanced Error Modal -->
+      <div class="cyber-modal" *ngIf="showPopup" (click)="closePopup()">
+        <div class="modal-content" (click)="$event.stopPropagation()">
+          <div class="modal-header">
+            <i class="fas fa-exclamation-triangle"></i>
+            <h3>REGISTRATION_FAILED</h3>
+          </div>
+          <div class="modal-body">
+            <p>ACCOUNT_CREATION_ERROR</p>
+            <div class="error-code">ERROR_CODE: REG_001</div>
+          </div>
+          <div class="modal-actions">
+            <button class="cyber-button secondary" (click)="closePopup()">
+              <span>ACKNOWLEDGE</span>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   `,
-  styles: [`
-    .container {
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 3rem 1rem;
-      background: linear-gradient(135deg, #18191a 0%, #1a1a2e 100%);
-    }
-    .card {
-      max-width: 500px;
-      width: 100%;
-      background: rgba(35, 35, 35, 0.95);
-      border: 1px solid rgba(41, 41, 41, 0.8);
-      border-radius: 18px;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-      color: #e2e8f0;
-      font-family: 'Inter', sans-serif;
-      padding: 2.5rem 2rem 2rem 2rem;
-      backdrop-filter: blur(10px);
-    }
-    .header h2 {
-      font-size: 1.75rem;
-      font-weight: 600;
-      color: #e2e8f0;
-      margin-bottom: 1.5rem;
-      text-align: center;
-      font-family: 'Inter', sans-serif;
-      letter-spacing: -0.5px;
-    }
-    .form {
-      display: flex;
-      flex-direction: column;
-      gap: 1.5rem;
-    }
-    .input-group {
-      display: flex;
-      flex-direction: column;
-      gap: 1.25rem;
-    }
-    .btn-submit {
-      width: 100%;
-      padding: 0.875rem 1.5rem;
-      font-size: 1.1rem;
-      font-weight: 600;
-      color: #fff;
-      background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
-      border: none;
-      border-radius: 12px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      margin-top: 1rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.75rem;
-      position: relative;
-      overflow: hidden;
-      
-      &::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
-        opacity: 0;
-        transition: opacity 0.3s ease;
-      }
-      
-      &:hover:not(:disabled) {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
-        
-        &::before {
-          opacity: 1;
-        }
-      }
-      
-      &:active:not(:disabled) {
-        transform: translateY(0);
-      }
-      
-      &:disabled {
-        opacity: 0.7;
-        cursor: not-allowed;
-        background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
-      }
-    }
-    .two-div {
-      display: flex;
-      gap: 1.5rem;
-      justify-content: flex-end;
-      margin-top: 0.5rem;
-    }
-    a {
-      text-decoration: none;
-      font-size: 0.95rem;
-      color: #4cc9f0;
-      font-weight: 500;
-      transition: all 0.2s ease;
-      
-      &:hover {
-        color: #4895ef;
-        text-decoration: underline;
-      }
-    }
-    .popup {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      backdrop-filter: blur(8px);
-      background-color: rgba(0, 0, 0, 0.4);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 999;
-    }
-    .popup-content {
-      background: rgba(35, 35, 35, 0.95);
-      color: #fff;
-      padding: 2.5rem;
-      border-radius: 16px;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-      text-align: center;
-      max-width: 400px;
-      border: 1px solid rgba(41, 41, 41, 0.8);
-      backdrop-filter: blur(10px);
-      
-      h3 {
-        margin-bottom: 1rem;
-        color: #f44336;
-        font-size: 1.5rem;
-        font-weight: 600;
-      }
-      
-      p {
-        color: #e2e8f0;
-        margin-bottom: 1.5rem;
-        font-size: 1.1rem;
-      }
-    }
-    .popup-close {
-      background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
-      color: #fff;
-      border: none;
-      border-radius: 12px;
-      padding: 0.75rem 2rem;
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      
-      &:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
-      }
-    }
-  `]
+  styleUrls: ['./register.component.scss']
 })
 export class RegisterComponent {
   registerForm: FormGroup;
