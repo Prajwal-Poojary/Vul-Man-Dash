@@ -1,0 +1,201 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&display=swap');
+
+:root {
+  --cyber-primary: #0f4c75;
+  --cyber-secondary: #3282b8;
+  --cyber-accent: #bbe1fa;
+  --cyber-success: #00ff88;
+  --cyber-blue-glow: #00d4ff;
+  --cyber-dark: #0a0a0a;
+}
+
+.cyber-loader-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  
+  &.full-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: linear-gradient(135deg, 
+      var(--cyber-dark) 0%, 
+      #0a1428 25%, 
+      #051937 50%, 
+      var(--cyber-primary) 100%);
+    z-index: 9999;
+    backdrop-filter: blur(10px);
+  }
+}
+
+.cyber-loader {
+  text-align: center;
+  
+  .loader-core {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 2rem;
+    
+    .scanning-ring {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: 2px solid transparent;
+      border-top-color: var(--cyber-blue-glow);
+      border-radius: 50%;
+      animation: spin 2s linear infinite;
+      
+      &.ring-2 {
+        width: 90%;
+        height: 90%;
+        top: 5%;
+        left: 5%;
+        border-top-color: var(--cyber-secondary);
+        animation: spin 1.5s linear infinite reverse;
+      }
+      
+      &.ring-3 {
+        width: 80%;
+        height: 80%;
+        top: 10%;
+        left: 10%;
+        border-top-color: var(--cyber-success);
+        animation: spin 1s linear infinite;
+      }
+    }
+    
+    .cyber-icon {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      
+      i {
+        font-size: 3rem;
+        color: var(--cyber-blue-glow);
+        filter: drop-shadow(0 0 20px var(--cyber-blue-glow));
+        animation: pulse 2s ease-in-out infinite;
+      }
+    }
+  }
+  
+  .loading-text {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--cyber-accent);
+    letter-spacing: 2px;
+    margin-bottom: 1.5rem;
+    
+    .typing-text {
+      display: inline-block;
+    }
+    
+    .cursor {
+      display: inline-block;
+      animation: blink 1s infinite;
+      color: var(--cyber-blue-glow);
+    }
+  }
+  
+  .progress-container {
+    margin-bottom: 1.5rem;
+    
+    .progress-bar {
+      width: 200px;
+      height: 4px;
+      background: rgba(0, 212, 255, 0.2);
+      border-radius: 2px;
+      margin: 0 auto 0.5rem;
+      overflow: hidden;
+      
+      .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, 
+          var(--cyber-blue-glow), 
+          var(--cyber-secondary));
+        border-radius: 2px;
+        transition: width 0.3s ease;
+        box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+      }
+    }
+    
+    .progress-text {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.8rem;
+      color: var(--cyber-secondary);
+      letter-spacing: 1px;
+    }
+  }
+  
+  .security-status {
+    .status-line {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      font-family: 'Orbitron', monospace;
+      font-size: 0.8rem;
+      color: var(--cyber-success);
+      letter-spacing: 1px;
+      
+      .status-dot {
+        width: 8px;
+        height: 8px;
+        background: var(--cyber-success);
+        border-radius: 50%;
+        box-shadow: 0 0 10px var(--cyber-success);
+        animation: pulse 2s infinite;
+      }
+    }
+  }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulse {
+  0%, 100% { 
+    opacity: 1; 
+    transform: translate(-50%, -50%) scale(1); 
+  }
+  50% { 
+    opacity: 0.7; 
+    transform: translate(-50%, -50%) scale(1.1); 
+  }
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+  .cyber-loader {
+    .loader-core {
+      width: 100px;
+      height: 100px;
+      
+      .cyber-icon i {
+        font-size: 2.5rem;
+      }
+    }
+    
+    .loading-text {
+      font-size: 1rem;
+    }
+    
+    .progress-container .progress-bar {
+      width: 150px;
+    }
+  }
+}
