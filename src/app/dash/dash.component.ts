@@ -197,6 +197,9 @@ export class DashComponent implements AfterViewInit, OnDestroy {
     // Setup resize observer for responsive charts
     this.setupResizeObserver();
     
+    // Setup intersection observer for lazy chart loading
+    this.setupIntersectionObserver();
+    
     if (!this.showInputForm && !this.chartInitialized) {
       this.initializeChartsWithLoading();
     }
