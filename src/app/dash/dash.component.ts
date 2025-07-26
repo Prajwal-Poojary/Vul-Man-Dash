@@ -8,6 +8,7 @@ import { IntersectionObserverService } from '../services/intersection-observer.s
 import { Router } from '@angular/router';
 import { CyberLoaderComponent } from '../shared/components/cyber-loader/cyber-loader.component';
 import { SkeletonLoaderComponent } from '../shared/components/skeleton-loader/skeleton-loader.component';
+import { SecurityAlertsComponent } from '../shared/components/security-alerts/security-alerts.component';
 import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 
 // Define types for CVSS metrics
