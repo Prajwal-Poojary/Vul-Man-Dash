@@ -112,6 +112,8 @@ export class DashComponent implements AfterViewInit, OnDestroy {
 
   // Inject dependencies
   private reportService = inject(ReportService);
+  private performanceService = inject(PerformanceService);
+  private intersectionService = inject(IntersectionObserverService);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
 
