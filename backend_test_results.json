@@ -1,0 +1,332 @@
+{
+  "backend1_auth": [
+    {
+      "test": "Health Check",
+      "success": true,
+      "timestamp": "2025-07-26T09:41:27.430658",
+      "response": {
+        "status": "OK",
+        "timestamp": "2025-07-26T09:41:27.425Z"
+      },
+      "error": null
+    },
+    {
+      "test": "User Registration",
+      "success": true,
+      "timestamp": "2025-07-26T09:41:27.586857",
+      "response": {
+        "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4ODRhMmM3MjA3YjUzYjliZmQzMDI5NCIsImlhdCI6MTc1MzUyMjg4NywiZXhwIjoxNzUzNjA5Mjg3fQ.jhJtI4np-v3JmMit6fq6hcui2fvYxs4ddJPJ7AtMAzU",
+        "exp": 1753609287,
+        "user": {
+          "id": "6884a2c7207b53b9bfd30294",
+          "name": "Test User",
+          "email": "test_1753522884@cybersecurity.test"
+        }
+      },
+      "error": null
+    },
+    {
+      "test": "User Login",
+      "success": true,
+      "timestamp": "2025-07-26T09:41:27.686899",
+      "response": {
+        "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4ODRhMmM3MjA3YjUzYjliZmQzMDI5NCIsImlhdCI6MTc1MzUyMjg4NywiZXhwIjoxNzUzNjA5Mjg3fQ.jhJtI4np-v3JmMit6fq6hcui2fvYxs4ddJPJ7AtMAzU",
+        "exp": 1753609287,
+        "user": {
+          "id": "6884a2c7207b53b9bfd30294",
+          "name": "Test User",
+          "email": "test_1753522884@cybersecurity.test"
+        }
+      },
+      "error": null
+    },
+    {
+      "test": "Get User Data",
+      "success": true,
+      "timestamp": "2025-07-26T09:41:27.696005",
+      "response": {
+        "_id": "6884a2c7207b53b9bfd30294",
+        "name": "Test User",
+        "email": "test_1753522884@cybersecurity.test",
+        "username": "c6ce25c3a9b113ce",
+        "createdAt": "2025-07-26T09:41:27.474Z",
+        "updatedAt": "2025-07-26T09:41:27.474Z",
+        "__v": 0
+      },
+      "error": null
+    },
+    {
+      "test": "Invalid Login Test",
+      "success": true,
+      "timestamp": "2025-07-26T09:41:27.797618",
+      "response": null,
+      "error": null
+    }
+  ],
+  "backend2_reports": [
+    {
+      "test": "Health Check",
+      "success": true,
+      "timestamp": "2025-07-26T09:41:27.808387",
+      "response": {
+        "status": "OK",
+        "timestamp": "2025-07-26T09:41:27.803Z",
+        "services": {
+          "database": "connected",
+          "websocket": "active"
+        }
+      },
+      "error": null
+    },
+    {
+      "test": "Create Report",
+      "success": true,
+      "timestamp": "2025-07-26T09:41:27.962503",
+      "response": {
+        "title": "Test Report 1753522884",
+        "createdTime": "2025-07-26T09:41:24.416Z",
+        "dashboardData": {
+          "vulnerabilityFindings": {
+            "areaVulnerabilities": []
+          },
+          "timestamp": "2025-07-26T09:41:27.849Z"
+        },
+        "reportData": {
+          "manifest": {
+            "scopes": []
+          },
+          "scopes": [],
+          "chartImageURLs": [],
+          "findings": [],
+          "timestamp": "2025-07-26T09:41:27.850Z"
+        },
+        "_id": "6884a2c78bf83340b492e54c",
+        "__v": 0
+      },
+      "error": null
+    },
+    {
+      "test": "Get All Reports",
+      "success": true,
+      "timestamp": "2025-07-26T09:41:27.980634",
+      "response": {
+        "reports": [
+          {
+            "dashboardData": {
+              "vulnerabilityFindings": {
+                "areaVulnerabilities": []
+              },
+              "timestamp": "2025-07-26T09:41:27.849Z"
+            },
+            "reportData": {
+              "manifest": {
+                "scopes": []
+              },
+              "scopes": [],
+              "chartImageURLs": [],
+              "findings": [],
+              "timestamp": "2025-07-26T09:41:27.850Z"
+            },
+            "_id": "6884a2c78bf83340b492e54c",
+            "title": "Test Report 1753522884",
+            "createdTime": "2025-07-26T09:41:24.416Z",
+            "__v": 0
+          }
+        ],
+        "total": 1,
+        "page": 1,
+        "limit": 10
+      },
+      "error": null
+    },
+    {
+      "test": "Get Report by ID",
+      "success": true,
+      "timestamp": "2025-07-26T09:41:27.989393",
+      "response": {
+        "dashboardData": {
+          "vulnerabilityFindings": {
+            "areaVulnerabilities": []
+          },
+          "timestamp": "2025-07-26T09:41:27.849Z"
+        },
+        "reportData": {
+          "manifest": {
+            "scopes": []
+          },
+          "scopes": [],
+          "chartImageURLs": [],
+          "findings": [],
+          "timestamp": "2025-07-26T09:41:27.850Z"
+        },
+        "_id": "6884a2c78bf83340b492e54c",
+        "title": "Test Report 1753522884",
+        "createdTime": "2025-07-26T09:41:24.416Z",
+        "__v": 0
+      },
+      "error": null
+    },
+    {
+      "test": "Save Dashboard Data",
+      "success": true,
+      "timestamp": "2025-07-26T09:41:28.004186",
+      "response": {
+        "message": "Dashboard data saved",
+        "report": {
+          "dashboardData": {
+            "cvssScore": {
+              "baseScore": 7.2,
+              "riskLevel": "High"
+            },
+            "severityDistribution": {
+              "critical": 2,
+              "high": 5,
+              "medium": 8,
+              "low": 3,
+              "informative": 1
+            },
+            "vulnerabilityFindings": {
+              "areaVulnerabilities": []
+            },
+            "timestamp": "2025-07-26T09:41:27.989Z"
+          },
+          "reportData": {
+            "manifest": {
+              "scopes": []
+            },
+            "scopes": [],
+            "chartImageURLs": [],
+            "findings": [],
+            "timestamp": "2025-07-26T09:41:27.850Z"
+          },
+          "_id": "6884a2c78bf83340b492e54c",
+          "title": "Test Report 1753522884",
+          "password": "$2a$10$tMcjzxN/G5BAgGZCwQdlAeJFs6AE7pUDzbfgcg/ycpvh6J84VYRFS",
+          "createdTime": "2025-07-26T09:41:24.416Z",
+          "__v": 0
+        },
+        "dashboardData": {
+          "cvssScore": {
+            "baseScore": 7.2,
+            "riskLevel": "High"
+          },
+          "severityDistribution": {
+            "critical": 2,
+            "high": 5,
+            "medium": 8,
+            "low": 3,
+            "informative": 1
+          },
+          "trendData": {},
+          "cvssMetrics": {},
+          "vulnerabilityFindings": {
+            "areaVulnerabilities": []
+          },
+          "timestamp": "2025-07-26T09:41:27.989Z"
+        }
+      },
+      "error": null
+    },
+    {
+      "test": "Get Dashboard Data",
+      "success": true,
+      "timestamp": "2025-07-26T09:41:28.019089",
+      "response": {
+        "cvssScore": {
+          "baseScore": 7.2,
+          "riskLevel": "High"
+        },
+        "severityDistribution": {
+          "critical": 2,
+          "high": 5,
+          "medium": 8,
+          "low": 3,
+          "informative": 1
+        },
+        "trendData": {},
+        "cvssMetrics": {},
+        "vulnerabilityFindings": {
+          "areaVulnerabilities": []
+        },
+        "timestamp": "2025-07-26T09:41:27.989Z"
+      },
+      "error": null
+    },
+    {
+      "test": "Search Reports",
+      "success": true,
+      "timestamp": "2025-07-26T09:41:28.029217",
+      "response": {
+        "reports": [
+          {
+            "dashboardData": {
+              "cvssScore": {
+                "baseScore": 7.2,
+                "riskLevel": "High"
+              },
+              "severityDistribution": {
+                "critical": 2,
+                "high": 5,
+                "medium": 8,
+                "low": 3,
+                "informative": 1
+              },
+              "vulnerabilityFindings": {
+                "areaVulnerabilities": []
+              },
+              "timestamp": "2025-07-26T09:41:27.989Z"
+            },
+            "reportData": {
+              "manifest": {
+                "scopes": []
+              },
+              "scopes": [],
+              "chartImageURLs": [],
+              "findings": [],
+              "timestamp": "2025-07-26T09:41:27.850Z"
+            },
+            "_id": "6884a2c78bf83340b492e54c",
+            "title": "Test Report 1753522884",
+            "createdTime": "2025-07-26T09:41:24.416Z",
+            "__v": 0
+          }
+        ],
+        "total": 1,
+        "page": 1,
+        "limit": 10
+      },
+      "error": null
+    }
+  ],
+  "backend_flask": [
+    {
+      "test": "Flask Health Check",
+      "success": true,
+      "timestamp": "2025-07-26T09:41:28.082763",
+      "response": {
+        "message": "API is running"
+      },
+      "error": null
+    },
+    {
+      "test": "Flask Responsiveness",
+      "success": true,
+      "timestamp": "2025-07-26T09:41:28.085494",
+      "response": null,
+      "error": null
+    }
+  ],
+  "summary": {
+    "total_tests": 14,
+    "passed_tests": 14,
+    "failed_tests": 0,
+    "success_rate": 100.0,
+    "duration_seconds": 0.67,
+    "services_tested": 3,
+    "services_passed": 3,
+    "backend1_auth": true,
+    "backend2_reports": true,
+    "backend_flask": true,
+    "overall_success": true
+  }
+}
