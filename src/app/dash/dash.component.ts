@@ -296,6 +296,9 @@ export class DashComponent implements AfterViewInit, OnDestroy {
     this.cdr.markForCheck();
     
     try {
+      // Performance monitoring
+      const startTime = performance.now();
+      
       // Use requestAnimationFrame for smoother chart creation
       await new Promise(resolve => {
         requestAnimationFrame(() => {
@@ -305,10 +308,15 @@ export class DashComponent implements AfterViewInit, OnDestroy {
         });
       });
       
-      // Simulate chart loading for better UX
+      // Log performance metrics
+      const endTime = performance.now();
+      console.log(`Chart initialization took ${endTime - startTime} milliseconds`);
+      
+      // Simulate chart loading for better UX with progressive reveal
       setTimeout(() => {
         this.isLoadingCharts = false;
         this.cdr.markForCheck();
+        this.animateChartsIn();
       }, 500);
       
     } catch (error) {
@@ -316,6 +324,15 @@ export class DashComponent implements AfterViewInit, OnDestroy {
       this.isLoadingCharts = false;
       this.cdr.markForCheck();
     }
+  }
+
+  private animateChartsIn() {
+    const charts = document.querySelectorAll('.cyber-chart-container');
+    charts.forEach((chart, index) => {
+      setTimeout(() => {
+        chart.classList.add('animate-in');
+      }, index * 150);
+    });
   }
 
   // CVSS lookup values with explicit types
