@@ -62,6 +62,7 @@ export class DashComponent implements AfterViewInit, OnDestroy {
   // Performance: Memoized data
   private _chartDataCache = new Map<string, any>();
   private _resizeObserver?: ResizeObserver;
+  private _intersectionObserver?: IntersectionObserver;
   private destroy$ = new Subject<void>();
   
   // Debounced form updates for better performance
