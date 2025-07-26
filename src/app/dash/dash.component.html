@@ -1,4 +1,13 @@
 <div class="dashboard-wrapper">
+  <!-- Global Loading State -->
+  <app-cyber-loader
+    *ngIf="isInitializing"
+    [loadingText]="'INITIALIZING_THREAT_DASHBOARD'"
+    [fullScreen]="true"
+    [showProgress]="true"
+    [progress]="initializationProgress">
+  </app-cyber-loader>
+
   <!-- Add validation popup -->
   <div *ngIf="showValidationPopup" class="validation-popup">
     <div class="validation-content">
