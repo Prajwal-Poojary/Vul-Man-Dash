@@ -297,20 +297,27 @@ export class DashComponent implements AfterViewInit, OnDestroy {
     
     try {
       // Performance monitoring
-      const startTime = performance.now();
+      this.performanceService.markStart('chart-initialization');
       
       // Use requestAnimationFrame for smoother chart creation
       await new Promise(resolve => {
         requestAnimationFrame(() => {
-          this.createChartsOptimized();
-          this.chartInitialized = true;
+          this.performanceService.measureChartPerformance('all-charts', () => {
+            this.createChartsOptimized();
+            this.chartInitialized = true;
+          });
           resolve(true);
         });
       });
       
       // Log performance metrics
-      const endTime = performance.now();
-      console.log(`Chart initialization took ${endTime - startTime} milliseconds`);
+      this.performanceService.markEnd('chart-initialization');
+      
+      // Get memory usage if available
+      const memoryInfo = this.performanceService.getMemoryUsage();
+      if (memoryInfo) {
+        console.log('Memory Usage:', memoryInfo);
+      }
       
       // Simulate chart loading for better UX with progressive reveal
       setTimeout(() => {
