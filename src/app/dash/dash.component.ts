@@ -210,6 +210,7 @@ export class DashComponent implements AfterViewInit, OnDestroy {
     this.destroy$.complete();
     this.destroyCharts();
     this._resizeObserver?.disconnect();
+    this._intersectionObserver?.disconnect();
   }
 
   private setupResizeObserver() {
