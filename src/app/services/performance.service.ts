@@ -50,7 +50,7 @@ export class PerformanceService {
     this.performanceMetrics.set(`chart-${chartName}`, duration);
   }
 
-  getMemoryUsage(): MemoryInfo | null {
+  getMemoryUsage(): any | null {
     if ('memory' in performance) {
       return (performance as any).memory;
     }
