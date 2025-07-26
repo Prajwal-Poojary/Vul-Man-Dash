@@ -129,9 +129,14 @@ export class DashComponent implements AfterViewInit, OnDestroy {
 
   private async initializeComponent() {
     this.isInitializing = true;
+    this.initializationProgress = 0;
     this.cdr.markForCheck();
     
     try {
+      // Step 1: Initialize navigation state
+      this.initializationProgress = 20;
+      this.cdr.markForCheck();
+      
       // Check if we're in edit mode
       const navigation = this.router.getCurrentNavigation();
       const state = navigation?.extras.state as { 
@@ -141,12 +146,20 @@ export class DashComponent implements AfterViewInit, OnDestroy {
         dashboardData?: DashboardData
       };
       
+      // Step 2: Process state
+      this.initializationProgress = 40;
+      this.cdr.markForCheck();
+      
       if (state?.isEdit) {
         this.reportId = state.reportId || null;
         
         if (state.showInputForm !== undefined) {
           this.showInputForm = state.showInputForm;
         }
+        
+        // Step 3: Load dashboard data
+        this.initializationProgress = 60;
+        this.cdr.markForCheck();
         
         if (state.dashboardData) {
           await this.loadDashboardData(state.dashboardData);
@@ -158,11 +171,19 @@ export class DashComponent implements AfterViewInit, OnDestroy {
         }
       }
       
-      // Simulate initialization time for better UX
+      // Step 4: Setup performance monitoring
+      this.initializationProgress = 80;
+      this.cdr.markForCheck();
+      
+      // Step 5: Complete initialization
+      this.initializationProgress = 100;
+      this.cdr.markForCheck();
+      
+      // Simulate completion animation
       setTimeout(() => {
         this.isInitializing = false;
         this.cdr.markForCheck();
-      }, 1000);
+      }, 800);
       
     } catch (error) {
       console.error('Error initializing dashboard:', error);
