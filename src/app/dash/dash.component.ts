@@ -224,30 +224,20 @@ export class DashComponent implements AfterViewInit, OnDestroy {
   }
 
   private setupIntersectionObserver() {
-    if (typeof IntersectionObserver !== 'undefined') {
-      this._intersectionObserver = new IntersectionObserver(
-        (entries) => {
-          entries.forEach(entry => {
-            if (entry.isIntersecting) {
-              const chartId = entry.target.id;
-              this.loadChartLazily(chartId);
-            }
-          });
-        },
-        {
-          rootMargin: '50px',
-          threshold: 0.1
+    // Use the new intersection observer service for better performance
+    setTimeout(() => {
+      const chartContainers = document.querySelectorAll('.chart-wrapper');
+      chartContainers.forEach(container => {
+        const canvas = container.querySelector('canvas');
+        if (canvas) {
+          this.intersectionService.lazyLoadChart(
+            canvas,
+            () => this.loadChartLazily(canvas.id),
+            'chart-loader'
+          );
         }
-      );
-      
-      // Observe chart containers when they become available
-      setTimeout(() => {
-        const chartContainers = document.querySelectorAll('.chart-wrapper canvas');
-        chartContainers.forEach(container => {
-          this._intersectionObserver?.observe(container);
-        });
-      }, 100);
-    }
+      });
+    }, 100);
   }
 
   private loadChartLazily(chartId: string) {
