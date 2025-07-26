@@ -44,6 +44,7 @@ interface FormData {
 export class DashComponent implements AfterViewInit, OnDestroy {
   // Loading states for better UX
   isInitializing = true;
+  initializationProgress = 0;
   isLoadingCharts = false;
   isSaving = false;
   isFormSubmitting = false;
