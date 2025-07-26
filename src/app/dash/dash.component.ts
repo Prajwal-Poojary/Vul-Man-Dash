@@ -3,6 +3,8 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Chart, registerables } from 'chart.js';
 import { ReportService, DashboardData } from '../services/report.service';
+import { PerformanceService } from '../services/performance.service';
+import { IntersectionObserverService } from '../services/intersection-observer.service';
 import { Router } from '@angular/router';
 import { CyberLoaderComponent } from '../shared/components/cyber-loader/cyber-loader.component';
 import { SkeletonLoaderComponent } from '../shared/components/skeleton-loader/skeleton-loader.component';
