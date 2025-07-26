@@ -128,6 +128,10 @@ export class DashComponent implements AfterViewInit, OnDestroy {
       this.updateAreaVulnerabilitiesDebounced();
     });
     
+    // Initialize performance monitoring
+    this.performanceService.markStart('component-initialization');
+    this.performanceService.logCriticalRenderingPath();
+    
     // Initialize component with loading state
     this.initializeComponent();
   }
