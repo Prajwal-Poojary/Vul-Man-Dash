@@ -183,7 +183,14 @@
     </form>
   </div>
 
-  <div class="dashboard-view" *ngIf="!showInputForm">
+  <div class="dashboard-view" *ngIf="!showInputForm && !isInitializing">
+    <!-- Loading States for Individual Sections -->
+    <app-skeleton-loader 
+      *ngIf="isLoadingCharts" 
+      type="dashboard"
+      class="charts-loading-skeleton">
+    </app-skeleton-loader>
+
     <!-- Enhanced Cybersecurity Header -->
     <div class="cyber-dashboard-header">
       <div class="header-main">
