@@ -41,7 +41,7 @@ interface FormData {
   templateUrl: './dash.component.html',
   styleUrls: ['./dash.component.scss'],
   standalone: true,
-  imports: [FormsModule, CommonModule, CyberLoaderComponent, SkeletonLoaderComponent],
+  imports: [FormsModule, CommonModule, CyberLoaderComponent, SkeletonLoaderComponent, SecurityAlertsComponent],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DashComponent implements AfterViewInit, OnDestroy {
