@@ -672,77 +672,79 @@ export class DashComponent implements AfterViewInit, OnDestroy {
       this.severityChart.destroy();
     }
 
-    this.severityChart = new Chart(canvas, {
-      type: 'pie',
-      data: {
-        labels: ['Critical', 'High', 'Medium', 'Low', 'Informative'],
-        datasets: [{
-          data: [
-            this.severityDistribution.critical,
-            this.severityDistribution.high,
-            this.severityDistribution.medium,
-            this.severityDistribution.low,
-            this.severityDistribution.informative
-          ],
-          backgroundColor: [
-            'rgba(220, 53, 69, 0.85)',
-            'rgba(253, 126, 20, 0.85)',
-            'rgba(255, 193, 7, 0.85)',
-            'rgba(25, 135, 84, 0.85)',
-            'rgba(13, 202, 240, 0.85)'
-          ],
-          borderColor: '#ffffff',
-          borderWidth: 2,
-          hoverOffset: 4
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        animation: {
-          animateRotate: true,
-          animateScale: false,
-          duration: 1000,
-          easing: 'easeOutQuart'
+    this.performanceService.measureChartPerformance('severity-chart', () => {
+      this.severityChart = new Chart(canvas, {
+        type: 'pie',
+        data: {
+          labels: ['Critical', 'High', 'Medium', 'Low', 'Informative'],
+          datasets: [{
+            data: [
+              this.severityDistribution.critical,
+              this.severityDistribution.high,
+              this.severityDistribution.medium,
+              this.severityDistribution.low,
+              this.severityDistribution.informative
+            ],
+            backgroundColor: [
+              'rgba(220, 53, 69, 0.85)',
+              'rgba(253, 126, 20, 0.85)',
+              'rgba(255, 193, 7, 0.85)',
+              'rgba(25, 135, 84, 0.85)',
+              'rgba(13, 202, 240, 0.85)'
+            ],
+            borderColor: '#ffffff',
+            borderWidth: 2,
+            hoverOffset: 4
+          }]
         },
-        plugins: {
-          title: {
-            display: true,
-            text: 'Vulnerability Severity',
-            font: {
-              size: 18,
-              weight: 'bold',
-              family: "'Inter', sans-serif"
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: {
+            animateRotate: true,
+            animateScale: false,
+            duration: 1000,
+            easing: 'easeOutQuart'
+          },
+          plugins: {
+            title: {
+              display: true,
+              text: 'Vulnerability Severity',
+              font: {
+                size: 18,
+                weight: 'bold',
+                family: "'Inter', sans-serif"
+              },
+              padding: { top: 10, bottom: 20 }
             },
-            padding: { top: 10, bottom: 20 }
-          },
-          legend: {
-            position: 'right',
-            labels: {
-              padding: 20,
-              font: { size: 12, family: "'Inter', sans-serif" },
-              usePointStyle: true,
-              pointStyle: 'circle'
-            }
-          },
-          tooltip: {
-            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-            titleFont: { size: 14, family: "'Inter', sans-serif" },
-            bodyFont: { size: 13, family: "'Inter', sans-serif" },
-            padding: 12,
-            cornerRadius: 4,
-            callbacks: {
-              label: function(context) {
-                const label = context.label || '';
-                const value = context.raw as number;
-                const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0);
-                const percentage = ((value / total) * 100).toFixed(1);
-                return `${label}: ${value} (${percentage}%)`;
+            legend: {
+              position: 'right',
+              labels: {
+                padding: 20,
+                font: { size: 12, family: "'Inter', sans-serif" },
+                usePointStyle: true,
+                pointStyle: 'circle'
+              }
+            },
+            tooltip: {
+              backgroundColor: 'rgba(0, 0, 0, 0.8)',
+              titleFont: { size: 14, family: "'Inter', sans-serif" },
+              bodyFont: { size: 13, family: "'Inter', sans-serif" },
+              padding: 12,
+              cornerRadius: 4,
+              callbacks: {
+                label: function(context) {
+                  const label = context.label || '';
+                  const value = context.raw as number;
+                  const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0);
+                  const percentage = ((value / total) * 100).toFixed(1);
+                  return `${label}: ${value} (${percentage}%)`;
+                }
               }
             }
           }
         }
-      }
+      });
     });
   }
 
