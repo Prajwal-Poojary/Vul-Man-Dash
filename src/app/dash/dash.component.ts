@@ -213,6 +213,49 @@ export class DashComponent implements AfterViewInit, OnDestroy {
     this._intersectionObserver?.disconnect();
   }
 
+  private setupIntersectionObserver() {
+    if (typeof IntersectionObserver !== 'undefined') {
+      this._intersectionObserver = new IntersectionObserver(
+        (entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              const chartId = entry.target.id;
+              this.loadChartLazily(chartId);
+            }
+          });
+        },
+        {
+          rootMargin: '50px',
+          threshold: 0.1
+        }
+      );
+      
+      // Observe chart containers when they become available
+      setTimeout(() => {
+        const chartContainers = document.querySelectorAll('.chart-wrapper canvas');
+        chartContainers.forEach(container => {
+          this._intersectionObserver?.observe(container);
+        });
+      }, 100);
+    }
+  }
+
+  private loadChartLazily(chartId: string) {
+    if (this.chartInitialized) return;
+    
+    switch (chartId) {
+      case 'severityChart':
+        this.createSeverityChart();
+        break;
+      case 'cvssScoreChart':
+        this.createCVSSScoreChart();
+        break;
+      case 'remediationChart':
+        this.createRemediationChart();
+        break;
+    }
+  }
+
   private setupResizeObserver() {
     if (typeof ResizeObserver !== 'undefined') {
       this._resizeObserver = new ResizeObserver(() => {
