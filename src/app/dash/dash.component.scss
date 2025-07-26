@@ -1899,6 +1899,301 @@
   border-color: #f5c6cb;
 }
 
+}
+
+// ============================================
+// PHASE 1: PERFORMANCE & UX OPTIMIZATIONS
+// ============================================
+
+// Enhanced Chart Animations
+.cyber-chart-container {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: opacity, transform;
+  
+  &.animate-in {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 212, 255, 0.15);
+  }
+}
+
+// Loading Skeleton Styles
+.charts-loading-skeleton {
+  .skeleton-container {
+    background: var(--cyber-dark-alt);
+    border-radius: 15px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    border: 1px solid var(--cyber-border);
+    box-shadow: 0 0 20px rgba(0, 212, 255, 0.1);
+  }
+  
+  .skeleton-line {
+    height: 16px;
+    background: linear-gradient(
+      90deg,
+      rgba(0, 212, 255, 0.1) 0%,
+      rgba(0, 212, 255, 0.2) 50%,
+      rgba(0, 212, 255, 0.1) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    
+    &.w-60 { width: 60%; }
+    &.w-40 { width: 40%; }
+    &.w-80 { width: 80%; }
+    &.w-70 { width: 70%; }
+    &.w-50 { width: 50%; }
+    &.w-30 { width: 30%; }
+  }
+  
+  .skeleton-card {
+    background: rgba(0, 212, 255, 0.05);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    border: 1px solid rgba(0, 212, 255, 0.1);
+  }
+  
+  .skeleton-circle {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(
+      90deg,
+      rgba(0, 212, 255, 0.1) 0%,
+      rgba(0, 212, 255, 0.2) 50%,
+      rgba(0, 212, 255, 0.1) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
+    margin-bottom: 1rem;
+  }
+  
+  .skeleton-chart-circle {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    background: linear-gradient(
+      90deg,
+      rgba(0, 212, 255, 0.1) 0%,
+      rgba(0, 212, 255, 0.2) 50%,
+      rgba(0, 212, 255, 0.1) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
+    margin: 0 auto;
+  }
+  
+  .skeleton-chart-bars {
+    display: flex;
+    justify-content: space-around;
+    align-items: flex-end;
+    height: 200px;
+    padding: 1rem;
+    
+    .skeleton-bar {
+      width: 30px;
+      background: linear-gradient(
+        180deg,
+        rgba(0, 212, 255, 0.2) 0%,
+        rgba(0, 212, 255, 0.1) 100%
+      );
+      border-radius: 4px;
+      animation: pulse 2s ease-in-out infinite;
+      animation-delay: calc(var(--delay, 0) * 0.2s);
+    }
+  }
+  
+  .skeleton-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  
+  .skeleton-charts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    
+    .skeleton-chart {
+      background: rgba(0, 212, 255, 0.05);
+      border-radius: 12px;
+      padding: 2rem;
+      border: 1px solid rgba(0, 212, 255, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+// Enhanced Mobile Responsiveness
+@media (max-width: 768px) {
+  .cyber-dashboard-header {
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    
+    .header-main {
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+    
+    .cyber-title {
+      font-size: 1.5rem;
+    }
+    
+    .status-indicators {
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+  }
+  
+  .security-status-panel {
+    padding: 1rem;
+    
+    .status-grid {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+    
+    .status-card {
+      padding: 1.5rem;
+    }
+  }
+  
+  .enhanced-charts-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  .cyber-chart-container {
+    padding: 1.5rem;
+    
+    .chart-wrapper {
+      height: 250px;
+    }
+  }
+  
+  .cvss-display-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  .enhanced-risk-matrix {
+    overflow-x: auto;
+    
+    .matrix-table {
+      min-width: 600px;
+    }
+  }
+  
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .form-section {
+    margin-bottom: 2rem;
+  }
+  
+  .section-title {
+    font-size: 1.25rem;
+  }
+}
+
+// Touch-optimized interactions
+@media (hover: none) and (pointer: coarse) {
+  .cyber-edit-button,
+  .cyber-action-button,
+  .submit-button {
+    min-height: 48px;
+    padding: 0.75rem 1.5rem;
+  }
+  
+  .matrix-btn,
+  .chart-btn {
+    min-height: 44px;
+    padding: 0.5rem 1rem;
+  }
+  
+  .status-card {
+    padding: 1.5rem;
+  }
+  
+  .form-input,
+  .form-select {
+    min-height: 48px;
+    padding: 0.75rem 1rem;
+  }
+}
+
+// Performance optimizations
+.chart-wrapper {
+  contain: layout style paint;
+  will-change: transform;
+  
+  canvas {
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+// Reduced motion preferences
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .cyber-chart-container {
+    transform: none !important;
+    opacity: 1 !important;
+  }
+}
+
+// High contrast mode
+@media (prefers-contrast: high) {
+  .cyber-dashboard-header {
+    border-color: #ffffff;
+  }
+  
+  .status-card {
+    border-color: #ffffff;
+  }
+  
+  .cyber-chart-container {
+    border-color: #ffffff;
+  }
+  
+  .form-input,
+  .form-select {
+    border-color: #ffffff;
+  }
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;
