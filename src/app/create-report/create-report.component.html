@@ -1,0 +1,75 @@
+<div *ngIf="errorMsg" class="custom-alert error">
+  <span class="alert-icon">&#9888;</span>
+  <span>{{ errorMsg }}</span>
+</div>
+<div *ngIf="successMsg" class="custom-alert success">
+  <span class="alert-icon">&#10003;</span>
+  <span>{{ successMsg }}</span>
+</div>
+<form (ngSubmit)="saveReport()" class="report-form" novalidate>
+  <label for="title">Report Title</label>
+  <input
+    id="title"
+    [(ngModel)]="report.title"
+    name="title"
+    required
+    placeholder="Enter report title"
+  />
+
+  <label for="password">Password</label>
+  <div style="position: relative;">
+    <input
+      id="password"
+      [type]="showPassword ? 'text' : 'password'"
+      [(ngModel)]="report.password"
+      name="password"
+      required
+      minlength="5"
+      placeholder="Enter password"
+      (input)="checkStrength()"
+      style="padding-right: 2.5em;"
+    />
+    <span (click)="toggleShowPassword()" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); cursor: pointer;">
+      <ng-container *ngIf="showPassword; else hideIcon">
+        <!-- Eye SVG -->
+        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><ellipse cx="12" cy="12" rx="9" ry="5"/><circle cx="12" cy="12" r="2"/></svg>
+      </ng-container>
+      <ng-template #hideIcon>
+        <!-- Eye Off SVG -->
+        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-5 0-9.27-3.11-10.74-7.5a10.97 10.97 0 0 1 1.66-2.88M1 1l22 22"/><ellipse cx="12" cy="12" rx="9" ry="5"/><circle cx="12" cy="12" r="2"/></svg>
+      </ng-template>
+    </span>
+  </div>
+
+  <div class="strength-bar" [ngClass]="passwordStrength"></div>
+  <div class="strength-label" *ngIf="report.password">
+    <span *ngIf="passwordStrength === 'weak'" style="color:#f44336;">Weak</span>
+    <span *ngIf="passwordStrength === 'medium'" style="color:#ff9800;">Medium</span>
+    <span *ngIf="passwordStrength === 'strong'" style="color:#4caf50;">Strong</span>
+  </div>
+
+  <label for="confirmPassword">Confirm Password</label>
+  <div style="position: relative;">
+    <input
+      id="confirmPassword"
+      [type]="showConfirmPassword ? 'text' : 'password'"
+      [(ngModel)]="report.confirmPassword"
+      name="confirmPassword"
+      required
+      placeholder="Confirm password"
+      style="padding-right: 2.5em;"
+    />
+    <span (click)="toggleShowConfirmPassword()" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); cursor: pointer;">
+      <ng-container *ngIf="showConfirmPassword; else hideIcon2">
+        <!-- Eye SVG -->
+        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><ellipse cx="12" cy="12" rx="9" ry="5"/><circle cx="12" cy="12" r="2"/></svg>
+      </ng-container>
+      <ng-template #hideIcon2>
+        <!-- Eye Off SVG -->
+        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-5 0-9.27-3.11-10.74-7.5a10.97 10.97 0 0 1 1.66-2.88M1 1l22 22"/><ellipse cx="12" cy="12" rx="9" ry="5"/><circle cx="12" cy="12" r="2"/></svg>
+      </ng-template>
+    </span>
+  </div>
+
+  <button type="submit" class="btn-save">Save</button>
+</form>

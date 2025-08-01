@@ -1,0 +1,625 @@
+<div class="dashboard-wrapper">
+  <!-- Global Loading State -->
+  <app-cyber-loader
+    *ngIf="isInitializing"
+    [loadingText]="'INITIALIZING_THREAT_DASHBOARD'"
+    [fullScreen]="true"
+    [showProgress]="true"
+    [progress]="initializationProgress">
+  </app-cyber-loader>
+
+  <!-- Security Alerts Section -->
+  <div class="security-alerts-section" *ngIf="!showInputForm">
+    <app-security-alerts></app-security-alerts>
+  </div>
+
+  <!-- Add validation popup -->
+  <div *ngIf="showValidationPopup" class="validation-popup">
+    <div class="validation-content">
+      <div class="validation-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+        </svg>
+      </div>
+      <div class="validation-message">{{ validationMessage }}</div>
+    </div>
+  </div>
+
+  <!-- Add success message -->
+  <div *ngIf="saveSuccess" class="alert alert-success">
+    Dashboard data saved successfully!
+  </div>
+
+  <!-- Add error message -->
+  <div *ngIf="saveError" class="alert alert-danger">
+    {{ errorMessage }}
+  </div>
+
+  <div class="form-container" *ngIf="showInputForm">
+    <div class="form-header">
+      <h1 class="form-title">
+        Dashboard Input
+      </h1>
+      <p class="form-subtitle">Enter threat and vulnerability metrics</p>
+    </div>
+
+    <form (ngSubmit)="onSubmit()" #dashboardForm="ngForm" class="dashboard-form">
+      <!-- CVSS Metrics Section -->
+      <div class="form-section">
+        <h2 class="section-title">
+          CVSS Metrics
+        </h2>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="attackVector" class="form-label">Attack Vector</label>
+            <select id="attackVector" name="attackVector" [(ngModel)]="formData.attackVector" class="form-select" required>
+              <option value="Network">Network</option>
+              <option value="Adjacent">Adjacent</option>
+              <option value="Local">Local</option>
+              <option value="Physical">Physical</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="attackComplexity" class="form-label">Attack Complexity</label>
+            <select id="attackComplexity" name="attackComplexity" [(ngModel)]="formData.attackComplexity" class="form-select" required>
+              <option value="Low">Low</option>
+              <option value="High">High</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="privilegesRequired" class="form-label">Privileges Required</label>
+            <select id="privilegesRequired" name="privilegesRequired" [(ngModel)]="formData.privilegesRequired" class="form-select" required>
+              <option value="None">None</option>
+              <option value="Low">Low</option>
+              <option value="High">High</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="userInteraction" class="form-label">User Interaction</label>
+            <select id="userInteraction" name="userInteraction" [(ngModel)]="formData.userInteraction" class="form-select" required>
+              <option value="None">None</option>
+              <option value="Required">Required</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="scope" class="form-label">Scope</label>
+            <select id="scope" name="scope" [(ngModel)]="formData.scope" class="form-select" required>
+              <option value="Unchanged">Unchanged</option>
+              <option value="Changed">Changed</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="confidentiality" class="form-label">Confidentiality Impact</label>
+            <select id="confidentiality" name="confidentiality" [(ngModel)]="formData.confidentiality" class="form-select" required>
+              <option value="None">None</option>
+              <option value="Low">Low</option>
+              <option value="High">High</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="integrity" class="form-label">Integrity Impact</label>
+            <select id="integrity" name="integrity" [(ngModel)]="formData.integrity" class="form-select" required>
+              <option value="None">None</option>
+              <option value="Low">Low</option>
+              <option value="High">High</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="availability" class="form-label">Availability Impact</label>
+            <select id="availability" name="availability" [(ngModel)]="formData.availability" class="form-select" required>
+              <option value="None">None</option>
+              <option value="Low">Low</option>
+              <option value="High">High</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Severity Distribution Section -->
+      <div class="form-section">
+        <h2 class="section-title">Severity Distribution</h2>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="critical" class="form-label">Critical</label>
+            <input type="number" id="critical" name="critical" [(ngModel)]="formData.critical" class="form-input" min="0" />
+          </div>
+          <div class="form-group">
+            <label for="high" class="form-label">High</label>
+            <input type="number" id="high" name="high" [(ngModel)]="formData.high" class="form-input" min="0" />
+          </div>
+          <div class="form-group">
+            <label for="medium" class="form-label">Medium</label>
+            <input type="number" id="medium" name="medium" [(ngModel)]="formData.medium" class="form-input" min="0" />
+          </div>
+          <div class="form-group">
+            <label for="low" class="form-label">Low</label>
+            <input type="number" id="low" name="low" [(ngModel)]="formData.low" class="form-input" min="0" />
+          </div>
+          <div class="form-group">
+            <label for="informative" class="form-label">Informative</label>
+            <input type="number" id="informative" name="informative" [(ngModel)]="formData.informative" class="form-input" min="0" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Remediation Section -->
+      <div class="form-section">
+        <h2 class="section-title">
+          Vulnerability Findings
+        </h2>
+        <div class="form-group">
+          <label for="remediationAreas" class="form-label">Areas</label>
+          <input type="text" id="remediationAreas" name="remediationAreas" [(ngModel)]="formData.remediationAreas" 
+                 class="form-input" placeholder="e.g. Host,Network,Application" required
+                 (input)="updateAreaVulnerabilities()">
+          <span class="input-hint">Comma-separated areas</span>
+        </div>
+
+        <div class="form-grid" *ngIf="areaVulnerabilities.length > 0">
+          <div class="area-input-group" *ngFor="let area of areaVulnerabilities; let i = index">
+            <h3 class="area-title">{{ area.name }}</h3>
+            <div class="form-group">
+              <label [for]="'vuln-count-' + i" class="form-label">Vulnerabilities Found</label>
+              <input type="number" [id]="'vuln-count-' + i" [name]="'vuln-count-' + i" 
+                     [(ngModel)]="area.count" class="form-input" min="0" required
+                     (input)="updateTotalVulnerabilities()">
+            </div>
+          </div>
+        </div>
+
+        <div class="total-vulnerabilities">
+          <label class="form-label">Total Vulnerabilities</label>
+          <div class="total-count">{{ totalVulnerabilities }}</div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="submit-button">
+          Generate Dashboard
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <div class="dashboard-view" *ngIf="!showInputForm && !isInitializing">
+    <!-- Loading States for Individual Sections -->
+    <app-skeleton-loader 
+      *ngIf="isLoadingCharts" 
+      type="dashboard"
+      class="charts-loading-skeleton">
+    </app-skeleton-loader>
+
+    <!-- Enhanced Cybersecurity Header -->
+    <div class="cyber-dashboard-header">
+      <div class="header-main">
+        <div class="header-left">
+          <div class="cyber-title-section">
+            <div class="security-badge">
+              <i class="fas fa-shield-virus"></i>
+              <div class="pulse-ring"></div>
+            </div>
+            <div class="title-content">
+              <h1 class="cyber-title">
+                <span class="typing-text">THREAT_ASSESSMENT_DASHBOARD</span>
+                <span class="cursor">|</span>
+              </h1>
+              <p class="cyber-subtitle">Real-time Security Monitoring & Analysis</p>
+            </div>
+          </div>
+          <div class="status-indicators">
+            <div class="status-item">
+              <div class="status-dot active"></div>
+              <span>SYSTEM_ACTIVE</span>
+            </div>
+            <div class="status-item">
+              <div class="status-dot scanning"></div>
+              <span>SCANNING_ENABLED</span>
+            </div>
+            <div class="status-item">
+              <div class="status-dot secured"></div>
+              <span>SECURED_CONNECTION</span>
+            </div>
+          </div>
+        </div>
+        <div class="header-right">
+          <div class="timestamp-section">
+            <div class="timestamp-label">LAST_SCAN</div>
+            <div class="timestamp-value">{{ currentDate | date:'MMM dd, yyyy HH:mm' }}</div>
+          </div>
+          <button (click)="showInputForm = true" class="cyber-edit-button">
+            <i class="fas fa-edit"></i>
+            <span>MODIFY_DATA</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Real-time Security Status Panel -->
+    <div class="security-status-panel">
+      <div class="status-grid">
+        <div class="status-card threat-level">
+          <div class="card-header">
+            <i class="fas fa-exclamation-triangle"></i>
+            <h3>THREAT_LEVEL</h3>
+          </div>
+          <div class="card-content">
+            <div class="threat-indicator" [ngClass]="cvssRiskLevel?.toLowerCase()">
+              <div class="threat-circle">
+                <span class="threat-text">{{ cvssRiskLevel || 'UNKNOWN' }}</span>
+              </div>
+            </div>
+            <div class="threat-details">
+              <div class="threat-score">{{ cvssBaseScore || 0 }}/10</div>
+              <div class="threat-description">CVSS Base Score</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="status-card vulnerability-count">
+          <div class="card-header">
+            <i class="fas fa-bug"></i>
+            <h3>VULNERABILITIES</h3>
+          </div>
+          <div class="card-content">
+            <div class="vuln-number">{{ totalRiskCount }}</div>
+            <div class="vuln-breakdown">
+              <div class="vuln-item critical">
+                <span class="vuln-count">{{ severityDistribution.critical }}</span>
+                <span class="vuln-label">CRITICAL</span>
+              </div>
+              <div class="vuln-item high">
+                <span class="vuln-count">{{ severityDistribution.high }}</span>
+                <span class="vuln-label">HIGH</span>
+              </div>
+              <div class="vuln-item medium">
+                <span class="vuln-count">{{ severityDistribution.medium }}</span>
+                <span class="vuln-label">MEDIUM</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="status-card security-score">
+          <div class="card-header">
+            <i class="fas fa-shield-check"></i>
+            <h3>SECURITY_SCORE</h3>
+          </div>
+          <div class="card-content">
+            <div class="score-display">
+              <div class="score-circle">
+                <div class="score-progress" [style.--progress]="getSecurityScore() + '%'"></div>
+                <div class="score-text">{{ getSecurityScore() }}%</div>
+              </div>
+            </div>
+            <div class="score-status">{{ getSecurityStatus() }}</div>
+          </div>
+        </div>
+
+        <div class="status-card scan-status">
+          <div class="card-header">
+            <i class="fas fa-search"></i>
+            <h3>SCAN_STATUS</h3>
+          </div>
+          <div class="card-content">
+            <div class="scan-progress">
+              <div class="progress-bar">
+                <div class="progress-fill scanning-animation"></div>
+              </div>
+              <div class="scan-text">MONITORING_ACTIVE</div>
+            </div>
+            <div class="scan-details">
+              <div class="scan-item">
+                <span class="scan-label">AREAS_SCANNED:</span>
+                <span class="scan-value">{{ areaVulnerabilities.length }}</span>
+              </div>
+              <div class="scan-item">
+                <span class="scan-label">TOTAL_FINDINGS:</span>
+                <span class="scan-value">{{ totalVulnerabilities }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dashboard-content">
+      <!-- Enhanced CVSS Score Display -->
+      <div class="cyber-dashboard-section cvss-section" *ngIf="cvssBaseScore !== null">
+        <div class="section-header">
+          <h2 class="cyber-section-title">
+            <i class="fas fa-calculator"></i>
+            CVSS_RISK_ASSESSMENT
+          </h2>
+          <div class="section-status">
+            <span class="status-indicator active"></span>
+            <span>ASSESSMENT_COMPLETE</span>
+          </div>
+        </div>
+        
+        <div class="cvss-display-grid">
+          <div class="cvss-score-card">
+            <div class="score-header">
+              <h3>BASE_SCORE</h3>
+              <div class="score-timestamp">{{ currentDate | date:'HH:mm:ss' }}</div>
+            </div>
+            <div class="score-container">
+              <div class="score-gauge">
+                <div class="gauge-bg"></div>
+                <div class="gauge-fill" [style.--score]="cvssBaseScore || 0"></div>
+                <div class="gauge-center">
+                  <div class="score-value">{{ cvssBaseScore }}</div>
+                  <div class="score-max">/10</div>
+                </div>
+              </div>
+            </div>
+            <div class="score-footer">
+              <div class="risk-badge" [ngClass]="cvssRiskLevel?.toLowerCase()">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>{{ cvssRiskLevel }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="cvss-breakdown">
+            <h3>VECTOR_ANALYSIS</h3>
+            <div class="vector-grid">
+              <div class="vector-item">
+                <div class="vector-label">ATTACK_VECTOR</div>
+                <div class="vector-value">{{ formData.attackVector }}</div>
+              </div>
+              <div class="vector-item">
+                <div class="vector-label">COMPLEXITY</div>
+                <div class="vector-value">{{ formData.attackComplexity }}</div>
+              </div>
+              <div class="vector-item">
+                <div class="vector-label">PRIVILEGES</div>
+                <div class="vector-value">{{ formData.privilegesRequired }}</div>
+              </div>
+              <div class="vector-item">
+                <div class="vector-label">USER_INTERACTION</div>
+                <div class="vector-value">{{ formData.userInteraction }}</div>
+              </div>
+              <div class="vector-item">
+                <div class="vector-label">SCOPE</div>
+                <div class="vector-value">{{ formData.scope }}</div>
+              </div>
+              <div class="vector-item">
+                <div class="vector-label">IMPACT_LEVEL</div>
+                <div class="vector-value">
+                  C:{{ formData.confidentiality }}/I:{{ formData.integrity }}/A:{{ formData.availability }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Enhanced Risk Matrix -->
+      <div class="cyber-dashboard-section risk-matrix-section">
+        <div class="section-header">
+          <h2 class="cyber-section-title">
+            <i class="fas fa-th"></i>
+            RISK_MATRIX_ANALYSIS
+          </h2>
+          <div class="matrix-legend">
+            <div class="legend-item critical">
+              <div class="legend-color"></div>
+              <span>CRITICAL</span>
+            </div>
+            <div class="legend-item high">
+              <div class="legend-color"></div>
+              <span>HIGH</span>
+            </div>
+            <div class="legend-item medium">
+              <div class="legend-color"></div>
+              <span>MEDIUM</span>
+            </div>
+            <div class="legend-item low">
+              <div class="legend-color"></div>
+              <span>LOW</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="enhanced-risk-matrix">
+          <div class="matrix-container">
+            <div class="matrix-header">
+              <div class="matrix-title">CVSS_SCORE_RANGES</div>
+              <div class="matrix-controls">
+                <button class="matrix-btn active">STANDARD</button>
+                <button class="matrix-btn">DETAILED</button>
+              </div>
+            </div>
+            
+            <div class="matrix-table">
+              <div class="matrix-row header">
+                <div class="matrix-cell">SEVERITY</div>
+                <div class="matrix-cell">SCORE_RANGE</div>
+                <div class="matrix-cell">COUNT</div>
+                <div class="matrix-cell">PERCENTAGE</div>
+              </div>
+              
+              <div class="matrix-row" [ngClass]="{'active': cvssRiskLevel === 'Critical'}">
+                <div class="matrix-cell severity critical">
+                  <i class="fas fa-exclamation-triangle"></i>
+                  CRITICAL
+                </div>
+                <div class="matrix-cell score-range">9.0 - 10.0</div>
+                <div class="matrix-cell count">{{ severityDistribution.critical }}</div>
+                <div class="matrix-cell percentage">{{ getPercentage(severityDistribution.critical) }}%</div>
+              </div>
+              
+              <div class="matrix-row" [ngClass]="{'active': cvssRiskLevel === 'High'}">
+                <div class="matrix-cell severity high">
+                  <i class="fas fa-exclamation-circle"></i>
+                  HIGH
+                </div>
+                <div class="matrix-cell score-range">7.0 - 8.9</div>
+                <div class="matrix-cell count">{{ severityDistribution.high }}</div>
+                <div class="matrix-cell percentage">{{ getPercentage(severityDistribution.high) }}%</div>
+              </div>
+              
+              <div class="matrix-row" [ngClass]="{'active': cvssRiskLevel === 'Medium'}">
+                <div class="matrix-cell severity medium">
+                  <i class="fas fa-minus-circle"></i>
+                  MEDIUM
+                </div>
+                <div class="matrix-cell score-range">4.0 - 6.9</div>
+                <div class="matrix-cell count">{{ severityDistribution.medium }}</div>
+                <div class="matrix-cell percentage">{{ getPercentage(severityDistribution.medium) }}%</div>
+              </div>
+              
+              <div class="matrix-row" [ngClass]="{'active': cvssRiskLevel === 'Low'}">
+                <div class="matrix-cell severity low">
+                  <i class="fas fa-info-circle"></i>
+                  LOW
+                </div>
+                <div class="matrix-cell score-range">0.1 - 3.9</div>
+                <div class="matrix-cell count">{{ severityDistribution.low }}</div>
+                <div class="matrix-cell percentage">{{ getPercentage(severityDistribution.low) }}%</div>
+              </div>
+              
+              <div class="matrix-row" [ngClass]="{'active': cvssRiskLevel === 'Informative'}">
+                <div class="matrix-cell severity informative">
+                  <i class="fas fa-info"></i>
+                  INFORMATIVE
+                </div>
+                <div class="matrix-cell score-range">0.0</div>
+                <div class="matrix-cell count">{{ severityDistribution.informative }}</div>
+                <div class="matrix-cell percentage">{{ getPercentage(severityDistribution.informative) }}%</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Enhanced Charts Section -->
+      <div class="cyber-dashboard-section charts-section">
+        <div class="section-header">
+          <h2 class="cyber-section-title">
+            <i class="fas fa-chart-pie"></i>
+            THREAT_VISUALIZATION
+          </h2>
+          <div class="chart-controls">
+            <button class="chart-btn active">REAL_TIME</button>
+            <button class="chart-btn">HISTORICAL</button>
+          </div>
+        </div>
+        
+        <div class="enhanced-charts-grid">
+          <!-- Enhanced Severity Chart -->
+          <div class="cyber-chart-container">
+            <div class="chart-header">
+              <h3 class="chart-title">
+                <i class="fas fa-exclamation-triangle"></i>
+                VULNERABILITY_SEVERITY
+              </h3>
+              <div class="chart-status">
+                <span class="status-dot active"></span>
+                <span>LIVE</span>
+              </div>
+            </div>
+            <div class="chart-content">
+              <div class="chart-wrapper">
+                <canvas id="severityChart"></canvas>
+              </div>
+              <div class="chart-legend">
+                <div class="legend-item">
+                  <div class="legend-color critical"></div>
+                  <span>Critical: {{ severityDistribution.critical }}</span>
+                </div>
+                <div class="legend-item">
+                  <div class="legend-color high"></div>
+                  <span>High: {{ severityDistribution.high }}</span>
+                </div>
+                <div class="legend-item">
+                  <div class="legend-color medium"></div>
+                  <span>Medium: {{ severityDistribution.medium }}</span>
+                </div>
+                <div class="legend-item">
+                  <div class="legend-color low"></div>
+                  <span>Low: {{ severityDistribution.low }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Enhanced CVSS Chart -->
+          <div class="cyber-chart-container">
+            <div class="chart-header">
+              <h3 class="chart-title">
+                <i class="fas fa-tachometer-alt"></i>
+                CVSS_RISK_METER
+              </h3>
+              <div class="chart-status">
+                <span class="status-dot active"></span>
+                <span>CALCULATED</span>
+              </div>
+            </div>
+            <div class="chart-content">
+              <div class="chart-wrapper">
+                <canvas id="cvssScoreChart"></canvas>
+              </div>
+              <div class="cvss-chart-info">
+                <div class="cvss-info-item">
+                  <span class="info-label">CURRENT_SCORE</span>
+                  <span class="info-value">{{ cvssBaseScore }}</span>
+                </div>
+                <div class="cvss-info-item">
+                  <span class="info-label">RISK_LEVEL</span>
+                  <span class="info-value" [ngClass]="cvssRiskLevel?.toLowerCase()">{{ cvssRiskLevel }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Enhanced Findings Chart -->
+          <div class="cyber-chart-container findings-chart">
+            <div class="chart-header">
+              <h3 class="chart-title">
+                <i class="fas fa-bug"></i>
+                VULNERABILITY_FINDINGS
+              </h3>
+              <div class="chart-status">
+                <span class="status-dot scanning"></span>
+                <span>SCANNING</span>
+              </div>
+            </div>
+            <div class="chart-content">
+              <div class="chart-wrapper">
+                <canvas id="remediationChart"></canvas>
+              </div>
+              <div class="findings-summary">
+                <div class="summary-item">
+                  <div class="summary-label">TOTAL_AREAS</div>
+                  <div class="summary-value">{{ areaVulnerabilities.length }}</div>
+                </div>
+                <div class="summary-item">
+                  <div class="summary-label">TOTAL_FINDINGS</div>
+                  <div class="summary-value">{{ totalVulnerabilities }}</div>
+                </div>
+                <div class="summary-item">
+                  <div class="summary-label">AVG_PER_AREA</div>
+                  <div class="summary-value">{{ getAverageFindings() }}</div>
+                </div>
+              </div>
+              <div class="chart-actions">
+                <button (click)="navigateToReport()" class="cyber-action-button">
+                  <i class="fas fa-file-alt"></i>
+                  <span>GENERATE_REPORT</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

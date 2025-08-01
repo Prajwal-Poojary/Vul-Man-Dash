@@ -1,0 +1,33 @@
+{
+  "name": "Cyber Security Dashboard",
+  "short_name": "CyberDash",
+  "description": "Advanced Cybersecurity Vulnerability Assessment Portal",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#00d4ff",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/favicon.ico",
+      "sizes": "32x32",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/favicon.ico",
+      "sizes": "192x192",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/favicon.ico",
+      "sizes": "512x512",
+      "type": "image/x-icon"
+    }
+  ],
+  "categories": ["security", "productivity", "utilities"],
+  "orientation": "portrait-primary"
+}

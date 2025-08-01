@@ -1,0 +1,520 @@
+<div class="report-container" *ngIf="!reportVisible">
+  <h2>Security Assessment Report Input</h2>
+
+  <!-- Add success message -->
+  <div *ngIf="saveSuccess" class="alert alert-success">
+    Report saved successfully to database!
+  </div>
+
+  <!-- Add error message -->
+  <div *ngIf="saveError" class="alert alert-danger">
+    {{ errorMessage }}
+  </div>
+
+  <div class="form-section">
+    <label>Logo Upload: <input #logoFileInput type="file" (change)="handleLogoUpload($event)" /></label>
+    <div *ngIf="logoDataURL" style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+      <img [src]="logoDataURL" alt="Logo Preview" class="logo-preview" />
+      <button type="button" (click)="removeLogo(logoFileInput)" style="background: #d32f2f; color: #fff; border: none; border-radius: 4px; padding: 6px 12px; cursor: pointer;">Remove</button>
+    </div>
+    <label>Logo Title: <input type="text" [(ngModel)]="form.logoName" /></label>
+    <label>Client Name: <input type="text" [(ngModel)]="form.client" /></label>
+    <label>Report Date: <input type="date" [(ngModel)]="form.reportDate" /></label>
+    <label>Audit Type: <input type="text" [(ngModel)]="form.auditType" /></label>
+    <label>Report Type: <input type="text" [(ngModel)]="form.reportType" /></label>
+    <div class="scope-fields">
+      <div *ngFor="let scope of form.scopes; let i = index; trackBy: trackByScope" class="scope-field">
+        <label>Scope {{i + 1}}: <input type="text" [(ngModel)]="form.scopes[i]" autocomplete="off" /> <!-- No maxlength, unlimited input --></label>
+        <button type="button" class="remove-scope" (click)="removeScope(i, 'main')" *ngIf="form.scopes.length > 1" aria-label="Remove scope">
+          <span class="remove-icon">×</span>
+        </button>
+      </div>
+      <div class="add-scope-controls">
+        <div class="add-multiple-scopes">
+          <input type="number" min="1" max="50" [(ngModel)]="scopesToAdd" placeholder="Number of scopes" class="scopes-number-input" />
+          <button type="button" (click)="addMultipleScopes('main')" class="add-multiple-scopes-btn">Add Scopes</button>
+        </div>
+      </div>
+    </div>
+    <div class="period-fields">
+      <label>Period:</label>
+      <input type="date" [(ngModel)]="form.periodStart" placeholder="Start Date" />
+      <span style="margin: 0 8px;">to</span>
+      <input type="date" [(ngModel)]="form.periodEnd" placeholder="End Date" />
+    </div>
+  </div>
+
+  <div class="manifest-section">
+    <h3>Scan Manifest</h3>
+    <div class="form-group">
+      <label>Select Scan Manifest Type:</label>
+      <select [(ngModel)]="selectedManifestType" (change)="onManifestSelect()" class="custom-select">
+        <option value="">-- Select Manifest Type --</option>
+        <option *ngFor="let type of manifestTypes" [value]="type">{{ type }}</option>
+      </select>
+    </div>
+
+    <div *ngIf="selectedManifestType">
+      <h3>Findings</h3>
+      <div *ngFor="let finding of findings; index as i; trackBy: trackByFindingIndex" class="finding-card">
+        <h4>Finding #{{ i + 1 }}</h4>
+        <button type="button" class="remove-finding" (click)="removeFinding(i)" *ngIf="findings.length > 1" aria-label="Remove finding">
+          <span class="remove-icon">×</span>
+        </button>
+        <label>Threat: <input type="text" [(ngModel)]="finding.threat" /></label>
+        <label>Threat Details: <textarea rows="2" [(ngModel)]="finding.threatDetails"></textarea></label>
+        <label>Vulnerability: <input type="text" [(ngModel)]="finding.vuln" /></label>
+        <label>Vulnerable URL: <input type="text" [(ngModel)]="finding.vulnUrl" /></label>
+        <label>Impact: <textarea rows="2" [(ngModel)]="finding.impact"></textarea></label>
+        <label>Steps to Reproduce: <textarea rows="2" [(ngModel)]="finding.stepsToReproduce"></textarea></label>
+        <label>POC Type:
+          <select [(ngModel)]="finding.pocType">
+            <option value="poc">POC</option>
+            <option value="retesting">Retesting POC</option>
+          </select>
+        </label>
+        <label *ngIf="finding.pocType === 'poc'">
+          POC: <input #pocFileInput type="file" (change)="handlePocUpload($event, i, 'poc')" accept="image/*" multiple />
+          <ng-container *ngIf="finding.pocDataURL && finding.pocDataURL.length">
+            <div *ngFor="let img of finding.pocDataURL; let imgIdx = index; trackBy: trackByImgIndex" style="margin-top: 10px; display: flex; flex-direction: column; gap: 10px;">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <img *ngIf="img && img.url" [src]="img.url" alt="POC Preview" style="max-width: 200px; border: 1px solid #888; border-radius: 4px;" />
+                <button type="button" (click)="removePoc(finding, imgIdx)" style="background: #d32f2f; color: #fff; border: none; border-radius: 4px; padding: 6px 12px; cursor: pointer;">Remove</button>
+              </div>
+              <input type="text" [(ngModel)]="img.caption" placeholder="Enter caption for POC image" [ngModelOptions]="{standalone: true}" style="width: 100%; margin-top: 5px;" />
+            </div>
+          </ng-container>
+        </label>
+        <label *ngIf="finding.pocType === 'retesting'">
+          Retesting POC: <input #retestingPocFileInput type="file" (change)="handlePocUpload($event, i, 'retesting')" accept="image/*" multiple />
+          <ng-container *ngIf="finding.retestingPocDataURL && finding.retestingPocDataURL.length">
+            <div *ngFor="let img of finding.retestingPocDataURL; let imgIdx = index; trackBy: trackByImgIndex" style="margin-top: 10px; display: flex; flex-direction: column; gap: 10px;">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <img *ngIf="img && img.url" [src]="img.url" alt="Retesting POC Preview" style="max-width: 200px; border: 1px solid #888; border-radius: 4px;" />
+                <button type="button" (click)="removeRetestingPoc(finding, imgIdx)" style="background: #d32f2f; color: #fff; border: none; border-radius: 4px; padding: 6px 12px; cursor: pointer;">Remove</button>
+              </div>
+              <input type="text" [(ngModel)]="img.caption" placeholder="Enter caption for Retesting POC image" [ngModelOptions]="{standalone: true}" style="width: 100%; margin-top: 5px;" />
+            </div>
+          </ng-container>
+        </label>
+        <label>Mitigation: <textarea rows="2" [(ngModel)]="finding.mitigation"></textarea></label>
+        <label>References: <input type="text" [(ngModel)]="finding.references" /></label>
+        <label>Severity:
+          <select [(ngModel)]="finding.severity" class="severity-select">
+            <option value="Critical">Critical</option>
+            <option value="High">High</option>
+            <option value="Medium">Medium</option>
+            <option value="Low">Low</option>
+            <option value="Informative">Informative</option>
+          </select>
+        </label>
+        <label>Status:
+          <select [(ngModel)]="finding.status" class="status-select">
+            <option value="Fixed">Fixed</option>
+            <option value="Not Fixed">Not Fixed</option>
+            <option value="Alive">Alive</option>
+          </select>
+        </label>
+      </div>
+      <div class="add-findings-controls">
+        <div class="add-multiple-findings">
+          <input type="number" min="1" max="50" [(ngModel)]="findingsToAdd" placeholder="Number of findings" class="findings-number-input" />
+          <button (click)="addMultipleFindings()" class="add-multiple-findings-btn" aria-label="Add multiple findings">Add Findings</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Move manifest scopes outside the form -->
+    <div *ngIf="selectedManifestType" class="scope-fields">
+      <div *ngFor="let scope of form.manifest.scopes; let i = index; trackBy: trackByScope" class="scope-field">
+        <label>Scope {{i + 1}}: <input type="text" [(ngModel)]="form.manifest.scopes[i]" name="manifestScope" /></label>
+        <button type="button" class="remove-scope" (click)="removeScope(i, 'manifest')" *ngIf="form.manifest.scopes.length > 1" aria-label="Remove manifest scope">
+          <span class="remove-icon">×</span>
+        </button>
+      </div>
+      <div class="add-scope-controls">
+        <div class="add-multiple-scopes">
+          <input type="number" min="1" max="50" [(ngModel)]="manifestScopesToAdd" placeholder="Number of scopes" class="scopes-number-input" />
+          <button type="button" (click)="addMultipleScopes('manifest')" class="add-multiple-scopes-btn">Add Scopes</button>
+        </div>
+      </div>
+    </div>
+
+    <form *ngIf="selectedManifestType" class="scan-form" (ngSubmit)="generateReport()">
+      <div class="form-field">
+        <label>Application Name:</label>
+        <input type="text" [(ngModel)]="form.manifest.appName" name="appName" />
+      </div>
+      <div class="form-field">
+        <label>Tester Name:</label>
+        <input type="text" [(ngModel)]="form.manifest.testerName" name="testerName" />
+      </div>
+      <div class="form-field">
+        <label>Document Version:</label>
+        <input type="text" [(ngModel)]="form.manifest.docVersion" name="docVersion" />
+      </div>
+      <div class="form-field">
+        <label>Initial Assessment Date:</label>
+        <input type="date" [(ngModel)]="form.manifest.initDate" name="initDate" />
+      </div>
+      <div class="form-field">
+        <label>Re-Assessment Date:</label>
+        <select [(ngModel)]="reAssessmentOption" (change)="onReAssessmentChange()" name="reAssessmentOption">
+          <option value="date">Select Date</option>
+          <option value="na">N/A</option>
+        </select>
+        <input *ngIf="reAssessmentOption === 'date'" type="date" [(ngModel)]="form.manifest.reDate" name="reDate" />
+      </div>
+      <div class="form-field">
+        <label>Tools Used:</label>
+        <input type="text" [(ngModel)]="form.manifest.toolsUsed" name="toolsUsed" />
+      </div>
+      <div class="form-field">
+        <label>Description:</label>
+        <textarea rows="4" [(ngModel)]="form.manifest.description" name="manifestDescription"></textarea>
+      </div>
+      <!-- <div class="form-field">
+        <label>Summary:</label>
+        <textarea rows="4" [(ngModel)]="form.summary" name="summary"></textarea>
+      </div> -->
+      <div class="form-section">
+        <h3 class="section-title">Signature Details</h3>
+        <div class="form-group">
+          <label for="signatureName">Name</label>
+          <input id="signatureName" type="text" [(ngModel)]="form.signature.name" name="signatureName">
+        </div>
+        <div class="form-group">
+          <label for="signatureTitle">Title</label>
+          <input id="signatureTitle" type="text" [(ngModel)]="form.signature.title" name="signatureTitle">
+        </div>
+        <div class="form-group">
+          <label for="signaturePlace">Place</label>
+          <input id="signaturePlace" type="text" [(ngModel)]="form.signature.place" name="signaturePlace">
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="generate-btn" aria-label="Generate Report">Generate Report</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="report-view" *ngIf="reportVisible">
+  <div class="final-report">
+    <div class="report-section">
+      <div class="" style="justify-items: center;">
+        <img *ngIf="logoDataURL" [src]="logoDataURL" alt="Logo" class="report-logo" />
+        <h1 class="report-title">{{ form.logoName }}</h1>
+        <div class="report-meta">
+          <p><strong>Date:</strong> {{ form.reportDate | date:'longDate' }}</p>
+          <p><strong>Prepared for:</strong> {{ form.client }}</p>
+        </div>
+      </div>
+      <div style="padding-top: 90px;">
+        <h2> Report Details</h2>
+        <table class="report-details">
+          <tr class="row" class="row">
+            <th class="border" class="row">Report Type</th>
+            <td class="row">{{ form.reportType }}</td>
+          </tr>
+          <tr class="row" class="row">
+            <th class="border" class="row">Audit Type</th>
+            <td>{{ form.auditType }}</td>
+          </tr>
+          <tr class="row" class="row">
+            <th class="border" class="row">Assessment Period</th>
+            <td>{{ form.periodStart }} - {{ form.periodEnd }}</td>
+          </tr>
+          <tr class="row" class="row">
+            <th class="border" class="row">Scope</th>
+            <td>
+              <div *ngFor="let scope of form.scopes" class="scope-item">{{ scope }}</div>
+            </td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- Content Table -->
+    <div class="report-section content-table-section toc-styled">
+      <h2 class="toc-title">Tables of Contents:</h2>
+      <table class="content-table toc-table">
+        <tbody>
+          <tr *ngFor="let item of contentTable">
+            <td class="toc-section-title">{{ item.title }}<span class="toc-dots"></span></td>
+            <td class="toc-page">{{ item.page + 2 }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div *ngIf="selectedManifestType" class="report-section">
+      <h2>1.Scan Manifest</h2>
+      <table class="manifest-table">
+        <tr *ngIf="selectedManifestType">
+          <th>Type</th>
+          <td>{{ selectedManifestType }}</td>
+        </tr>
+        <tr *ngIf="form.manifest.appName">
+          <th>Application</th>
+          <td>{{ form.manifest.appName }}</td>
+        </tr>
+        <tr *ngIf="form.manifest.testerName">
+          <th>Tester</th>
+          <td>{{ form.manifest.testerName }}</td>
+        </tr>
+        <tr *ngIf="form.manifest.docVersion">
+          <th>Version</th>
+          <td>{{ form.manifest.docVersion }}</td>
+        </tr>
+        <tr *ngIf="form.manifest.initDate">
+          <th>Initial Assessment Date</th>
+          <td>{{ form.manifest.initDate | date:'mediumDate' }}</td>
+        </tr>
+        <tr *ngIf="form.manifest.reDate">
+          <th>Re-assessment Date</th>
+          <td>{{ form.manifest.reDate ? (form.manifest.reDate | date:'mediumDate') : 'N/A' }}</td>
+        </tr>
+        <tr *ngIf="form.manifest.toolsUsed">
+          <th>Tools Used</th>
+          <td>{{ form.manifest.toolsUsed }}</td>
+        </tr>
+        <tr *ngIf="form.manifest.scopes.length > 0">
+          <th>Scope</th>
+          <td>
+            <div *ngFor="let scope of form.manifest.scopes" class="scope-item">{{ scope }}</div>
+          </td>
+        </tr>
+        <tr *ngIf="form.manifest.description">
+          <th>Description</th>
+          <td>{{ form.manifest.description }}</td>
+        </tr>
+      </table>
+      <div class="signature-block" style="margin: 32px 0 0 0; padding-left: 8px;">
+        <p style="margin-bottom: 80px; font-size: 1.1em;">Yours sincerely,<br>
+        From, EyeQ Dot Net Private Limited. (CIN: U80900KA2022PTC169528)<br><br><br><br></p>
+        <p style="margin-bottom: 4px; font-weight: bold; font-size: 1.1em;">{{ form.signature.name }}</p>
+        <p style="margin-bottom: 2px;">{{ form.signature.title }}</p>
+        <p style="margin-bottom: 2px;">Place: {{ form.signature.place }}</p>
+      </div>
+    </div>
+   
+    <div class="report-section">
+      <h2>2.Executive Summary</h2>
+      <div *ngIf="dashboardData" class="report-charts">
+        <!-- Severity Chart -->
+        <div class="chart-container">
+          <h3 class="chart-title"></h3>
+          <div class="chart-wrapper">
+            <canvas id="reportSeverityChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Severity Summary Boxes -->
+        <div class="severity-summary-boxes">
+          <div class="severity-box critical">
+            <div class="count">{{ dashboardData.dashboardData?.severityDistribution?.critical || 0 }}</div>
+            <div class="label">Critical</div>
+          </div>
+          <div class="severity-box high">
+            <div class="count">{{ dashboardData.dashboardData?.severityDistribution?.high || 0 }}</div>
+            <div class="label">High</div>
+          </div>
+          <div class="severity-box medium">
+            <div class="count">{{ dashboardData.dashboardData?.severityDistribution?.medium || 0 }}</div>
+            <div class="label">Medium</div>
+          </div>
+          <div class="severity-box low">
+            <div class="count">{{ dashboardData.dashboardData?.severityDistribution?.low || 0 }}</div>
+            <div class="label">Low</div>
+          </div>
+          <div class="severity-box informative">
+            <div class="count">{{ dashboardData.dashboardData?.severityDistribution?.informative || 0 }}</div>
+            <div class="label">Informative</div>
+          </div>
+          <div class="severity-box total">
+            <div class="count">
+              {{ (dashboardData.dashboardData?.severityDistribution?.critical || 0)
+                + (dashboardData.dashboardData?.severityDistribution?.high || 0)
+                + (dashboardData.dashboardData?.severityDistribution?.medium || 0)
+                + (dashboardData.dashboardData?.severityDistribution?.low || 0)
+                + (dashboardData.dashboardData?.severityDistribution?.informative || 0) }}
+            </div>
+            <div class="label">Total</div>
+          </div>
+        </div>
+
+        <!-- CVSS Score Chart -->
+        <div class="chart-container">
+          <h3 class="chart-title"></h3>
+          <div class="chart-wrapper">
+            <canvas id="reportCVSSScoreChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="report-section">
+      <h2> </h2>
+      <div *ngIf="dashboardData" class="report-charts">
+        <!-- Remediation Chart -->
+        <div class="chart-container">
+          <h3 class="chart-title">Vulnerability Findings by Area</h3>
+          <div class="chart-wrapper">
+            <canvas id="reportRemediationChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="report-section">
+      <h2>3. Findings</h2>
+      <div class="findings-table-container">
+        <!-- Header -->
+        <div class="findings-row findings-header">
+          <div class="findings-cell id-cell">ID</div>
+          <div class="findings-cell vuln-cell">Vulnerability</div>
+          <div class="findings-cell severity-cell">Severity</div>
+          <div class="findings-cell status-cell">Status</div>
+        </div>
+        <!-- Body -->
+        <div class="findings-row" *ngFor="let finding of findings; let i = index">
+          <div class="findings-cell id-cell">{{ i + 1 }}</div>
+          <div class="findings-cell vuln-cell">{{ finding.vuln }}</div>
+          <div class="findings-cell severity-cell" [class]="'severity-' + finding.severity.toLowerCase()">{{ finding.severity }}</div>
+          <div class="findings-cell status-cell" [class]="'status-' + finding.status.toLowerCase().replace(' ', '-')">{{ finding.status }}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="report-section">
+      <h2>4.Vulnerability Rating Table: </h2>
+      <table class="risk-matrix" style="width: 100%; min-width: 900px;">
+        <thead>
+          <tr>
+            <th>Risk Level</th>
+            <th>Description</th>
+            <th>Remediation Timeline</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="severity-critical">Critical</td>
+            <td>Immediate threat to business operations or data security</td>
+            <td>Immediate remediation required (within 24 hours)</td>
+          </tr>
+          <tr>
+            <td class="severity-high">High</td>
+            <td>Significant risk that could lead to system compromise</td>
+            <td>Remediate within 7 days</td>
+          </tr>
+          <tr>
+            <td class="severity-medium">Medium</td>
+            <td>Vulnerability that could be exploited under certain conditions</td>
+            <td>Remediate within 30 days</td>
+          </tr>
+          <tr>
+            <td class="severity-low">Low</td>
+            <td>Minimal impact with limited exploit potential</td>
+            <td>Remediate in next maintenance window</td>
+          </tr>
+          <tr>
+            <td class="severity-informative">Informative</td>
+            <td>Best practice recommendations</td>
+            <td>Consider for future improvements</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2 class="report-section">5. Vulnerability Details</h2>
+    <ng-container *ngFor="let finding of findings; let i = index">
+      <div class="detailed-vuln-section"
+        style="position: relative; border: 1px solid #bdbdbd; margin: 30px 0; padding: 24px; border-radius: 8px; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%;">
+          <div *ngIf="i === 0" style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 12px;">
+            <h3 style="margin: 0; font-size: 1.3em; color: #1a237e; font-weight: bold; text-align: center;">{{ selectedManifestType }} vulnerabilities reports</h3>
+          </div>
+          <span style="color: #1976d2; font-weight: bold; font-size: 1em; text-align: right; margin-left: auto;">CONFIDENTIAL</span>
+        </div>
+        <hr *ngIf="i === 0" style="margin: 12px 0 18px 0; border: none; border-top: 1px solid #e0e0e0;" />
+        <div style="font-size: 1.2em; font-weight: bold; margin-bottom: 16px;">
+          <span [attr.data-index]="i + 1" class="threat-number">
+            {{ i + 1 }})
+          </span>
+          <span *ngIf="finding.threat" class="threat-label"> {{ finding.threat }} Threat: </span>
+          <span [ngStyle]="{ color: finding.severity === 'Critical' ? '#d32f2f' : finding.severity === 'High' ? '#f57c00' : finding.severity === 'Medium' ? '#ffa000' : finding.severity === 'Low' ? '#689f38' : '#1976d2', fontWeight: 'bold' }">({{ finding.severity }})</span>
+        </div>
+        <div *ngIf="finding.threatDetails" style="margin-bottom: 12px;">
+          <span style="font-weight: bold;">Threat Details:</span> {{ finding.threatDetails }}
+        </div>
+        <div *ngIf="finding.vuln" style="margin-bottom: 12px;">
+          <span style="font-weight: bold;">Vulnerability:</span> {{ finding.vuln }}
+        </div>
+        <div *ngIf="finding.vulnUrl" style="margin-bottom: 12px;">
+          <span style="font-weight: bold;">Vulnerable URL:</span>
+          <a [href]="finding.vulnUrl" target="_blank" style="color: #1976d2; text-decoration: underline;">{{ finding.vulnUrl }}</a>
+        </div>
+        <div *ngIf="finding.impact" style="margin-bottom: 12px;">
+          <span style="font-weight: bold;">Impact:</span> {{ finding.impact }}
+        </div>
+        <div *ngIf="finding.stepsToReproduce" style="margin-bottom: 12px;">
+          <span style="font-weight: bold;">Steps to Reproduce:</span>
+          <ol style="margin: 0; padding-left: 1.2em;">
+            <li *ngFor="let step of finding.stepsToReproduce.split('\n')">{{ step }}</li>
+          </ol>
+        </div>
+        <div *ngIf="finding.pocType === 'poc' && finding.pocDataURL && finding.pocDataURL.length" class="poc-container" style="margin-bottom: 8px; font-weight: bold;">
+          POC:
+          <div *ngFor="let img of finding.pocDataURL; let imgIdx = index; trackBy: trackByImgIndex" style="display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; margin-bottom: 8px;">
+            <img *ngIf="img && img.url" [src]="img.url" alt="POC Image"
+              class="poc-image" />
+            <div *ngIf="img.caption" style="font-style: italic; color: #555; margin-top: 4px; text-align: center; max-width: 90%;">{{ img.caption }}</div>
+          </div>
+        </div>
+        <div *ngIf="finding.pocType === 'retesting' && finding.retestingPocDataURL && finding.retestingPocDataURL.length" class="retesting-poc-container" style="margin-bottom: 8px; font-weight: bold;">
+          Retesting POC:
+          <div *ngFor="let img of finding.retestingPocDataURL; let imgIdx = index; trackBy: trackByImgIndex" style="display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; margin-bottom: 8px;">
+            <img *ngIf="img && img.url" [src]="img.url" alt="Retesting POC Image"
+              class="retesting-poc-image" />
+            <div *ngIf="img.caption" style="font-style: italic; color: #555; margin-top: 4px; text-align: center; max-width: 90%;">{{ img.caption }}</div>
+          </div>
+        </div>
+        <div *ngIf="finding.mitigation" class="mitigation-section" style="margin-bottom: 12px;">
+          <span style="font-weight: bold;">Mitigation:</span> {{ finding.mitigation }}
+        </div>
+        <div *ngIf="finding.references" class="references-section" style="margin-bottom: 12px;">
+          <span style="font-weight: bold;">References:</span> {{ finding.references }}
+        </div>
+      </div>
+    </ng-container>
+    <!-- End 6th section -->
+
+    <div class="report-section">
+      <h2>6 Conclusion</h2>
+      <p>{{ getConclusionText() }}</p>
+    </div>
+
+    <div class="report-actions">
+      <button (click)="editReport()" class="edit-btn">
+        <i class="fas fa-edit"></i> Edit Report
+      </button>
+      <div class="download-dropdown" [class.open]="dropdownOpen">
+        <button (click)="toggleDropdown($event)" class="download-btn">
+          <i class="fas fa-download"></i> Download Report
+        </button>
+        <ul class="dropdown-menu">
+          <li (click)="downloadAsPDF()">
+            <i class="fas fa-file-pdf"></i> PDF
+          </li>
+          <li (click)="downloadAsDOCX()">
+            <i class="fas fa-file-word"></i> DOCX
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<app-download-progress [show]="showDownloadProgress" [progress]="downloadProgress" [fileType]="downloadFileType">
+</app-download-progress>

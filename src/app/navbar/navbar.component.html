@@ -1,0 +1,87 @@
+<nav class="cyber-navbar">
+  <!-- Animated scan line -->
+  <div class="navbar-scan-line"></div>
+  
+  <!-- Background grid pattern -->
+  <div class="navbar-grid-pattern"></div>
+  
+  <!-- Back button with enhanced styling -->
+  <div class="navbar-back cyber-nav-item" (click)="goBack()" title="Go Back">
+    <div class="nav-icon-container">
+      <i class="fas fa-arrow-left"></i>
+      <div class="nav-icon-glow"></div>
+    </div>
+    <span class="nav-text">BACK</span>
+  </div>
+
+  <!-- Brand with terminal styling -->
+  <div class="navbar-brand cyber-nav-item">
+    <a (click)="goToReports()" class="cyber-logo">
+      <div class="logo-icon">
+        <i class="fas fa-shield-virus"></i>
+        <div class="logo-pulse"></div>
+      </div>
+      <span class="logo-text">THREAT_REPORTS</span>
+      <div class="logo-underline"></div>
+    </a>
+  </div>
+
+  <!-- Enhanced search with cyber styling -->
+  <div class="navbar-search cyber-nav-item" *ngIf="isMyReportPage">
+    <div class="search-container">
+      <div class="search-icon">
+        <i class="fas fa-search"></i>
+      </div>
+      <input
+        type="text"
+        placeholder="SEARCH_REPORTS..."
+        [(ngModel)]="searchQuery"
+        (input)="onSearchChange()"
+        (focus)="onSearchFocus()"
+        (blur)="onSearchBlur()"
+        class="cyber-search-input"
+      />
+      <div class="search-scanner" [class.active]="searchFocused"></div>
+    </div>
+  </div>
+
+  <!-- Enhanced actions with micro-interactions -->
+  <div class="navbar-actions cyber-nav-item" *ngIf="isMyReportPage">
+    <button (click)="goToCreate()" class="cyber-btn-add">
+      <div class="btn-content">
+        <i class="fas fa-plus btn-icon"></i>
+        <span class="btn-text">NEW_REPORT</span>
+        <div class="btn-scanner"></div>
+      </div>
+      <div class="btn-glow"></div>
+    </button>
+    
+    <div class="user-menu">
+      <button class="cyber-user-icon" (click)="logout()" title="Logout">
+        <div class="user-content">
+          <i class="fas fa-user-ninja"></i>
+          <div class="user-ring"></div>
+        </div>
+        <div class="user-glow"></div>
+      </button>
+      <div class="cyber-tooltip">
+        <span>LOGOUT</span>
+        <div class="tooltip-arrow"></div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Security status indicators -->
+  <div class="navbar-security-status">
+    <div class="security-indicator online">
+      <div class="indicator-dot"></div>
+      <span class="indicator-text">ONLINE</span>
+    </div>
+    <div class="security-level">
+      <div class="level-bar">
+        <div class="level-fill" [style.width.%]="securityLevel"></div>
+      </div>
+      <span class="level-text">SEC: {{securityLevel}}%</span>
+    </div>
+  </div>
+</nav>

@@ -77,4 +77,5 @@ agenthub/agents/youtube/db
 .cache/
 
 # Mobile development
-android-sdk/ 
+android-sdk/ .angular/cache/20.0.2/angular-webpack/4c74a6ea5e6458bf7141041d3f0eb25feb0b4224/0.pack
+.angular/cache/20.0.2/angular-webpack/167066a9c9afb4791e0a9cd066d292680080e588/0.pack

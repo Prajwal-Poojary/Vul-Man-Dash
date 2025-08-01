@@ -1,0 +1,104 @@
+{
+  "backend1_auth": [
+    {
+      "test": "Health Check",
+      "success": true,
+      "timestamp": "2025-08-01T05:34:04.346551",
+      "response": {
+        "status": "OK",
+        "timestamp": "2025-08-01T05:34:04.345Z"
+      },
+      "error": null
+    },
+    {
+      "test": "User Registration",
+      "success": true,
+      "timestamp": "2025-08-01T05:34:04.946869",
+      "response": {
+        "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4OGM1MWNjYjNkOWMwNzZkNzc1NGQ1MyIsImlhdCI6MTc1NDAyNjQ0NCwiZXhwIjoxNzU0MTEyODQ0fQ.Eq-FTJ7IsJr31oc5LDrIqtZ0wdQLWm9645pqYzfimTI",
+        "exp": 1754112844,
+        "user": {
+          "id": "688c51ccb3d9c076d7754d53",
+          "name": "Test User",
+          "email": "test_1754026441@cybersecurity.test"
+        }
+      },
+      "error": null
+    },
+    {
+      "test": "User Login",
+      "success": true,
+      "timestamp": "2025-08-01T05:34:05.284234",
+      "response": {
+        "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4OGM1MWNjYjNkOWMwNzZkNzc1NGQ1MyIsImlhdCI6MTc1NDAyNjQ0NSwiZXhwIjoxNzU0MTEyODQ1fQ.OT9onEIzwl8XBa0qlxnwfSWPjcENQDlYrRH9m7LaujY",
+        "exp": 1754112845,
+        "user": {
+          "id": "688c51ccb3d9c076d7754d53",
+          "name": "Test User",
+          "email": "test_1754026441@cybersecurity.test"
+        }
+      },
+      "error": null
+    },
+    {
+      "test": "Get User Data",
+      "success": true,
+      "timestamp": "2025-08-01T05:34:05.533287",
+      "response": {
+        "_id": "688c51ccb3d9c076d7754d53",
+        "name": "Test User",
+        "email": "test_1754026441@cybersecurity.test",
+        "username": "9684902da9618271",
+        "createdAt": "2025-08-01T05:34:04.597Z",
+        "updatedAt": "2025-08-01T05:34:04.597Z",
+        "__v": 0
+      },
+      "error": null
+    },
+    {
+      "test": "Invalid Login Test",
+      "success": true,
+      "timestamp": "2025-08-01T05:34:05.868524",
+      "response": null,
+      "error": null
+    }
+  ],
+  "backend2_reports": [
+    {
+      "test": "Health Check",
+      "success": false,
+      "timestamp": "2025-08-01T05:34:05.869868",
+      "response": null,
+      "error": "HTTPConnectionPool(host='localhost', port=5001): Max retries exceeded with url: /health (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0xff376d306e10>: Failed to establish a new connection: [Errno 111] Connection refused'))"
+    }
+  ],
+  "backend_flask": [
+    {
+      "test": "Flask Health Check",
+      "success": false,
+      "timestamp": "2025-08-01T05:34:05.870871",
+      "response": null,
+      "error": "HTTPConnectionPool(host='localhost', port=5002): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0xff376d31d910>: Failed to establish a new connection: [Errno 111] Connection refused'))"
+    },
+    {
+      "test": "Flask Responsiveness",
+      "success": false,
+      "timestamp": "2025-08-01T05:34:05.871889",
+      "response": null,
+      "error": "HTTPConnectionPool(host='localhost', port=5002): Max retries exceeded with url: / (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0xff376d31ef90>: Failed to establish a new connection: [Errno 111] Connection refused'))"
+    }
+  ],
+  "summary": {
+    "total_tests": 8,
+    "passed_tests": 5,
+    "failed_tests": 3,
+    "success_rate": 62.5,
+    "duration_seconds": 1.53,
+    "services_tested": 3,
+    "services_passed": 1,
+    "backend1_auth": true,
+    "backend2_reports": false,
+    "backend_flask": false,
+    "overall_success": false
+  }
+}
